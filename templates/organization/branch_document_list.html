@@ -1,0 +1,481 @@
+{% extends "organization/base.html" %}
+
+{% block title %}Branch Documents | HR System{% endblock %}
+
+{% block organization_shell_header %}{% endblock %}
+
+{% block organization_content %}
+<div class="organization-shell branch-documents-page-shell">
+    <div class="branch-documents-header-centered branch-documents-hero-clean">
+        {% if is_branch_scoped_supervisor and scoped_branch %}
+            <h1 class="page-title">My Branch Documents</h1>
+            <p class="page-subtitle">
+                Upload, review, and keep official branch files updated for <strong>{{ scoped_branch.name }}</strong>.
+                Track expiry dates, missing checklist items, and renewal status from one place.
+            </p>
+            <div class="branch-documents-header-actions branch-documents-header-actions-centered">
+                <a href="{% url 'organization:branch_detail' scoped_branch.pk %}" class="btn btn-light">Open My Branch</a>
+            </div>
+        {% else %}
+            <h1 class="page-title">Branch Documents Center</h1>
+            <p class="page-subtitle">
+                Upload and monitor store licenses, legal documents, permits, lease files, and other important branch records across all branches.
+                Define each branch checklist and instantly see what is missing, expired, or close to renewal.
+            </p>
+            <div class="branch-documents-header-actions branch-documents-header-actions-centered">
+                <a href="{% url 'organization:branch_list' %}" class="btn btn-light">Open Branches</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="branches-summary-grid branch-documents-summary-grid-centered">
+        <div class="summary-card branches-summary-card branch-documents-summary-card">
+            <span class="summary-label">All Documents</span>
+            <span class="summary-value">{{ all_document_total }}</span>
+            <span class="summary-help">Total uploaded branch records now tracked in the registry.</span>
+        </div>
+        <div class="summary-card branches-summary-card branch-documents-summary-card">
+            <span class="summary-label">Checklist Items</span>
+            <span class="summary-value">{{ requirement_total }}</span>
+            <span class="summary-help">Required checklist rules defined across the selected branch scope.</span>
+        </div>
+        <div class="summary-card branches-summary-card branch-documents-summary-card is-danger">
+            <span class="summary-label">Missing Items</span>
+            <span class="summary-value">{{ requirement_missing_total }}</span>
+            <span class="summary-help">Required records still missing and waiting for upload or renewal.</span>
+        </div>
+        <div class="summary-card branches-summary-card branch-documents-summary-card is-warning">
+            <span class="summary-label">Expiring Soon</span>
+            <span class="summary-value">{{ expiring_soon_document_total }}</span>
+            <span class="summary-help">Documents that need attention soon before compliance risk appears.</span>
+        </div>
+    </div>
+    <div class="card filter-card branch-documents-centered-card">
+        <div class="card-header">
+            <h2>Filter Documents</h2>
+            <p class="page-subtitle">
+                {% if is_branch_scoped_supervisor %}
+                    Filter your branch files by type, status, or keyword.
+                {% else %}
+                    Filter the full document registry to audit branches faster.
+                {% endif %}
+            </p>
+        </div>
+        <div class="card-body">
+            <form method="get" class="directory-filter-form">
+                <div class="filter-grid">
+                    <div class="form-group">
+                        <label for="id_branch">Branch</label>
+                        {% if is_branch_scoped_supervisor and scoped_branch %}
+                            <input type="text" class="form-control" value="{{ scoped_branch.company.name }} — {{ scoped_branch.name }}" readonly>
+                            <input type="hidden" name="branch" value="{{ scoped_branch.pk }}">
+                        {% else %}
+                            <select id="id_branch" name="branch" class="form-control">
+                                <option value="">Select branch</option>
+                                {% for branch in branch_choices %}
+                                    <option value="{{ branch.pk }}" {% if selected_branch == branch.pk|stringformat:"s" %}selected{% endif %}>{{ branch.company.name }} — {{ branch.name }}</option>
+                                {% endfor %}
+                            </select>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_document_type">Document Type</label>
+                        <select id="id_document_type" name="document_type" class="form-control">
+                            <option value="">All document types</option>
+                            {% for value, label in document_type_choices %}
+                                <option value="{{ value }}" {% if selected_document_type == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_status">Status</label>
+                        <select id="id_status" name="status" class="form-control">
+                            {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group filter-search-group">
+                        <label for="id_search">Search</label>
+                        <input id="id_search" type="text" name="search" value="{{ search_value }}" class="form-control" placeholder="Title, reference number, branch, company, uploader">
+                    </div>
+                </div>
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <a href="{% url 'organization:branch_document_list' %}" class="btn btn-light">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card branch-documents-top-card branch-documents-centered-card">
+        <div class="card-header branch-documents-top-card-header-clean">
+            <h2>{% if is_branch_scoped_supervisor %}Submit Branch Document{% else %}Upload Branch Document{% endif %}</h2>
+            <p class="page-subtitle">
+                {% if is_branch_scoped_supervisor and scoped_branch %}
+                    Submit or renew official files for <strong>{{ scoped_branch.name }}</strong> and keep operations updated.
+                {% else %}
+                    Select a branch, upload the official file, and keep the compliance record updated in one place.
+                {% endif %}
+            </p>
+        </div>
+        <div class="card-body branch-documents-top-card-body branch-documents-top-card-body-single">
+            {% if upload_branch %}
+                <div class="status-sync-note branch-documents-inline-note">
+                    Upload target:
+                    <strong>{{ upload_branch.company.name }} — {{ upload_branch.name }}</strong>
+                </div>
+
+                <div class="branch-documents-compact-meta branch-documents-meta-inline-row">
+                    <div class="detail-item document-meta-item branch-documents-stat-card {% if requirement_missing_total %}document-meta-item-danger{% else %}document-meta-item-muted{% endif %}">
+                        <span class="branch-documents-stat-label">Missing Checklist</span>
+                        <p class="branch-documents-stat-value {% if requirement_missing_total %}document-expiry-value-danger{% else %}document-expiry-value-muted{% endif %}">{{ requirement_missing_total }}</p>
+                    </div>
+                    <div class="detail-item document-meta-item branch-documents-stat-card {% if requirement_expired_total %}document-meta-item-danger{% else %}document-meta-item-muted{% endif %}">
+                        <span class="branch-documents-stat-label">Expired Required</span>
+                        <p class="branch-documents-stat-value {% if requirement_expired_total %}document-expiry-value-danger{% else %}document-expiry-value-muted{% endif %}">{{ requirement_expired_total }}</p>
+                    </div>
+                    <div class="detail-item document-meta-item branch-documents-stat-card {% if requirement_valid_total %}document-meta-item-success{% else %}document-meta-item-muted{% endif %}">
+                        <span class="branch-documents-stat-label">Compliant Items</span>
+                        <p class="branch-documents-stat-value {% if requirement_valid_total %}document-expiry-value-success{% else %}document-expiry-value-muted{% endif %}">{{ requirement_valid_total }}</p>
+                    </div>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" action="{{ branch_document_create_url }}" class="employee-sidebar-form branch-documents-centered-upload-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+                    {% if branch_document_form.non_field_errors %}
+                        <ul class="errorlist">
+                            {% for error in branch_document_form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+
+                    <div class="form-grid two-col sidebar-form-grid branch-documents-upload-grid">
+                        {% for field in branch_document_form %}
+                            <div class="form-group {% if field.name == 'description' %}form-group-full{% endif %} {% if field.field.widget.input_type == 'checkbox' %}checkbox-group{% endif %}">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {% if field.field.widget.input_type == 'checkbox' %}
+                                    <div class="checkbox-wrap">
+                                        {{ field }}
+                                        <span>{{ field.help_text|default:"Mark this when the uploaded document itself must remain flagged as required." }}</span>
+                                    </div>
+                                {% else %}
+                                    {{ field }}
+                                {% endif %}
+                                {% if field.help_text and field.field.widget.input_type != 'checkbox' %}
+                                    <span class="form-help">{{ field.help_text }}</span>
+                                {% endif %}
+                                {% if field.errors %}
+                                    <ul class="errorlist">
+                                        {% for error in field.errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="branch-documents-callout branch-documents-callout-inline">
+                        {% if is_branch_scoped_supervisor and scoped_branch %}
+                            Keep your branch documents active, updated, and visible to operations and admin users.
+                        {% else %}
+                            Track required, expired, expiring, and missing branch documents from one management workspace.
+                        {% endif %}
+                    </div>
+
+                    <div class="form-actions branch-documents-action-row branch-documents-action-row-centered">
+                        <button type="submit" class="btn btn-primary">Upload Document</button>
+                        <a href="{% url 'organization:branch_document_list' %}{% if selected_branch %}?branch={{ selected_branch }}{% endif %}" class="btn btn-light">Clear Form</a>
+                    </div>
+                </form>
+            {% else %}
+                <div class="empty-state compact-empty-state">
+                    <h3>No upload target selected</h3>
+                    <p>
+                        {% if is_branch_scoped_supervisor %}
+                            Your supervisor account is not linked to a branch yet. Assign the supervisor to a branch first.
+                        {% else %}
+                            Select a branch in the filter section below to enable document upload for that branch.
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if can_manage_organization %}
+        <div class="card branch-documents-centered-card">
+            <div class="card-header">
+                <h2>Branch Requirement Checklist</h2>
+                <p class="page-subtitle">
+                    Define which document types are mandatory for the selected branch so the system can detect missing items automatically.
+                </p>
+            </div>
+            <div class="card-body">
+                {% if upload_branch %}
+                    <div class="status-sync-note branch-documents-inline-note">
+                        Checklist branch:
+                        <strong>{{ upload_branch.company.name }} — {{ upload_branch.name }}</strong>
+                    </div>
+
+                    <form method="post" action="{{ branch_document_requirement_create_url }}" class="employee-sidebar-form branch-documents-centered-upload-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+                        {% if branch_document_requirement_form.non_field_errors %}
+                            <ul class="errorlist">
+                                {% for error in branch_document_requirement_form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+
+                        <div class="form-grid two-col sidebar-form-grid branch-documents-upload-grid">
+                            {% for field in branch_document_requirement_form %}
+                                <div class="form-group {% if field.name == 'notes' %}form-group-full{% endif %} {% if field.field.widget.input_type == 'checkbox' %}checkbox-group{% endif %}">
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {% if field.field.widget.input_type == 'checkbox' %}
+                                        <div class="checkbox-wrap">
+                                            {{ field }}
+                                            <span>{{ field.help_text|default:"Use these flags to control whether the checklist item is mandatory and active." }}</span>
+                                        </div>
+                                    {% else %}
+                                        {{ field }}
+                                    {% endif %}
+                                    {% if field.help_text and field.field.widget.input_type != 'checkbox' %}
+                                        <span class="form-help">{{ field.help_text }}</span>
+                                    {% endif %}
+                                    {% if field.errors %}
+                                        <ul class="errorlist">
+                                            {% for error in field.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-actions branch-documents-action-row">
+                            <button type="submit" class="btn btn-primary">Save Checklist Item</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="empty-state compact-empty-state">
+                        <h3>Select a branch first</h3>
+                        <p>Choose a branch from the filter section below to define its required document checklist.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="card branch-documents-centered-card">
+        <div class="card-header">
+            <h2>Required Checklist Status</h2>
+            <p class="page-subtitle">
+                {% if is_branch_scoped_supervisor %}
+                    Your required branch documents with live compliance status.
+                {% else %}
+                    Required document checklist for the selected branch.
+                {% endif %}
+            </p>
+        </div>
+        <div class="card-body">
+            {% if requirement_rows %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Required Item</th>
+                                <th>Latest Document</th>
+                                <th>Reference</th>
+                                <th>Dates</th>
+                                <th>Status</th>
+                                {% if can_manage_organization %}
+                                    <th>Actions</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in requirement_rows %}
+                                <tr>
+                                    <td>
+                                        <div class="table-stack">
+                                            <strong>{{ row.title }}</strong>
+                                            <span>{{ row.document_type }}</span>
+                                            {% if row.is_mandatory %}
+                                                <span class="badge badge-primary">Mandatory</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="table-stack">
+                                            <strong>{{ row.document_title }}</strong>
+                                            {% if row.document_file_url %}
+                                                <small><a href="{{ row.document_file_url }}" target="_blank" rel="noopener" class="org-name-link">Open file</a></small>
+                                            {% else %}
+                                                <small>No file uploaded</small>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>{{ row.document_reference_number|default:"—" }}</td>
+                                    <td>
+                                        <div class="table-stack">
+                                            <span>Issue: {{ row.document_issue_date|default:"—" }}</span>
+                                            <span>Expiry: {{ row.document_expiry_date|default:"—" }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="status-cell-stack">
+                                            <span class="badge {{ row.status_badge_class }}">{{ row.status_label }}</span>
+                                            <small>{{ row.days_label }}</small>
+                                        </div>
+                                    </td>
+                                    {% if can_manage_organization %}
+                                        <td>
+                                            <form method="post" action="{{ row.delete_url }}" onsubmit="return confirm('Delete this checklist item?');">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                            </form>
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state compact-empty-state">
+                    <h3>No checklist items yet</h3>
+                    <p>
+                        {% if upload_branch and can_manage_organization %}
+                            Add the first required document item for this branch, then the system will start tracking missing and uploaded status automatically.
+                        {% elif upload_branch %}
+                            Operations or admin users still need to define the required checklist for this branch.
+                        {% else %}
+                            Select a branch first to review the requirement checklist.
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+
+
+    <div class="card table-card branch-documents-centered-card">
+        <div class="card-header">
+            <h2>Documents Registry</h2>
+            <p class="page-subtitle">
+                {% if is_branch_scoped_supervisor %}
+                    Your branch documents and their latest compliance state.
+                {% else %}
+                    Full list of branch documents based on the selected filters.
+                {% endif %}
+            </p>
+        </div>
+        <div class="card-body">
+            {% if document_rows %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Branch</th>
+                                <th>Document</th>
+                                <th>Reference</th>
+                                <th>Dates</th>
+                                <th>Status</th>
+                                <th>Uploaded By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in document_rows %}
+                                <tr>
+                                    <td>
+                                        <div class="table-stack">
+                                            <strong>
+                                                {% if row.branch_detail_url %}
+                                                    <a href="{{ row.branch_detail_url }}" class="org-name-link">{{ row.branch_name }}</a>
+                                                {% else %}
+                                                    {{ row.branch_name }}
+                                                {% endif %}
+                                            </strong>
+                                            <small>{{ row.company_name }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="table-stack">
+                                            <strong>{{ row.title }}</strong>
+                                            <span>{{ row.document_type }}</span>
+                                            {% if row.is_required %}
+                                                <span class="badge badge-primary">Required</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>{{ row.reference_number }}</td>
+                                    <td>
+                                        <div class="table-stack">
+                                            <span>Issue: {{ row.issue_date|default:"—" }}</span>
+                                            <span>Expiry: {{ row.expiry_date|default:"—" }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="status-cell-stack">
+                                            <span class="badge {{ row.status_badge_class }}">{{ row.status_label }}</span>
+                                            <small>{{ row.days_label }}</small>
+                                        </div>
+                                    </td>
+                                    <td>{{ row.uploaded_by|default:"—" }}</td>
+                                    <td>
+                                        <div class="page-actions document-actions-row">
+                                            {% if row.file_url %}
+                                                <a href="{{ row.file_url }}" target="_blank" rel="noopener" class="btn btn-light btn-sm">Open</a>
+                                            {% endif %}
+                                            {% if row.branch_detail_url %}
+                                                <a href="{{ row.branch_detail_url }}" class="btn btn-light btn-sm">Branch</a>
+                                            {% endif %}
+                                            {% if row.delete_url %}
+                                                <form method="post" action="{{ row.delete_url }}" onsubmit="return confirm('Delete this branch document?');">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if is_paginated %}
+                    <div class="pagination-wrap">
+                        <div class="pagination">
+                            {% if page_obj.has_previous %}
+                                <a class="btn btn-light" href="?page={{ page_obj.previous_page_number }}&branch={{ selected_branch }}&document_type={{ selected_document_type }}&status={{ selected_status }}&search={{ search_value|urlencode }}">Previous</a>
+                            {% endif %}
+                            <span class="pagination-info">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+                            {% if page_obj.has_next %}
+                                <a class="btn btn-light" href="?page={{ page_obj.next_page_number }}&branch={{ selected_branch }}&document_type={{ selected_document_type }}&status={{ selected_status }}&search={{ search_value|urlencode }}">Next</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="empty-state compact-empty-state">
+                    <h3>No matching branch documents</h3>
+                    <p>No branch documents match the current filter.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

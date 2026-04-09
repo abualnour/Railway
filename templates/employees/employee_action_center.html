@@ -1,0 +1,495 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Employee Action Center{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/action_center.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="action-center-page">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Employee Action Center</h1>
+            <p class="page-subtitle">
+                Search for one employee first, then manage the selected employee from one focused action workspace instead of jumping between profile pages.
+            </p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">Back to Directory</a>
+        </div>
+    </div>
+
+    <div class="action-center-shell">
+        <div class="action-center-layout">
+            <div class="action-center-sidebar-stack">
+                <div class="card action-center-sidebar-card action-center-picker-card">
+                    <div class="card-header">
+                        <h2>Quick Employee Picker</h2>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" class="action-center-search-form action-center-search-form-compact">
+                            <div class="action-center-search-row">
+                                <div class="form-group action-center-search-field">
+                                    <label for="id_search">Search employee</label>
+                                    <input type="text" id="id_search" name="search" class="form-control" value="{{ search_query }}" placeholder="Employee name or ID">
+                                </div>
+                                <div class="action-center-actions">
+                                    <button type="submit" class="btn btn-primary">Search</button>
+                                    <a href="{% url 'employees:employee_admin_action_center' %}" class="btn btn-light">Reset</a>
+                                </div>
+                            </div>
+                        </form>
+
+                        {% if quick_employee_results %}
+                            <div class="action-center-picker-results-card action-center-surface-card">
+                                <div class="action-center-picker-results-head">
+                                    <div>
+                                        <h3 class="action-center-picker-results-title">Employee list</h3>
+                                        <p class="action-center-picker-results-note">
+                                            Showing {{ employee_picker_page.start_index }}–{{ employee_picker_page.end_index }} of {{ employee_picker_paginator.count }} employee{{ employee_picker_paginator.count|pluralize }}.
+                                        </p>
+                                    </div>
+                                    <span class="badge badge-light">Page {{ employee_picker_page.number }} of {{ employee_picker_paginator.num_pages }}</span>
+                                </div>
+
+                                <div class="action-center-picker-grid action-center-picker-grid-cards">
+                                    {% for employee in quick_employee_results %}
+                                        <a class="action-center-picker-item action-center-picker-card{% if selected_employee and selected_employee.pk == employee.pk %} is-active{% endif %}" href="{% url 'employees:employee_admin_action_center' %}?{% if search_query %}search={{ search_query|urlencode }}&{% endif %}page={{ employee_picker_page.number }}&employee={{ employee.pk }}">
+                                            <div class="action-center-picker-item-head">
+                                                <strong>{{ employee.full_name }}</strong>
+                                                {% if selected_employee and selected_employee.pk == employee.pk %}
+                                                    <span class="badge badge-primary">Selected</span>
+                                                {% endif %}
+                                            </div>
+                                            <span>{{ employee.employee_id }}{% if employee.job_title %} • {{ employee.job_title }}{% endif %}</span>
+                                            <small>
+                                                {{ employee.branch|default:"—" }}
+                                                {% if employee.department %} • {{ employee.department }}{% endif %}
+                                            </small>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+
+                                {% if employee_picker_paginator.num_pages > 1 %}
+                                    <div class="action-center-picker-pagination">
+                                        <div class="action-center-picker-pagination-nav">
+                                            {% if employee_picker_page.has_previous %}
+                                                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_admin_action_center' %}?{% if search_query %}search={{ search_query|urlencode }}&{% endif %}page={{ employee_picker_page.previous_page_number }}{% if selected_employee %}&employee={{ selected_employee.pk }}{% endif %}">Previous</a>
+                                            {% else %}
+                                                <span class="btn btn-light btn-sm is-disabled" aria-disabled="true">Previous</span>
+                                            {% endif %}
+
+                                            {% if employee_picker_page.has_next %}
+                                                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_admin_action_center' %}?{% if search_query %}search={{ search_query|urlencode }}&{% endif %}page={{ employee_picker_page.next_page_number }}{% if selected_employee %}&employee={{ selected_employee.pk }}{% endif %}">Next</a>
+                                            {% else %}
+                                                <span class="btn btn-light btn-sm is-disabled" aria-disabled="true">Next</span>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="action-center-picker-page-numbers">
+                                            {% for page_num in employee_picker_paginator.page_range %}
+                                                {% if page_num == employee_picker_page.number %}
+                                                    <span class="action-center-page-number is-active">{{ page_num }}</span>
+                                                {% else %}
+                                                    <a class="action-center-page-number" href="{% url 'employees:employee_admin_action_center' %}?{% if search_query %}search={{ search_query|urlencode }}&{% endif %}page={{ page_num }}{% if selected_employee %}&employee={{ selected_employee.pk }}{% endif %}">{{ page_num }}</a>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="empty-state compact-empty-state empty-state-left">
+                                {% if search_query %}
+                                    <h3>No employees found</h3>
+                                    <p>Try a different employee name or employee ID.</p>
+                                {% else %}
+                                    <h3>No employees available</h3>
+                                    <p>No employees are available in your current scope yet.</p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if selected_employee %}
+                    <div class="action-center-section-stack">
+                        <div class="card action-center-overview-card">
+                            <div class="card-header">
+                                <h2>Selected Employee Overview</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="action-center-overview-grid">
+                                    <div class="action-center-overview-item">
+                                        <span class="detail-label">Full Name</span>
+                                        <span class="detail-value">{{ selected_employee.full_name|default:"—" }}</span>
+                                    </div>
+                                    <div class="action-center-overview-item">
+                                        <span class="detail-label">Employee ID</span>
+                                        <span class="detail-value">{{ selected_employee.employee_id|default:"—" }}</span>
+                                    </div>
+                                    <div class="action-center-overview-item">
+                                        <span class="detail-label">Company</span>
+                                        <span class="detail-value">{{ selected_employee.company|default:"—" }}</span>
+                                    </div>
+                                    <div class="action-center-overview-item">
+                                        <span class="detail-label">Department</span>
+                                        <span class="detail-value">{{ selected_employee.department|default:"—" }}</span>
+                                    </div>
+                                    <div class="action-center-overview-item">
+                                        <span class="detail-label">Section</span>
+                                        <span class="detail-value">{{ selected_employee.section|default:"—" }}</span>
+                                    </div>
+                                    <div class="action-center-overview-item">
+                                        <span class="detail-label">Job Title</span>
+                                        <span class="detail-value">{{ selected_employee.job_title|default:"—" }}</span>
+                                    </div>
+                                    <div class="action-center-overview-item">
+                                        <span class="detail-label">Branch</span>
+                                        <span class="detail-value">{{ selected_employee.branch|default:"—" }}</span>
+                                    </div>
+                                    <div class="action-center-overview-item">
+                                        <span class="detail-label">Supervisor</span>
+                                        <span class="detail-value">{{ selected_employee_supervisor_display|default:"—" }}</span>
+                                    </div>
+                                </div>
+                                <p class="action-center-standby-note">
+                                    This selected employee is now the active target for all Action Center sections below.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="action-center-main-stack">
+                            <div class="action-center-priority-grid">
+                                <div class="card action-center-queue-card action-center-priority-card">
+                                    <div class="card-header">
+                                        <h2>Leave Workflow Visibility</h2>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="detail-grid two-col employee-org-grid request-summary-detail-grid">
+                                            <div class="detail-item">
+                                                <span class="detail-label">My Review Queue</span>
+                                                <span class="detail-value">{{ my_leave_review_count }}</span>
+                                            </div>
+                                            <div class="detail-item">
+                                                <span class="detail-label">Current Review Focus</span>
+                                                <span class="detail-value">{{ current_leave_review_stage_label }}</span>
+                                            </div>
+                                            <div class="detail-item">
+                                                <span class="detail-label">Waiting for Supervisor</span>
+                                                <span class="detail-value">{{ supervisor_stage_pending_count }}</span>
+                                            </div>
+                                            <div class="detail-item">
+                                                <span class="detail-label">Waiting for Operations</span>
+                                                <span class="detail-value">{{ operations_stage_pending_count }}</span>
+                                            </div>
+                                            <div class="detail-item">
+                                                <span class="detail-label">Waiting for HR</span>
+                                                <span class="detail-value">{{ hr_stage_pending_count }}</span>
+                                            </div>
+                                            <div class="detail-item">
+                                                <span class="detail-label">Total Pending Requests</span>
+                                                <span class="detail-value">{{ pending_leave_requests }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card action-center-queue-card action-center-priority-card">
+                                    <div class="card-header">
+                                        <h2>Leave Requests Waiting for My Stage</h2>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if my_leave_review_queue %}
+                                            <div class="action-center-queue-list action-center-priority-list">
+                                                {% for row in my_leave_review_queue %}
+                                                    <a href="{{ row.url }}" class="action-center-queue-item">
+                                                        <div class="action-center-queue-main">
+                                                            <strong>{{ row.title }}</strong>
+                                                            <span>{{ row.subtitle }}</span>
+                                                            <small>{{ row.workflow_owner }} • {{ row.stage_label }}</small>
+                                                        </div>
+                                                        <small>{{ row.meta }}</small>
+                                                    </a>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <div class="empty-state compact-empty-state empty-state-left action-center-priority-empty">
+                                                <h3>No leave requests are waiting for your stage</h3>
+                                                <p>The queue is currently clear for {{ current_leave_review_stage_label|lower }}.</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="card action-center-guidance-card action-center-priority-card">
+                                    <div class="card-header">
+                                        <h2>Required Submission Queue</h2>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if required_submission_queue %}
+                                            <div class="action-center-queue-list action-center-priority-list">
+                                                {% for row in required_submission_queue %}
+                                                    <a href="{{ row.url }}" class="action-center-queue-item">
+                                                        <div class="action-center-queue-main">
+                                                            <strong>{{ row.title }}</strong>
+                                                            <span>{{ row.subtitle }}</span>
+                                                        </div>
+                                                        <small>{{ row.meta }}</small>
+                                                    </a>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <div class="empty-state compact-empty-state empty-state-left action-center-priority-empty">
+                                                <h3>No outstanding file requests</h3>
+                                                <p>The required submission queue is currently clear.</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="card action-center-guidance-card action-center-priority-card">
+                                    <div class="card-header">
+                                        <h2>Attendance Exceptions Today</h2>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if attendance_exception_queue %}
+                                            <div class="action-center-queue-list action-center-priority-list">
+                                                {% for row in attendance_exception_queue %}
+                                                    <a href="{{ row.url }}" class="action-center-queue-item">
+                                                        <div class="action-center-queue-main">
+                                                            <strong>{{ row.title }}</strong>
+                                                            <span>{{ row.subtitle }}</span>
+                                                        </div>
+                                                        <small>{{ row.meta }}</small>
+                                                    </a>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <div class="empty-state compact-empty-state empty-state-left action-center-priority-empty">
+                                                <h3>No attendance exceptions today</h3>
+                                                <p>Today does not currently show exception rows or manual absence action records.</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="action-center-section-stack">
+                                <div class="card action-center-action-card">
+                                    <div class="card-header">
+                                        <h2>Employee Status Action</h2>
+                                        <span class="action-center-live-badge">Live Form</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post" class="action-center-inline-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action_center_post" value="status_action">
+                                            <input type="hidden" name="employee" value="{{ selected_employee.pk }}">
+                                            <input type="hidden" name="search" value="{{ search_query }}">
+                                            <input type="hidden" name="page" value="{{ employee_picker_page.number|default:1 }}">
+
+                                            <div class="action-center-form-grid action-center-form-grid-two">
+                                                <div class="form-group">
+                                                    <label for="id_target_status">Employment Status</label>
+                                                    <select id="id_target_status" name="target_status" class="form-control">
+                                                        {% for status_value, status_label in employment_status_choices %}
+                                                            <option value="{{ status_value }}" {% if selected_employee.employment_status == status_value %}selected{% endif %}>{{ status_label }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="action-center-form-actions">
+                                                <button type="submit" class="btn btn-primary">Update Status</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="card action-center-action-card">
+                                    <div class="card-header">
+                                        <h2>Action / Incident Record</h2>
+                                        <span class="action-center-live-badge">Live Form</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post" class="action-center-inline-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action_center_post" value="action_record">
+                                            <input type="hidden" name="employee" value="{{ selected_employee.pk }}">
+                                            <input type="hidden" name="search" value="{{ search_query }}">
+                                            <input type="hidden" name="page" value="{{ employee_picker_page.number|default:1 }}">
+
+                                            <div class="action-center-form-grid action-center-form-grid-two">
+                                                {% for field in action_center_action_form.visible_fields %}
+                                                    <div class="form-group{% if field.name == 'description' %} action-center-form-group-full{% endif %}">
+                                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                                        {{ field }}
+                                                        {% for error in field.errors %}
+                                                            <div class="form-error">{{ error }}</div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                            {% for error in action_center_action_form.non_field_errors %}
+                                                <div class="form-error form-error-block">{{ error }}</div>
+                                            {% endfor %}
+
+                                            <div class="action-center-form-actions">
+                                                <button type="submit" class="btn btn-primary">Create Action Record</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="card action-center-action-card">
+                                    <div class="card-header">
+                                        <h2>Document / File Request Action</h2>
+                                        <span class="action-center-live-badge">Live Form</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post" class="action-center-inline-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action_center_post" value="required_submission">
+                                            <input type="hidden" name="employee" value="{{ selected_employee.pk }}">
+                                            <input type="hidden" name="search" value="{{ search_query }}">
+                                            <input type="hidden" name="page" value="{{ employee_picker_page.number|default:1 }}">
+
+                                            <div class="action-center-form-grid action-center-form-grid-two">
+                                                {% for field in action_center_required_submission_form.visible_fields %}
+                                                    <div class="form-group{% if field.name == 'instructions' %} action-center-form-group-full{% endif %}">
+                                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                                        {{ field }}
+                                                        {% for error in field.errors %}
+                                                            <div class="form-error">{{ error }}</div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                            {% for error in action_center_required_submission_form.non_field_errors %}
+                                                <div class="form-error form-error-block">{{ error }}</div>
+                                            {% endfor %}
+
+                                            <div class="action-center-form-actions">
+                                                <button type="submit" class="btn btn-primary">Create File Request</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="card action-center-action-card">
+                                    <div class="card-header">
+                                        <h2>Attendance Action</h2>
+                                        <span class="action-center-live-badge">Live Form</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post" class="action-center-inline-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action_center_post" value="attendance_action">
+                                            <input type="hidden" name="employee" value="{{ selected_employee.pk }}">
+                                            <input type="hidden" name="search" value="{{ search_query }}">
+                                            <input type="hidden" name="page" value="{{ employee_picker_page.number|default:1 }}">
+
+                                            <div class="action-center-form-grid action-center-form-grid-two">
+                                                {% for field in action_center_attendance_form.visible_fields %}
+                                                    <div class="form-group{% if field.name == 'notes' %} action-center-form-group-full{% endif %}">
+                                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                                        {{ field }}
+                                                        {% for error in field.errors %}
+                                                            <div class="form-error">{{ error }}</div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                            {% for error in action_center_attendance_form.non_field_errors %}
+                                                <div class="form-error form-error-block">{{ error }}</div>
+                                            {% endfor %}
+
+                                            <div class="action-center-form-actions">
+                                                <button type="submit" class="btn btn-primary">Create Attendance Entry</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="card action-center-action-card">
+                                    <div class="card-header">
+                                        <h2>Leave / Request Action</h2>
+                                        <span class="action-center-live-badge">Live Form</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post" class="action-center-inline-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action_center_post" value="leave_request">
+                                            <input type="hidden" name="employee" value="{{ selected_employee.pk }}">
+                                            <input type="hidden" name="search" value="{{ search_query }}">
+                                            <input type="hidden" name="page" value="{{ employee_picker_page.number|default:1 }}">
+
+                                            <div class="action-center-form-grid action-center-form-grid-two">
+                                                {% for field in action_center_leave_form.visible_fields %}
+                                                    <div class="form-group{% if field.name == 'reason' %} action-center-form-group-full{% endif %}">
+                                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                                        {{ field }}
+                                                        {% for error in field.errors %}
+                                                            <div class="form-error">{{ error }}</div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                            {% for error in action_center_leave_form.non_field_errors %}
+                                                <div class="form-error form-error-block">{{ error }}</div>
+                                            {% endfor %}
+
+                                            <div class="action-center-form-actions">
+                                                <button type="submit" class="btn btn-primary">Create Leave Request</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="card action-center-action-card">
+                                    <div class="card-header">
+                                        <h2>Transfer / Placement Action</h2>
+                                        <span class="action-center-live-badge">Live Form</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post" class="action-center-inline-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action_center_post" value="transfer_action">
+                                            <input type="hidden" name="employee" value="{{ selected_employee.pk }}">
+                                            <input type="hidden" name="search" value="{{ search_query }}">
+                                            <input type="hidden" name="page" value="{{ employee_picker_page.number|default:1 }}">
+
+                                            <div class="action-center-form-grid action-center-form-grid-two">
+                                                {% for field in action_center_transfer_form.visible_fields %}
+                                                    <div class="form-group{% if field.name == 'notes' %} action-center-form-group-full{% endif %}">
+                                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                                        {{ field }}
+                                                        {% for error in field.errors %}
+                                                            <div class="form-error">{{ error }}</div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                            {% for error in action_center_transfer_form.non_field_errors %}
+                                                <div class="form-error form-error-block">{{ error }}</div>
+                                            {% endfor %}
+
+                                            <div class="action-center-form-actions">
+                                                <button type="submit" class="btn btn-primary">Save Placement Change</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

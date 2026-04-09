@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Employees Directory{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/employees.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="employee-directory-page">
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Employees Directory</h1>
+        <p class="page-subtitle">
+            Search, filter, and review employee records across your current organization structure and lifecycle status layer.
+        </p>
+        {% if is_branch_scoped_supervisor and scoped_branch %}
+            <p class="page-subtitle" style="margin-top: 8px;">You are viewing a branch management scope for <strong>{{ scoped_branch.name }}</strong>. You can open employee profiles and review branch requests from here.</p>
+        {% endif %}
+    </div>
+
+    <div class="page-actions">
+        {% if can_manage_employees %}<a href="{% url 'employees:employee_create' %}" class="btn btn-primary">Add Employee</a>{% endif %}
+    </div>
+</div>
+
+<div class="card dashboard-card filter-card">
+    <div class="card-body">
+        <form method="get" class="directory-filter-form">
+            <div class="filter-grid">
+                <div class="form-group filter-search-group">
+                    <label for="search">Search</label>
+                    <input
+                        type="text"
+                        name="search"
+                        id="search"
+                        class="form-control"
+                        value="{{ search_value }}"
+                        placeholder="Search by full name, employee ID, email, or phone"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="company">Company</label>
+                    <select name="company" id="company" class="form-control">
+                        <option value="">All Companies</option>
+                        {% for company in companies %}
+                            <option value="{{ company.id }}" {% if selected_company == company.id|stringformat:"s" %}selected{% endif %}>
+                                {{ company.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <select name="department" id="department" class="form-control">
+                        <option value="">All Departments</option>
+                        {% for department in departments %}
+                            <option value="{{ department.id }}" {% if selected_department == department.id|stringformat:"s" %}selected{% endif %}>
+                                {{ department.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="branch">Branch</label>
+                    <select name="branch" id="branch" class="form-control">
+                        <option value="">All Branches</option>
+                        {% for branch in branches %}
+                            <option value="{{ branch.id }}" {% if selected_branch == branch.id|stringformat:"s" %}selected{% endif %}>
+                                {{ branch.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="section">Section</label>
+                    <select name="section" id="section" class="form-control">
+                        <option value="">All Sections</option>
+                        {% for section in sections %}
+                            <option value="{{ section.id }}" {% if selected_section == section.id|stringformat:"s" %}selected{% endif %}>
+                                {{ section.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="job_title">Job Title</label>
+                    <select name="job_title" id="job_title" class="form-control">
+                        <option value="">All Job Titles</option>
+                        {% for job_title in job_titles %}
+                            <option value="{{ job_title.id }}" {% if selected_job_title == job_title.id|stringformat:"s" %}selected{% endif %}>
+                                {{ job_title.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select name="status" id="status" class="form-control">
+                        <option value="">All Statuses</option>
+                        <option value="active" {% if selected_status == "active" %}selected{% endif %}>Operationally Active</option>
+                        <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>Operationally Inactive</option>
+
+                        {% for value, label in employment_status_choices %}
+                            <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">Clear Filters</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="stats-grid employee-stats-grid">
+    <div class="card dashboard-card stat-card">
+        <div class="card-body">
+            <span class="stat-label">Filtered Total</span>
+            <strong class="stat-value">{{ filtered_total }}</strong>
+        </div>
+    </div>
+
+    <div class="card dashboard-card stat-card">
+        <div class="card-body">
+            <span class="stat-label">Filtered Active</span>
+            <strong class="stat-value">{{ filtered_active }}</strong>
+        </div>
+    </div>
+
+    <div class="card dashboard-card stat-card">
+        <div class="card-body">
+            <span class="stat-label">Filtered Inactive</span>
+            <strong class="stat-value">{{ filtered_inactive }}</strong>
+        </div>
+    </div>
+
+    <div class="card dashboard-card stat-card">
+        <div class="card-body">
+            <span class="stat-label">Overall Total</span>
+            <strong class="stat-value">{{ overall_total }}</strong>
+        </div>
+    </div>
+</div>
+
+<div class="card dashboard-card employee-records-card">
+    <div class="card-header">
+        <h2>Employee Records</h2>
+    </div>
+    <div class="card-body">
+        {% if employees %}
+            <div class="employee-records-list">
+                {% for employee in employees %}
+                    <article class="employee-record-row">
+                        <div class="employee-record-main">
+                            <div class="employee-cell employee-record-identity">
+                                <div class="employee-cell-avatar">
+                                    {% if employee.photo %}
+                                        <img src="{{ employee.photo.url }}" alt="{{ employee.full_name }}" class="employee-avatar-thumb">
+                                    {% else %}
+                                        <div class="employee-avatar">
+                                            {{ employee.full_name|slice:":1"|upper }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="employee-cell-content">
+                                    <div class="employee-cell-name">
+                                        <a href="{% url 'employees:employee_detail' employee.pk %}">
+                                            {{ employee.full_name }}
+                                        </a>
+                                    </div>
+                                    <div class="employee-cell-meta">{{ employee.employee_id }}</div>
+                                </div>
+                            </div>
+
+                            <div class="employee-record-block employee-record-contact">
+                                <span class="employee-record-label">Contact</span>
+                                <div class="table-stack">
+                                    <span>{{ employee.email|default:"—" }}</span>
+                                    <span class="muted-text">{{ employee.phone|default:"—" }}</span>
+                                </div>
+                            </div>
+
+                            <div class="employee-record-block employee-record-placement">
+                                <span class="employee-record-label">Placement</span>
+                                <div class="placement-token-wrap">
+                                    <span class="placement-token placement-token-primary">
+                                        {{ employee.company|default:"—" }}
+                                    </span>
+
+                                    <span class="placement-token">
+                                        {{ employee.department|default:"—" }}
+                                    </span>
+
+                                    <span class="placement-token">
+                                        {{ employee.branch|default:"—" }}
+                                    </span>
+
+                                    {% if employee.section %}
+                                        <span class="placement-token placement-token-muted">
+                                            {{ employee.section }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="employee-record-block employee-record-role">
+                                <span class="employee-record-label">Role</span>
+                                <strong class="employee-record-value">{{ employee.job_title|default:"—" }}</strong>
+                                <span class="muted-text">Hired {{ employee.hire_date|date:"M. j, Y"|default:"—" }}</span>
+                            </div>
+
+                            <div class="employee-record-block employee-record-status">
+                                <span class="employee-record-label">Status</span>
+                                <div class="status-cell-stack">
+                                    <span class="badge {{ employee.employment_status_badge_class }}">
+                                        {{ employee.get_employment_status_display }}
+                                    </span>
+
+                                    {% if employee.is_active %}
+                                        <small class="muted-text">Operationally Active</small>
+                                    {% else %}
+                                        <small class="muted-text">Operationally Inactive</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="employee-record-actions">
+                            <span class="employee-record-label">Actions</span>
+                            <div class="table-action-buttons">
+                                <a href="{% url 'employees:employee_detail' employee.pk %}" class="btn btn-sm btn-light">View</a>
+                                {% if can_edit_employee_records %}
+                                    <a href="{% url 'employees:employee_update' employee.pk %}" class="btn btn-sm btn-secondary">Edit</a>
+                                {% endif %}
+                                {% if can_delete_employee_records %}
+                                    <a href="{% url 'employees:employee_delete' employee.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            {% if is_paginated %}
+                <div class="pagination-wrap">
+                    <div class="pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}&search={{ search_value }}&company={{ selected_company }}&department={{ selected_department }}&branch={{ selected_branch }}&section={{ selected_section }}&job_title={{ selected_job_title }}&status={{ selected_status }}" class="btn btn-light btn-sm">
+                                Previous
+                            </a>
+                        {% endif %}
+
+                        <span class="pagination-info">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}&search={{ search_value }}&company={{ selected_company }}&department={{ selected_department }}&branch={{ selected_branch }}&section={{ selected_section }}&job_title={{ selected_job_title }}&status={{ selected_status }}" class="btn btn-light btn-sm">
+                                Next
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <h3>No employees found</h3>
+                <p>No employees match the current search and filter criteria.</p>
+                <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">Clear Filters</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Job Titles | HR System{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <div>
+        <h1>Job Titles</h1>
+        <p class="page-subtitle">Job titles connected to departments and optional sections.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Department</th>
+                    <th>Section</th>
+                    <th>Code</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in job_titles %}
+                <tr>
+                    <td>{{ job.title }}</td>
+                    <td>{{ job.department.name }}</td>
+                    <td>{{ job.section.name|default:"—" }}</td>
+                    <td>{{ job.code }}</td>
+                    <td>
+                        {% if job.is_active %}
+                            <span class="badge badge-success">Active</span>
+                        {% else %}
+                            <span class="badge badge-muted">Inactive</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="empty-row">No job titles found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

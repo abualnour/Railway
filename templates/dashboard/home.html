@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block page_header %}
+<div class="page-header dashboard-page-header">
+    <div>
+        {% if is_employee_self_service_dashboard %}
+            <h1 class="page-title">My Workspace</h1>
+            <p class="page-subtitle">
+                Your branch details, team structure, and request status in one clean self-service dashboard.
+            </p>
+        {% else %}
+            {% if is_branch_scoped_supervisor and scoped_branch %}
+                <h1 class="page-title">Branch Dashboard</h1>
+                <p class="page-subtitle">
+                    Focused overview for {{ scoped_branch.name }} branch.
+                </p>
+            {% else %}
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">
+                    Clean workforce overview with only the key sections you requested.
+                </p>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if is_employee_self_service_dashboard %}
+    <section class="dashboard-hero">
+        <div class="dashboard-hero-content">
+            <span class="dashboard-kicker">Employee Self-Service</span>
+            <h2>Welcome back, {{ employee.full_name }}</h2>
+            <p>
+                This page is focused only on what you need: your branch, your team structure,
+                and the current status of your requests.
+            </p>
+        </div>
+    </section>
+
+    <section class="dashboard-metric-grid">
+        <div class="dashboard-metric-card">
+            <span class="dashboard-metric-label">Branch</span>
+            <strong class="dashboard-metric-value">{{ employee.branch|default:"—" }}</strong>
+            <span class="dashboard-metric-meta">Current assigned branch</span>
+        </div>
+
+        <div class="dashboard-metric-card">
+            <span class="dashboard-metric-label">Pending Requests</span>
+            <strong class="dashboard-metric-value">{{ pending_request_count }}</strong>
+            <span class="dashboard-metric-meta">Waiting for review</span>
+        </div>
+
+        <div class="dashboard-metric-card dashboard-metric-card-success">
+            <span class="dashboard-metric-label">Approved</span>
+            <strong class="dashboard-metric-value">{{ approved_request_count }}</strong>
+            <span class="dashboard-metric-meta">Completed approvals</span>
+        </div>
+
+        <div class="dashboard-metric-card dashboard-metric-card-danger">
+            <span class="dashboard-metric-label">Rejected / Cancelled</span>
+            <strong class="dashboard-metric-value">{{ rejected_request_count|add:cancelled_request_count }}</strong>
+            <span class="dashboard-metric-meta">Closed requests</span>
+        </div>
+    </section>
+
+    <section class="dashboard-grid-two">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h2>My Branch</h2>
+            </div>
+            <div class="card-body">
+                <div class="detail-grid two-col">
+                    <div class="detail-item">
+                        <span class="detail-label">Company</span>
+                        <span class="detail-value">{{ employee.company|default:"—" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Department</span>
+                        <span class="detail-value">{{ employee.department|default:"—" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Branch</span>
+                        <span class="detail-value">{{ employee.branch|default:"—" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Section</span>
+                        <span class="detail-value">{{ employee.section|default:"—" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h2>Request Status</h2>
+            </div>
+            <div class="card-body">
+                <div class="detail-grid two-col">
+                    <div class="detail-item">
+                        <span class="detail-label">Pending</span>
+                        <span class="detail-value">{{ pending_request_count }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Approved</span>
+                        <span class="detail-value">{{ approved_request_count }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Rejected</span>
+                        <span class="detail-value">{{ rejected_request_count }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Cancelled</span>
+                        <span class="detail-value">{{ cancelled_request_count }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card dashboard-card">
+        <div class="card-header">
+            <h2>My Request Workflow States</h2>
+        </div>
+        <div class="card-body">
+            {% if request_state_records %}
+                <div class="summary-list modern-list-gap">
+                    {% for item in request_state_records %}
+                        {% with leave_record=item.record %}
+                        <div class="summary-list-item">
+                            <div class="status-badge-stack document-card-head">
+                                <strong class="document-card-title">{{ leave_record.get_leave_type_display }}</strong>
+                                <span class="badge {{ item.state_badge_class }}">{{ item.state_label }}</span>
+                            </div>
+                            <small>
+                                {{ leave_record.start_date|date:"F j, Y" }} → {{ leave_record.end_date|date:"F j, Y" }}
+                                • {{ leave_record.total_days }} day{{ leave_record.total_days|pluralize }}
+                            </small>
+                        </div>
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No request states available</h3>
+                    <p>Your submitted request states will appear here once you create a request.</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="card dashboard-card">
+        <div class="card-header">
+            <h2>Branch Team Structure</h2>
+        </div>
+        <div class="card-body">
+            {% if branch_team_groups %}
+                <div class="dashboard-team-groups">
+                    {% for group in branch_team_groups %}
+                        <div class="dashboard-team-group">
+                            <div class="dashboard-team-group-head">
+                                <h3>{{ group.label }}</h3>
+                                <span class="badge badge-light">{{ group.members|length }} Member{{ group.members|pluralize }}</span>
+                            </div>
+
+                            <div class="dashboard-team-member-grid">
+                                {% for member in group.members %}
+                                    <div class="dashboard-team-member-card">
+                                        <strong>{{ member.full_name }}</strong>
+                                        <span>{{ member.job_title|default:"—" }}</span>
+                                        {% if member.section %}
+                                            <small>{{ member.section }}</small>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No branch team records available</h3>
+                    <p>Branch team members will appear here when related employee records exist in your branch.</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+{% elif supervisor_scope_missing %}
+    <section class="dashboard-core-hero">
+        <div class="dashboard-core-hero-copy">
+            <span class="dashboard-kicker">Supervisor Setup Needed</span>
+            <h2>Link this supervisor account to a branch employee profile</h2>
+            <p>
+                This supervisor login is active, but it is not yet linked to an employee profile with an assigned branch.
+            </p>
+        </div>
+    </section>
+{% else %}
+    <div class="dashboard-management-shell">
+        <section class="dashboard-core-hero dashboard-management-hero">
+            <div class="dashboard-core-hero-copy">
+                <span class="dashboard-kicker">{% if is_branch_scoped_supervisor and scoped_branch %}Branch Overview{% else %}Management Overview{% endif %}</span>
+                <h2>{% if is_branch_scoped_supervisor and scoped_branch %}{{ scoped_branch.name }} Workforce Dashboard{% else %}Workforce Dashboard{% endif %}</h2>
+                <p>
+                    A clean dashboard focused only on recent hiring and structure distribution.
+                </p>
+            </div>
+        </section>
+
+        <section class="dashboard-focus-grid dashboard-focus-grid-single">
+            <article class="card dashboard-core-panel dashboard-focus-panel">
+                <div class="card-header">
+                    <h2>Recent Hires</h2>
+                </div>
+                <div class="card-body">
+                    {% if recent_hires %}
+                        <div class="dashboard-core-list">
+                            {% for employee in recent_hires %}
+                                <a href="{% url 'employees:employee_detail' employee.pk %}" class="dashboard-core-list-item dashboard-core-list-link">
+                                    <div class="dashboard-core-list-main">
+                                        <strong>{{ employee.full_name }}</strong>
+                                        <small>
+                                            {% if employee.hire_date %}{{ employee.hire_date|date:"M j, Y" }}{% else %}No hire date{% endif %}
+                                            {% if employee.job_title %} • {{ employee.job_title.name }}{% endif %}
+                                        </small>
+                                    </div>
+                                    <span class="badge badge-light">{% if employee.branch %}{{ employee.branch.name }}{% else %}—{% endif %}</span>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <h3>No recent hires</h3>
+                            <p>Hires with recorded hire dates will appear here.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </article>
+        </section>
+
+        <section class="dashboard-focus-grid">
+            <article class="card dashboard-core-panel dashboard-focus-panel">
+                <div class="card-header">
+                    <h2>Employees by Company</h2>
+                </div>
+                <div class="card-body">
+                    {% if employees_by_company %}
+                        <div class="dashboard-core-stat-list">
+                            {% for item in employees_by_company %}
+                                <div class="dashboard-core-stat-row">
+                                    <strong>{{ item.company__name|default:"Unassigned" }}</strong>
+                                    <span>{{ item.total }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <h3>No company data</h3>
+                            <p>Company distribution will appear here after employee records are linked.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </article>
+
+            <article class="card dashboard-core-panel dashboard-focus-panel">
+                <div class="card-header">
+                    <h2>Employees by Department</h2>
+                </div>
+                <div class="card-body">
+                    {% if employees_by_department %}
+                        <div class="dashboard-core-stat-list">
+                            {% for item in employees_by_department %}
+                                <div class="dashboard-core-stat-row">
+                                    <strong>{{ item.department__name|default:"Unassigned" }}</strong>
+                                    <span>{{ item.total }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <h3>No department data</h3>
+                            <p>Department distribution will appear here after employee records are linked.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </article>
+        </section>
+
+        <section class="dashboard-focus-grid dashboard-focus-grid-single">
+            <article class="card dashboard-core-panel dashboard-focus-panel">
+                <div class="card-header">
+                    <h2>Employees by Branch</h2>
+                </div>
+                <div class="card-body">
+                    {% if employees_by_branch %}
+                        <div class="dashboard-core-stat-list">
+                            {% for item in employees_by_branch %}
+                                <div class="dashboard-core-stat-row">
+                                    <strong>{{ item.branch__name|default:"Unassigned" }}</strong>
+                                    <span>{{ item.total }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <h3>No branch data</h3>
+                            <p>Branch distribution will appear here after employee records are linked.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </article>
+        </section>
+    </div>
+{% endif %}
+{% endblock %}

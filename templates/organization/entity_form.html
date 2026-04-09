@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle">Fill in the required information below.</p>
+    </div>
+</div>
+
+<div class="card form-shell-card">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="employee-form-pro">
+                <div class="form-section">
+                    <div class="form-section-header">
+                        <h2>{{ page_title }}</h2>
+                        <p>Complete the form details and save your changes.</p>
+                    </div>
+
+                    <div class="form-grid two-col">
+                        {% for field in form %}
+                            {% if field.name == "is_active" %}
+                                <div class="form-group checkbox-group form-group-full">
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+                                    <label class="checkbox-wrap" for="{{ field.id_for_label }}">
+                                        {{ field }}
+                                        <span>Keep this record active and available in the system.</span>
+                                    </label>
+
+                                    {% if field.help_text %}
+                                        <small class="form-help">{{ field.help_text }}</small>
+                                    {% endif %}
+
+                                    {% if field.errors %}
+                                        <div class="form-error">
+                                            {{ field.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div class="form-group {% if field.name == 'notes' or field.name == 'logo' or field.name == 'image' %}form-group-full{% endif %}">
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+                                    {{ field }}
+
+                                    {% if field.help_text %}
+                                        <small class="form-help">{{ field.help_text }}</small>
+                                    {% endif %}
+
+                                    {% if field.errors %}
+                                        <div class="form-error">
+                                            {{ field.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        {{ submit_label|default:"Save" }}
+                    </button>
+                    <a href="{{ cancel_url }}" class="btn btn-outline">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

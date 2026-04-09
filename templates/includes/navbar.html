@@ -1,0 +1,196 @@
+<nav class="sidebar">
+    <div class="sidebar-brand-shell">
+        <div class="sidebar-brand">
+            {% if nav_show_supervisor_workspace and nav_employee_profile %}
+                <a href="{% url 'employees:employee_detail' nav_employee_profile.pk %}">HR System</a>
+            {% elif nav_show_operations_workspace and nav_employee_profile %}
+                <a href="{% url 'employees:employee_detail' nav_employee_profile.pk %}">HR System</a>
+            {% elif nav_is_employee_self_service_only and nav_employee_profile %}
+                <a href="{% url 'employees:employee_detail' nav_employee_profile.pk %}">HR System</a>
+            {% else %}
+                <a href="{% url 'home' %}">HR System</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="sidebar-scroll">
+        {% if user.is_authenticated %}
+            {% if nav_show_supervisor_workspace and nav_employee_profile %}
+                <div class="sidebar-section">
+                    <p class="sidebar-title">Supervisor Workspace</p>
+                    <a href="{% url 'employees:employee_detail' nav_employee_profile.pk %}">Profile</a>
+                    {% if nav_supervisor_branch_url %}
+                        <a href="{{ nav_supervisor_branch_url }}">My Branch</a>
+                    {% endif %}
+                    <a href="{% url 'employees:employee_list' %}">Team Directory</a>
+                    {% if nav_can_view_requests %}
+                        <a href="{% url 'employees:employee_requests_overview' %}">Team Requests</a>
+                    {% endif %}
+                    {% if nav_can_view_branch_documents %}
+                        <a href="{% url 'organization:branch_document_list' %}">Branch Documents</a>
+                    {% endif %}
+                </div>
+            {% elif nav_show_operations_workspace and nav_employee_profile %}
+                <div class="sidebar-section">
+                    <p class="sidebar-title">Operations Workspace</p>
+                    <a href="{% url 'employees:employee_detail' nav_employee_profile.pk %}">My Operations Profile</a>
+                    <a href="{% url 'employees:employee_list' %}">Employee Directory</a>
+                    <a href="{% url 'employees:employee_admin_action_center' %}">Action Center</a>
+                    {% if nav_can_view_requests %}
+                        <a href="{% url 'employees:employee_requests_overview' %}">Employee Requests</a>
+                    {% endif %}
+                    {% if nav_can_view_attendance_management %}
+                        <a href="{% url 'employees:attendance_management' %}">Attendance Management</a>
+                    {% endif %}
+                    {% if nav_can_view_branch_documents %}
+                        <a href="{% url 'organization:branch_document_list' %}">Branch Documents</a>
+                    {% endif %}
+                </div>
+            {% else %}
+                {% if nav_can_access_dashboard %}
+                    <div class="sidebar-section">
+                        <p class="sidebar-title">Core</p>
+                        {% if nav_is_employee_self_service_only and nav_employee_profile %}
+                            <a href="{% url 'home' %}">System Home</a>
+                        {% else %}
+                            <a href="{% url 'home' %}">System Home</a>
+                            <a href="{% url 'dashboard_home' %}">Dashboard</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                {% if nav_can_view_employee_directory %}
+                    <div class="sidebar-section">
+                        <p class="sidebar-title">Employees</p>
+                        <a href="{% url 'employees:employee_list' %}">
+                            {% if nav_is_branch_scoped_supervisor and nav_scoped_branch %}
+                                {{ nav_scoped_branch.name }} Team Directory
+                            {% else %}
+                                Employee Directory
+                            {% endif %}
+                        </a>
+                        {% if nav_can_view_requests %}
+                            <a href="{% url 'employees:employee_requests_overview' %}">
+                                {% if nav_is_branch_scoped_supervisor and nav_scoped_branch %}
+                                    Team Requests
+                                {% else %}
+                                    Employee Requests
+                                {% endif %}
+                            </a>
+                        {% endif %}
+                        {% if not nav_is_branch_scoped_supervisor %}
+                            <a href="{% url 'employees:employee_admin_action_center' %}">Action Center</a>
+                        {% endif %}
+                        {% if nav_employee_profile %}
+                            <a href="{% url 'employees:employee_detail' nav_employee_profile.pk %}">
+                                {% if user.is_superuser %}
+                                    My Admin Profile
+                                {% elif nav_is_branch_scoped_supervisor %}
+                                    My Supervisor Profile
+                                {% elif user.is_hr %}
+                                    My HR Profile
+                                {% elif user.is_operations_manager %}
+                                    My Operations Profile
+                                {% else %}
+                                    My Profile
+                                {% endif %}
+                            </a>
+                        {% endif %}
+                        {% if nav_can_view_attendance_management %}
+                            <a href="{% url 'employees:attendance_management' %}">Attendance Management</a>
+                        {% endif %}
+                        {% if nav_can_add_employee %}
+                            <a href="{% url 'employees:employee_create' %}">Add Employee</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endif %}
+
+            {% if nav_can_view_organization %}
+                <div class="sidebar-section">
+                    <p class="sidebar-title">Organization</p>
+                    {% if nav_can_view_branch_documents %}
+                        <a href="{% url 'organization:branch_document_list' %}">Branch Documents</a>
+                    {% endif %}
+                    <a href="{% url 'organization:company_list' %}">Companies</a>
+                    <a href="{% url 'organization:branch_list' %}">Branches</a>
+                    <a href="{% url 'organization:department_list' %}">Departments</a>
+                    <a href="{% url 'organization:section_list' %}">Sections</a>
+                    <a href="{% url 'organization:jobtitle_list' %}">Job Titles</a>
+                </div>
+            {% endif %}
+
+            {% if user.is_employee_role and nav_employee_profile and not nav_can_view_employee_directory %}
+                <div class="sidebar-section">
+                    <p class="sidebar-title">My Workspace</p>
+                    <a href="{% url 'employees:employee_detail' nav_employee_profile.pk %}">My Profile</a>
+                </div>
+            {% endif %}
+
+            {% if nav_can_access_admin %}
+                <div class="sidebar-section">
+                    <p class="sidebar-title">Administration</p>
+                    <a href="{% url 'admin:index' %}">Admin Panel</a>
+                    {% if user.is_superuser %}
+                        <a href="{% url 'backup_center' %}">Backup & Export Center</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="sidebar-section">
+                <p class="sidebar-title">Core</p>
+                <a href="{% url 'home' %}">System Home</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="sidebar-account">
+        <div class="sidebar-footer-stack">
+        <div class="sidebar-section sidebar-section-bottom">
+            <p class="sidebar-title">Account</p>
+
+            {% if user.is_authenticated %}
+                <div class="sidebar-account-stack">
+                    <div class="muted-text sidebar-account-name">
+                        Signed in as {{ user.get_full_name|default:user.email|default:user.username }}
+                    </div>
+
+                    {% if user.is_superuser %}
+                        <div class="muted-text sidebar-account-role">System Administrator</div>
+                    {% elif nav_is_branch_scoped_supervisor and nav_scoped_branch %}
+                        <div class="muted-text sidebar-account-role">Supervisor Scope • {{ nav_scoped_branch.name }}</div>
+                    {% elif user.is_hr %}
+                        <div class="muted-text sidebar-account-role">HR User</div>
+                    {% elif user.is_operations_manager %}
+                        <div class="muted-text sidebar-account-role">Operations Manager</div>
+                    {% elif user.is_employee_role %}
+                        <div class="muted-text sidebar-account-role">Employee Self-Service</div>
+                    {% else %}
+                        <div class="muted-text sidebar-account-role">Authenticated User</div>
+                    {% endif %}
+                </div>
+
+                <form method="post" action="{% url 'logout' %}" class="sidebar-logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="sidebar-logout-btn">Logout</button>
+                </form>
+            {% else %}
+                <div class="sidebar-account-stack">
+                    <div class="muted-text sidebar-account-name">Not signed in</div>
+                    <a href="{% url 'login' %}" class="sidebar-auth-link">Login</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="sidebar-section sidebar-theme-section">
+            <p class="sidebar-title">Theme Mode</p>
+            <div class="sidebar-theme-switcher" aria-label="Theme mode switcher">
+                <button type="button" class="theme-switcher-btn" data-theme-choice="premium-dark">Dark</button>
+                <button type="button" class="theme-switcher-btn" data-theme-choice="premium-light">Light</button>
+                <button type="button" class="theme-switcher-btn" data-theme-choice="dark-accent">Mint</button>
+                <button type="button" class="theme-switcher-btn" data-theme-choice="sunrise">Sunrise</button>
+            </div>
+        </div>
+    </div>
+    </div>
+</nav>

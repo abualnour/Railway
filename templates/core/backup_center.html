@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Backup & Export Center{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/backup_center.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="backup-center-shell">
+    <div class="page-header backup-center-header">
+        <div>
+            <h1 class="page-title">Backup &amp; Export Center</h1>
+            <p class="page-subtitle backup-center-subtitle">
+                Top-admin-only workspace for project backup creation, operational export files, and backup audit visibility.
+            </p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'dashboard_home' %}" class="btn btn-light">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="backup-center-summary-grid">
+        <div class="backup-summary-card">
+            <span class="backup-summary-label">Backup Files</span>
+            <span class="backup-summary-value">{{ backup_count }}</span>
+            <p class="backup-summary-help">Recent backup file{{ backup_count|pluralize }} currently visible in the audit list.</p>
+        </div>
+        <div class="backup-summary-card">
+            <span class="backup-summary-label">Employee Export Scope</span>
+            <span class="backup-summary-value">{{ employee_export_count }}</span>
+            <p class="backup-summary-help">Employee master records available for export right now.</p>
+        </div>
+        <div class="backup-summary-card">
+            <span class="backup-summary-label">Attendance Rows</span>
+            <span class="backup-summary-value">{{ attendance_export_count }}</span>
+            <p class="backup-summary-help">Attendance ledger rows available for export.</p>
+        </div>
+        <div class="backup-summary-card">
+            <span class="backup-summary-label">Leave Records</span>
+            <span class="backup-summary-value">{{ leave_export_count }}</span>
+            <p class="backup-summary-help">Leave workflow rows available for export.</p>
+        </div>
+    </div>
+
+    <div class="backup-center-grid backup-center-grid-top">
+        <div class="card backup-panel backup-panel-primary">
+            <div class="card-header backup-panel-header">
+                <div>
+                    <h2>Create New Backup</h2>
+                    <p class="backup-panel-subtitle">
+                        Create a safe timestamped ZIP containing your database, media, and key project folders.
+                    </p>
+                </div>
+            </div>
+            <div class="card-body backup-panel-body">
+                <div class="backup-callout">
+                    This creates a new backup package only. It does not perform restore actions.
+                </div>
+
+                <form method="post" class="backup-form-stack">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create_backup">
+
+                    <div class="form-group">
+                        <label for="id_backup_note">Backup Note</label>
+                        <input
+                            type="text"
+                            id="id_backup_note"
+                            name="backup_note"
+                            class="form-control"
+                            maxlength="80"
+                            placeholder="Example: before payroll layer step"
+                        >
+                        <p class="form-help">Optional short label added to the backup file name.</p>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Create Backup Now</button>
+                    </div>
+                </form>
+
+                <div class="backup-path-note">
+                    <span class="backup-path-note-label">Save Location</span>
+                    <strong>{{ backup_root }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="card backup-panel">
+            <div class="card-header backup-panel-header">
+                <div>
+                    <h2>Included Paths</h2>
+                    <p class="backup-panel-subtitle">
+                        Files and folders currently included in each generated backup package.
+                    </p>
+                </div>
+            </div>
+            <div class="card-body backup-panel-body">
+                {% if include_paths %}
+                    <div class="backup-path-chip-grid">
+                        {% for item in include_paths %}
+                            <div class="backup-path-chip">
+                                <strong>{{ item }}</strong>
+                                <span>Included</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <h3>No include paths found</h3>
+                        <p>Check the backup include settings in <code>config/settings.py</code>.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="backup-export-grid">
+        <div class="card backup-panel">
+            <div class="card-header backup-panel-header">
+                <div>
+                    <h2>Export Employee Master Data</h2>
+                    <p class="backup-panel-subtitle">
+                        Live employee directory dataset with placement, status, validity dates, salary, and audit timestamps.
+                    </p>
+                </div>
+            </div>
+            <div class="card-body backup-panel-body">
+                <form method="post" class="backup-form-stack">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="export_employee_master">
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Export Employee Master Data</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card backup-panel">
+            <div class="card-header backup-panel-header">
+                <div>
+                    <h2>Export Backup Audit List</h2>
+                    <p class="backup-panel-subtitle">
+                        Visible backup inventory with file names, timestamps, sizes, and save paths.
+                    </p>
+                </div>
+            </div>
+            <div class="card-body backup-panel-body">
+                <form method="post" class="backup-form-stack">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="export_backup_audit">
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Export Backup Audit List</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card backup-panel">
+            <div class="card-header backup-panel-header">
+                <div>
+                    <h2>Export Attendance Records</h2>
+                    <p class="backup-panel-subtitle">
+                        Live attendance ledger export. Leave date fields empty to export all attendance rows.
+                    </p>
+                </div>
+            </div>
+            <div class="card-body backup-panel-body">
+                <form method="post" class="backup-form-stack">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="export_attendance">
+                    <div class="form-grid two-col">
+                        <div class="form-group">
+                            <label for="id_attendance_start_date">Attendance Start Date</label>
+                            <input type="date" id="id_attendance_start_date" name="attendance_start_date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="id_attendance_end_date">Attendance End Date</label>
+                            <input type="date" id="id_attendance_end_date" name="attendance_end_date" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Export Attendance Records</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card backup-panel">
+            <div class="card-header backup-panel-header">
+                <div>
+                    <h2>Export Leave Records</h2>
+                    <p class="backup-panel-subtitle">
+                        Leave workflow export. Leave date fields empty to export all leave rows.
+                    </p>
+                </div>
+            </div>
+            <div class="card-body backup-panel-body">
+                <form method="post" class="backup-form-stack">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="export_leave_records">
+                    <div class="form-grid two-col">
+                        <div class="form-group">
+                            <label for="id_leave_start_date">Leave Start Date</label>
+                            <input type="date" id="id_leave_start_date" name="leave_start_date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="id_leave_end_date">Leave End Date</label>
+                            <input type="date" id="id_leave_end_date" name="leave_end_date" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Export Leave Records</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="card backup-panel backup-audit-panel">
+        <div class="card-header backup-panel-header">
+            <div>
+                <h2>Recent Backup Files</h2>
+                <p class="backup-panel-subtitle">
+                    Latest generated backup packages currently found in the configured backup location.
+                </p>
+            </div>
+        </div>
+        <div class="card-body backup-panel-body">
+            {% if latest_backups %}
+                <div class="table-responsive backup-table-wrap">
+                    <table class="table backup-audit-table">
+                        <thead>
+                            <tr>
+                                <th>File Name</th>
+                                <th>Created At</th>
+                                <th>Size</th>
+                                <th>Path</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for backup in latest_backups %}
+                                <tr>
+                                    <td>
+                                        <div class="backup-file-cell">
+                                            <strong>{{ backup.name }}</strong>
+                                        </div>
+                                    </td>
+                                    <td>{{ backup.modified_at|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ backup.size_mb }} MB</td>
+                                    <td class="backup-path-cell">{{ backup.path }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No backup files found</h3>
+                    <p>Create your first backup from this page and it will appear here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

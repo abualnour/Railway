@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Employee{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Delete Employee</h1>
+        <p class="text-muted">This action cannot be undone.</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <p>Are you sure you want to delete <strong>{{ employee.full_name }}</strong> ({{ employee.employee_id }})?</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Yes, Delete</button>
+            <a href="{% url 'employees:employee_detail' employee.pk %}" class="btn btn-light">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

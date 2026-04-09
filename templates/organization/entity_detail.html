@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ record_name }} | {{ page_title }}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/branches.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="org-page-shell org-detail-page-shell">
+    <div class="page-header org-page-header org-page-header-spacious">
+        <div>
+            <div class="detail-page-kicker">Organization</div>
+            <h1 class="page-title">{{ record_name }}</h1>
+            <p class="page-subtitle org-page-subtitle-wide">{{ page_subtitle }}</p>
+        </div>
+
+        <div class="page-actions org-page-actions-top">
+            {% if back_url %}
+                <a href="{{ back_url }}" class="btn btn-light">Back to List</a>
+            {% endif %}
+            {% if edit_url %}
+                <a href="{{ edit_url }}" class="btn btn-outline">Edit</a>
+            {% endif %}
+            {% if delete_url %}
+                <a href="{{ delete_url }}" class="btn btn-danger">Delete</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="org-detail-top-grid">
+        <div class="card org-detail-hero-card org-detail-hero-card-premium">
+            <div class="card-body org-detail-hero-body">
+                <div class="org-detail-hero-head org-detail-hero-head-premium">
+                    <div class="org-detail-hero-head-main">
+                        <div class="org-detail-hero-avatar-shell">
+                            {% if object.logo %}
+                                <img src="{{ object.logo.url }}" alt="{{ record_name }}" class="org-detail-hero-avatar">
+                            {% elif object.image %}
+                                <img src="{{ object.image.url }}" alt="{{ record_name }}" class="org-detail-hero-avatar">
+                            {% else %}
+                                <div class="org-detail-hero-avatar org-detail-hero-avatar-fallback">
+                                    {{ record_name|first|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <p class="org-detail-label">Record Summary</p>
+                            <h2 class="org-detail-title">{{ record_name }}</h2>
+                        </div>
+                    </div>
+                    <span class="badge {{ object_status_badge_class }} org-status-badge-large">{{ object_status_label }}</span>
+                </div>
+
+                <div class="org-detail-grid org-detail-grid-premium">
+                    {% for item in detail_items %}
+                        <div class="detail-item org-detail-item-card">
+                            <strong>{{ item.label }}</strong>
+                            <span>{{ item.value }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if stat_cards %}
+    <div class="stats-grid employee-stats-grid org-stats-grid-tight org-detail-stats-grid">
+        {% for stat in stat_cards %}
+            <div class="{{ stat.card_class|default:'metric-card' }} org-metric-card org-detail-metric-card org-metric-card-compact">
+                <p class="metric-label">{{ stat.label }}</p>
+                <p class="metric-value">{{ stat.value }}</p>
+                <p class="metric-help">{{ stat.help_text }}</p>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if branch_requirement_rows or can_view_branch_documents %}
+    <div class="card org-related-card branch-compliance-card-shell">
+        <div class="card-header org-related-header">
+            <div>
+                <h2 class="card-title">Branch Compliance Summary</h2>
+                <p class="card-subtitle">Live required checklist status based on configured branch requirements and the latest uploaded branch documents.</p>
+            </div>
+            <div class="page-actions">
+                <span class="badge badge-light">{{ branch_required_checklist_total }} Required</span>
+                <span class="badge badge-light">{{ branch_compliance_completion_percent }}% Compliant</span>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="branch-compliance-summary-grid">
+                {% for stat in branch_compliance_summary_cards %}
+                    <div class="metric-card{% if stat.tone == 'danger' %} metric-card-danger{% elif stat.tone == 'success' %} metric-card-success{% elif stat.tone == 'warning' %} metric-card-warning{% endif %}">
+                        <p class="metric-label">{{ stat.label }}</p>
+                        <p class="metric-value">{{ stat.value }}</p>
+                        <p class="metric-help">{{ stat.help_text }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="branch-compliance-status-stack">
+                <div class="branch-compliance-status-head">
+                    <div>
+                        <h3 class="card-title">Required Checklist Status</h3>
+                        <p class="card-subtitle">Compact view of each configured requirement for this branch.</p>
+                    </div>
+                    <div class="status-badge-stack">
+                        {% if branch_missing_required_total %}
+                            <span class="badge badge-danger">{{ branch_missing_required_total }} Missing</span>
+                        {% endif %}
+                        {% if branch_expired_required_total %}
+                            <span class="badge badge-danger">{{ branch_expired_required_total }} Expired</span>
+                        {% endif %}
+                        {% if branch_expiring_soon_required_total %}
+                            <span class="badge badge-warning">{{ branch_expiring_soon_required_total }} Expiring Soon</span>
+                        {% endif %}
+                        {% if branch_compliant_required_total %}
+                            <span class="badge badge-success">{{ branch_compliant_required_total }} Compliant</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if branch_requirement_rows %}
+                    <div class="branch-compliance-list">
+                        {% for requirement in branch_requirement_rows %}
+                            <div class="branch-compliance-row{% if requirement.is_mandatory %} is-mandatory{% endif %}">
+                                <div class="branch-compliance-main">
+                                    <div class="branch-compliance-title-row">
+                                        <strong>{{ requirement.title }}</strong>
+                                        {% if requirement.is_mandatory %}
+                                            <span class="badge badge-light">Required</span>
+                                        {% else %}
+                                            <span class="badge badge-light">Optional</span>
+                                        {% endif %}
+                                    </div>
+                                    <span>{{ requirement.document_type }}</span>
+                                    <small>
+                                        {% if requirement.document_title != "Not uploaded" %}
+                                            {{ requirement.document_title }}{% if requirement.document_reference_number and requirement.document_reference_number != "—" %} · Ref {{ requirement.document_reference_number }}{% endif %}
+                                        {% else %}
+                                            No uploaded document linked yet
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <div class="branch-compliance-meta">
+                                    <span class="badge {{ requirement.status_badge_class }}">{{ requirement.status_label }}</span>
+                                    <small>{{ requirement.days_label }}</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state compact-empty-state">
+                        <h3>No branch checklist items yet</h3>
+                        <p>Operations or admin can add required checklist items from the Branch Documents center, and this branch page will reflect the live compliance summary automatically.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if branch_documents or branch_detail_has_document_workspace %}
+    <div class="card org-related-card">
+        <div class="card-header org-related-header">
+            <div>
+                <h2 class="card-title">Branch Store Documents</h2>
+                <p class="card-subtitle">Store legal, license, compliance, and branch-required files for this branch only.</p>
+            </div>
+            <div class="page-actions">
+                <span class="badge badge-light">{{ branch_documents|length }} File{{ branch_documents|pluralize }}</span>
+                <span class="badge badge-light">{{ branch_documents_required_count }} Required</span>
+                {% if branch_documents_expired_count %}
+                    <span class="badge badge-danger">{{ branch_documents_expired_count }} Expired</span>
+                {% endif %}
+                {% if branch_documents_expiring_soon_count %}
+                    <span class="badge badge-primary">{{ branch_documents_expiring_soon_count }} Expiring Soon</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card-body">
+            {% if can_manage_branch_documents %}
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="card-header">
+                        <h3 class="card-title">Upload Branch Document</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data" action="{% url 'organization:branch_document_create' object.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <div class="detail-grid two-col">
+                                {% for field in branch_document_form %}
+                                    <div class="form-group {% if field.name == 'description' or field.name == 'file' %}full-width{% endif %}">
+                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                        {{ field }}
+                                        {% if field.help_text %}
+                                            <small class="muted-text">{{ field.help_text }}</small>
+                                        {% endif %}
+                                        {% for error in field.errors %}
+                                            <div class="form-error">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="page-actions" style="margin-top: 16px;">
+                                <button type="submit" class="btn btn-primary">Upload Branch File</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Document</th>
+                            <th>Type</th>
+                            <th>Reference</th>
+                            <th>Expiry</th>
+                            <th>Status</th>
+                            <th>Uploaded By</th>
+                            <th class="table-actions-col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for document in branch_documents %}
+                            <tr>
+                                <td>
+                                    <div class="org-name-cell">
+                                        <div class="org-name-title">{{ document.title|default:document.filename|default:"Untitled document" }}</div>
+                                        <div class="org-name-subtitle">{{ document.filename|default:"Stored file" }}</div>
+                                    </div>
+                                </td>
+                                <td>{{ document.get_document_type_display }}</td>
+                                <td>{{ document.reference_number|default:"—" }}</td>
+                                <td>{{ document.expiry_date|date:"Y-m-d"|default:"—" }}</td>
+                                <td><span class="badge {{ document.status_badge_class|default:'badge-light' }}">{{ document.compliance_status_label }}</span></td>
+                                <td>{{ document.uploaded_by|default:"—" }}</td>
+                                <td>
+                                    <div class="table-action-buttons">
+                                        {% if document.file %}
+                                            <a href="{{ document.file.url }}" target="_blank" rel="noopener" class="btn btn-sm btn-light">Open</a>
+                                        {% endif %}
+                                        {% if can_manage_branch_documents %}
+                                            <form method="post" action="{% url 'organization:branch_document_delete' object.pk document.pk %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="next" value="{{ request.path }}">
+                                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <p>No branch store documents uploaded yet.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% for block in related_blocks %}
+        <div class="card org-related-card org-related-card-premium">
+            <div class="card-header org-related-header org-related-header-premium">
+                <div>
+                    <h2 class="card-title">{{ block.title }}</h2>
+                    {% if block.subtitle %}
+                        <p class="card-subtitle">{{ block.subtitle }}</p>
+                    {% endif %}
+                </div>
+                <div class="page-actions org-list-header-badges">
+                    <span class="badge badge-light">{{ block.rows|length }} Item{{ block.rows|length|pluralize }}</span>
+                </div>
+            </div>
+
+            <div class="card-body">
+                {% if block.rows %}
+                    <div class="table-responsive org-directory-table">
+                        <table class="table org-related-table">
+                            <thead>
+                                <tr>
+                                    {% for column in block.columns %}
+                                        <th>{{ column }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in block.rows %}
+                                    <tr>
+                                        {% for cell in row %}
+                                            <td>{{ cell }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <p>{{ block.empty_message }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

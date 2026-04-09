@@ -1,0 +1,837 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Employee Requests{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/employees.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="employee-requests-page">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Employee Requests</h1>
+            <p class="page-subtitle">
+                Review all employee submitted requests and related supporting files in one management-only page without changing the employee profile detail flow.
+            </p>
+            {% if is_branch_scoped_supervisor and scoped_branch %}
+                <p class="page-subtitle" style="margin-top: 8px;">Supervisor scope is limited to <strong>{{ scoped_branch.name }}</strong> branch requests. You can review your team requests and supporting files from this page.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <span class="summary-label">Total Requests</span>
+            <span class="summary-value">{{ request_total }}</span>
+        </div>
+        <div class="summary-card">
+            <span class="summary-label">Pending</span>
+            <span class="summary-value">{{ pending_total }}</span>
+        </div>
+        <div class="summary-card">
+            <span class="summary-label">Approved</span>
+            <span class="summary-value">{{ approved_total }}</span>
+        </div>
+        <div class="summary-card">
+            <span class="summary-label">Submitted Files</span>
+            <span class="summary-value">{{ documents_total }}</span>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <span class="summary-label">My Review Queue</span>
+            <span class="summary-value">{{ my_stage_pending_total }}</span>
+        </div>
+        <div class="summary-card">
+            <span class="summary-label">Waiting for Supervisor</span>
+            <span class="summary-value">{{ waiting_supervisor_total }}</span>
+        </div>
+        <div class="summary-card">
+            <span class="summary-label">Waiting for Operations</span>
+            <span class="summary-value">{{ waiting_operations_total }}</span>
+        </div>
+        <div class="summary-card">
+            <span class="summary-label">Waiting for HR</span>
+            <span class="summary-value">{{ waiting_hr_total }}</span>
+        </div>
+    </div>
+
+    <section class="card request-overview-card request-queue-card">
+        <div class="card-header request-queue-card-header">
+            <div>
+                <h2>Approval Queue Visibility</h2>
+                <p class="card-subtitle">A cleaner snapshot of the workflow lane you are currently reviewing and the requests already closed.</p>
+            </div>
+            <span class="badge badge-light">Live Queue Snapshot</span>
+        </div>
+        <div class="card-body request-queue-card-body">
+            <div class="request-queue-focus-band">
+                <span class="request-queue-focus-label">Current Review Focus</span>
+                <strong class="request-queue-focus-value">{{ current_leave_review_stage_label }}</strong>
+            </div>
+
+            <div class="request-queue-grid">
+                <div class="request-queue-stat request-queue-stat-emphasis">
+                    <span class="request-queue-stat-label">Workflow Closed</span>
+                    <strong class="request-queue-stat-value">{{ rejected_total|add:cancelled_total }}</strong>
+                    <span class="request-queue-stat-help">Rejected and recalled requests already out of the active workflow.</span>
+                </div>
+                <div class="request-queue-stat">
+                    <span class="request-queue-stat-label">Final Rejected</span>
+                    <strong class="request-queue-stat-value">{{ rejected_total }}</strong>
+                    <span class="request-queue-stat-help">Requests closed by final rejection.</span>
+                </div>
+                <div class="request-queue-stat">
+                    <span class="request-queue-stat-label">Cancelled / Recalled</span>
+                    <strong class="request-queue-stat-value">{{ cancelled_total }}</strong>
+                    <span class="request-queue-stat-help">Requests cancelled after submission.</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card request-overview-card request-filter-panel-card">
+        <div class="card-header request-filter-panel-header">
+            <div>
+                <h2>Timeline Filters</h2>
+                <p class="card-subtitle">Refine the request timeline by employee, workflow state, request type, and placement without crowding the page.</p>
+            </div>
+            <span class="badge badge-light">Focused Filtering</span>
+        </div>
+        <div class="card-body request-filter-panel-body">
+            <form method="get" class="requests-filter-shell request-filter-panel-shell">
+                <div class="request-filter-panel-grid">
+                    <div class="request-filter-panel-primary">
+                        <div class="form-group requests-filter-search request-filter-panel-search">
+                            <label for="id_search">Search</label>
+                            <input id="id_search" type="text" name="search" value="{{ search_query }}" placeholder="Employee name, ID, note, file...">
+                        </div>
+
+                        <div class="requests-filter-grid-compact request-filter-panel-compact-grid">
+                            <div class="form-group">
+                                <label for="id_status">Status</label>
+                                <select id="id_status" name="status">
+                                    <option value="">All statuses</option>
+                                    {% for value, label in status_choices %}
+                                        <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="id_leave_type">Request Type</label>
+                                <select id="id_leave_type" name="leave_type">
+                                    <option value="">All request types</option>
+                                    {% for value, label in leave_type_choices %}
+                                        <option value="{{ value }}" {% if selected_leave_type == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="request-filter-panel-secondary">
+                        <div class="requests-filter-grid-compact request-filter-panel-compact-grid">
+                            <div class="form-group">
+                                <label for="id_company">Company</label>
+                                <select id="id_company" name="company">
+                                    <option value="">All companies</option>
+                                    {% for company in companies %}
+                                        <option value="{{ company.id }}" {% if selected_company == company.id|stringformat:'s' %}selected{% endif %}>{{ company.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="id_department">Department</label>
+                                <select id="id_department" name="department">
+                                    <option value="">All departments</option>
+                                    {% for department in departments %}
+                                        <option value="{{ department.id }}" {% if selected_department == department.id|stringformat:'s' %}selected{% endif %}>{{ department.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group request-filter-panel-branch-field">
+                                <label for="id_branch">Branch</label>
+                                <select id="id_branch" name="branch">
+                                    <option value="">All branches</option>
+                                    {% for branch in branches %}
+                                        <option value="{{ branch.id }}" {% if selected_branch == branch.id|stringformat:'s' %}selected{% endif %}>{{ branch.company.name }} — {{ branch.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="request-filter-panel-footer">
+                    <div class="requests-filter-actions request-filter-panel-actions">
+                        <button class="btn btn-primary" type="submit">Apply Filters</button>
+                        <a class="btn btn-light" href="{% url 'employees:employee_requests_overview' %}">Reset</a>
+                    </div>
+
+                    <div class="request-filter-panel-note-block">
+                        <p class="requests-filter-note">Use search for names, employee IDs, notes, or attached file references.</p>
+                        <p class="requests-filter-note">Keep the timeline focused by narrowing the workflow stage and organizational scope before expanding week and day groups.</p>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+
+
+
+
+
+    <div class="requests-overview-stack">
+        {% for week_group in grouped_request_weeks %}
+            <details class="request-week-group" {% if week_group.is_open %}open{% endif %}>
+                <summary class="request-week-summary">
+                    <div class="request-group-heading">
+                        <h2>{{ week_group.label }}</h2>
+                        <p>
+                            Week view ordered from newest day to oldest day.
+                            {% if week_group.is_current_week %}The current week stays open by default.{% else %}Open this week to review all request days inside it.{% endif %}
+                        </p>
+                    </div>
+                    <div class="request-group-badges">
+                        <span class="badge badge-light">{{ week_group.request_total }} Request{{ week_group.request_total|pluralize }}</span>
+                        <span class="badge badge-light">{{ week_group.document_total }} File{{ week_group.document_total|pluralize }}</span>
+                        {% if week_group.is_current_week %}
+                            <span class="badge badge-primary">Current Week</span>
+                        {% endif %}
+                    </div>
+                </summary>
+
+                <div class="request-week-days">
+                    {% for day_group in week_group.days %}
+                        <details class="request-day-group" {% if day_group.is_open %}open{% endif %}>
+                            <summary class="request-day-summary">
+                                <div class="request-group-heading">
+                                    <h3>{{ day_group.label }}</h3>
+                                    <p>
+                                        {% if day_group.is_today %}
+                                            Today requests stay expanded by default.
+                                        {% else %}
+                                            Open this day to review every request submitted on it.
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="request-group-badges">
+                                    <span class="badge badge-light">{{ day_group.request_total }} Request{{ day_group.request_total|pluralize }}</span>
+                                    <span class="badge badge-light">{{ day_group.document_total }} File{{ day_group.document_total|pluralize }}</span>
+                                    {% if day_group.is_today %}
+                                        <span class="badge badge-primary">Today</span>
+                                    {% endif %}
+                                </div>
+                            </summary>
+
+                            <div class="requests-overview-grid">
+                                {% for item in day_group.items %}
+                                    {% with leave=item.leave_record employee=item.employee info=item.professional_snapshot %}
+                                    <div class="card request-overview-card">
+                                        <div class="card-body">
+                                            <div class="request-overview-top">
+                                                <div>
+                                                    <h2 class="request-overview-title">{{ employee.full_name }}</h2>
+                                                    <p class="request-overview-subtitle">
+                                                        {{ employee.employee_id }}
+                                                        {% if employee.email %}• {{ employee.email }}{% endif %}
+                                                        {% if leave.created_at %}• Submitted {{ leave.created_at|date:"F j, Y - g:i A" }}{% endif %}
+                                                    </p>
+                                                </div>
+
+                                                <div class="request-badge-row">
+                                                    {% if leave.status == 'pending' and leave.current_stage == 'supervisor_review' %}
+                                                        <span class="badge badge-warning">Waiting for Supervisor</span>
+                                                    {% elif leave.status == 'pending' and leave.current_stage == 'operations_review' %}
+                                                        <span class="badge badge-primary">Approved by Supervisor • Waiting for Operations</span>
+                                                    {% elif leave.status == 'pending' and leave.current_stage == 'hr_review' %}
+                                                        <span class="badge badge-primary">Approved by Operations • Waiting for HR</span>
+                                                    {% elif leave.status == 'approved' and leave.current_stage == 'final_approved' %}
+                                                        <span class="badge badge-success">Final Approved</span>
+                                                    {% elif leave.status == 'rejected' and leave.current_stage == 'final_rejected' %}
+                                                        <span class="badge badge-danger">Final Rejected</span>
+                                                    {% elif leave.status == 'cancelled' and leave.current_stage == 'cancelled' %}
+                                                        <span class="badge badge-light">Cancelled / Recalled</span>
+                                                    {% else %}
+                                                        <span class="badge {{ leave.status_badge_class }}">{{ leave.get_status_display }}</span>
+                                                    {% endif %}
+                                                    <span class="badge {{ leave.current_stage_badge_class }}">{{ leave.get_current_stage_display }}</span>
+                                                    <span class="badge badge-light">{{ leave.get_leave_type_display }}</span>
+                                                    <span class="badge badge-light">{{ item.supporting_documents_count }} File{{ item.supporting_documents_count|pluralize }}</span>
+                                                    {% if employee.is_active %}
+                                                        <span class="badge badge-success">Active Employee</span>
+                                                    {% else %}
+                                                        <span class="badge badge-danger">Inactive Employee</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+
+                                            <div class="detail-grid two-col employee-org-grid employee-profile-snapshot-grid" style="margin-bottom: 18px;">
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Job Title</span>
+                                                    <span class="detail-value">{{ info.job_title|default:"—" }}</span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Department</span>
+                                                    <span class="detail-value">{{ info.department|default:"—" }}</span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Branch</span>
+                                                    <span class="detail-value">{{ info.branch|default:"—" }}</span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Company</span>
+                                                    <span class="detail-value">{{ info.company|default:"—" }}</span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Section</span>
+                                                    <span class="detail-value">{{ info.section|default:"—" }}</span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Hire Date</span>
+                                                    <span class="detail-value">{{ info.hire_date|date:"F j, Y"|default:"—" }}</span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Department Manager</span>
+                                                    <span class="detail-value">{{ info.department_manager|default:"—" }}</span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Team Leader</span>
+                                                    <span class="detail-value">{{ info.team_leader|default:"—" }}</span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Branch Supervisor</span>
+                                                    <span class="detail-value">{{ info.branch_supervisor|default:"—" }}</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="request-overview-section-grid">
+                                                <div class="request-notes-block request-summary-column">
+                                                    <h4>Request Summary</h4>
+                                                    <div class="detail-grid two-col employee-org-grid request-summary-detail-grid">
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">Current Workflow Owner</span>
+                                                            <span class="detail-value">{{ item.workflow_owner_label|default:"—" }}</span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">Date Range</span>
+                                                            <span class="detail-value">{{ leave.start_date|date:"F j, Y" }} → {{ leave.end_date|date:"F j, Y" }}</span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">Total Days</span>
+                                                            <span class="detail-value">{{ leave.total_days }}</span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">Requested By</span>
+                                                            <span class="detail-value">
+                                                                {% if leave.requested_by %}
+                                                                    {{ leave.requested_by.get_full_name|default:leave.requested_by.email|default:leave.requested_by.username }}
+                                                                {% else %}
+                                                                    {{ leave.created_by|default:"—" }}
+                                                                {% endif %}
+                                                            </span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">Last Updated</span>
+                                                            <span class="detail-value">{{ item.latest_related_date|date:"F j, Y - g:i A"|default:"—" }}</span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">Workflow Stage</span>
+                                                            <span class="detail-value">
+                                                                <span class="badge {{ leave.current_stage_badge_class }}">{{ leave.get_current_stage_display }}</span>
+                                                            </span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">Workflow State</span>
+                                                            <span class="detail-value">
+                                                                {% if leave.status == 'pending' and leave.current_stage == 'supervisor_review' %}
+                                                                    Waiting for supervisor approval
+                                                                {% elif leave.status == 'pending' and leave.current_stage == 'operations_review' %}
+                                                                    Approved by supervisor • waiting for operations approval
+                                                                {% elif leave.status == 'pending' and leave.current_stage == 'hr_review' %}
+                                                                    Approved by operations • waiting for HR approval
+                                                                {% elif leave.status == 'approved' and leave.current_stage == 'final_approved' %}
+                                                                    Fully approved
+                                                                {% elif leave.status == 'rejected' and leave.current_stage == 'final_rejected' %}
+                                                                    Rejected and closed
+                                                                {% elif leave.status == 'cancelled' and leave.current_stage == 'cancelled' %}
+                                                                    Cancelled / recalled and closed
+                                                                {% else %}
+                                                                    {{ leave.get_status_display }}
+                                                                {% endif %}
+                                                            </span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">Supervisor Review</span>
+                                                            <span class="detail-value">
+                                                                {% if leave.supervisor_reviewed_by %}
+                                                                    {{ leave.supervisor_reviewed_by.get_full_name|default:leave.supervisor_reviewed_by.email|default:leave.supervisor_reviewed_by.username }}
+                                                                    {% if leave.supervisor_reviewed_at %}• {{ leave.supervisor_reviewed_at|date:"F j, Y - g:i A" }}{% endif %}
+                                                                {% else %}
+                                                                    Waiting
+                                                                {% endif %}
+                                                            </span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">Operations Review</span>
+                                                            <span class="detail-value">
+                                                                {% if leave.operations_reviewed_by %}
+                                                                    {{ leave.operations_reviewed_by.get_full_name|default:leave.operations_reviewed_by.email|default:leave.operations_reviewed_by.username }}
+                                                                    {% if leave.operations_reviewed_at %}• {{ leave.operations_reviewed_at|date:"F j, Y - g:i A" }}{% endif %}
+                                                                {% elif leave.current_stage == 'operations_review' and leave.status == 'pending' %}
+                                                                    Waiting
+                                                                {% elif leave.current_stage == 'hr_review' or leave.current_stage == 'final_approved' or leave.current_stage == 'final_rejected' %}
+                                                                    Completed
+                                                                {% else %}
+                                                                    —
+                                                                {% endif %}
+                                                            </span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">HR Review</span>
+                                                            <span class="detail-value">
+                                                                {% if leave.hr_reviewed_by %}
+                                                                    {{ leave.hr_reviewed_by.get_full_name|default:leave.hr_reviewed_by.email|default:leave.hr_reviewed_by.username }}
+                                                                    {% if leave.hr_reviewed_at %}• {{ leave.hr_reviewed_at|date:"F j, Y - g:i A" }}{% endif %}
+                                                                {% elif leave.current_stage == 'hr_review' and leave.status == 'pending' %}
+                                                                    Waiting
+                                                                {% elif leave.current_stage == 'final_approved' or leave.current_stage == 'final_rejected' %}
+                                                                    Completed
+                                                                {% else %}
+                                                                    —
+                                                                {% endif %}
+                                                            </span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">Final Approved By</span>
+                                                            <span class="detail-value">{% if leave.approved_by %}{{ leave.approved_by.get_full_name|default:leave.approved_by.email|default:leave.approved_by.username }}{% else %}—{% endif %}</span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">Rejected / Cancelled By</span>
+                                                            <span class="detail-value">
+                                                                {% if leave.rejected_by %}{{ leave.rejected_by.get_full_name|default:leave.rejected_by.email|default:leave.rejected_by.username }}{% elif leave.cancelled_by %}{{ leave.cancelled_by.get_full_name|default:leave.cancelled_by.email|default:leave.cancelled_by.username }}{% else %}—{% endif %}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {% if leave.reason %}
+                                                        <div style="margin-top: 14px;">
+                                                            <span class="detail-label">Employee Reason</span>
+                                                            <div class="detail-value" style="margin-top: 6px; white-space: pre-line;">{{ leave.reason }}</div>
+                                                        </div>
+                                                    {% endif %}
+
+                                                    {% if leave.approval_note %}
+                                                        <div style="margin-top: 14px;">
+                                                            <span class="detail-label">Workflow Note</span>
+                                                            <div class="detail-value" style="margin-top: 6px; white-space: pre-line;">{{ leave.approval_note }}</div>
+                                                        </div>
+                                                    {% endif %}
+
+                                                    <div class="page-actions" style="margin-top: 18px;">
+                                                        <a class="btn btn-light" href="{% url 'employees:employee_detail' employee.pk %}">Open Employee Profile</a>
+
+                                                        {% if can_review_leave and leave.status == 'pending' %}
+                                                            {% if is_branch_scoped_supervisor and leave.current_stage == 'supervisor_review' %}
+                                                                <form action="{% url 'employees:employee_leave_approve' employee.pk leave.pk %}" method="post">
+                                                                    {% csrf_token %}
+                                                                    <input type="hidden" name="approval_note" value="Approved by supervisor from employee requests overview and moved to operations review.">
+                                                                    <button class="btn btn-primary" type="submit">Approve &amp; Send to Operations</button>
+                                                                </form>
+                                                                <form action="{% url 'employees:employee_leave_reject' employee.pk leave.pk %}" method="post">
+                                                                    {% csrf_token %}
+                                                                    <input type="hidden" name="approval_note" value="Rejected by supervisor from employee requests overview.">
+                                                                    <button class="btn btn-danger" type="submit">Reject</button>
+                                                                </form>
+                                                            {% elif user.is_operations_manager and leave.current_stage == 'operations_review' %}
+                                                                <form action="{% url 'employees:employee_leave_approve' employee.pk leave.pk %}" method="post">
+                                                                    {% csrf_token %}
+                                                                    <input type="hidden" name="approval_note" value="Approved by operations from employee requests overview and moved to HR review.">
+                                                                    <button class="btn btn-primary" type="submit">Approve &amp; Send to HR</button>
+                                                                </form>
+                                                                <form action="{% url 'employees:employee_leave_reject' employee.pk leave.pk %}" method="post">
+                                                                    {% csrf_token %}
+                                                                    <input type="hidden" name="approval_note" value="Rejected by operations from employee requests overview.">
+                                                                    <button class="btn btn-danger" type="submit">Reject</button>
+                                                                </form>
+                                                            {% elif user.is_hr and leave.current_stage == 'hr_review' %}
+                                                                <form action="{% url 'employees:employee_leave_approve' employee.pk leave.pk %}" method="post">
+                                                                    {% csrf_token %}
+                                                                    <input type="hidden" name="approval_note" value="Final approved by HR from employee requests overview.">
+                                                                    <button class="btn btn-primary" type="submit">Final Approve</button>
+                                                                </form>
+                                                                <form action="{% url 'employees:employee_leave_reject' employee.pk leave.pk %}" method="post">
+                                                                    {% csrf_token %}
+                                                                    <input type="hidden" name="approval_note" value="Rejected by HR from employee requests overview.">
+                                                                    <button class="btn btn-danger" type="submit">Reject</button>
+                                                                </form>
+                                                            {% elif user.is_superuser and leave.current_stage == 'hr_review' %}
+                                                                <form action="{% url 'employees:employee_leave_approve' employee.pk leave.pk %}" method="post">
+                                                                    {% csrf_token %}
+                                                                    <input type="hidden" name="approval_note" value="Final approved by admin from employee requests overview.">
+                                                                    <button class="btn btn-primary" type="submit">Final Approve</button>
+                                                                </form>
+                                                                <form action="{% url 'employees:employee_leave_reject' employee.pk leave.pk %}" method="post">
+                                                                    {% csrf_token %}
+                                                                    <input type="hidden" name="approval_note" value="Rejected by admin from employee requests overview.">
+                                                                    <button class="btn btn-danger" type="submit">Reject</button>
+                                                                </form>
+                                                            {% else %}
+                                                                <span class="detail-value">This request is waiting for {{ item.workflow_owner_label|lower }}.</span>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+
+                                                <div class="request-notes-block request-files-column">
+                                                    <h4>Submitted Files</h4>
+                                                    {% if item.supporting_documents %}
+                                                        <div class="request-file-list">
+                                                            {% for document in item.supporting_documents %}
+                                                                <div class="request-file-item">
+                                                                    <div class="status-badge-stack document-card-head">
+                                                                        <strong class="document-card-title">{{ document.title|default:document.filename }}</strong>
+                                                                        <span class="badge {{ document.compliance_badge_class }}">{{ document.compliance_status_label }}</span>
+                                                                    </div>
+                                                                    <div class="detail-grid two-col employee-org-grid request-file-detail-grid" style="margin-top: 10px;">
+                                                                        <div class="detail-item">
+                                                                            <span class="detail-label">Type</span>
+                                                                            <span class="detail-value">{{ document.get_document_type_display }}</span>
+                                                                        </div>
+                                                                        <div class="detail-item">
+                                                                            <span class="detail-label">Reference</span>
+                                                                            <span class="detail-value">{{ document.reference_number|default:"—" }}</span>
+                                                                        </div>
+                                                                        <div class="detail-item">
+                                                                            <span class="detail-label">Issue Date</span>
+                                                                            <span class="detail-value">{{ document.issue_date|date:"F j, Y"|default:"—" }}</span>
+                                                                        </div>
+                                                                        <div class="detail-item">
+                                                                            <span class="detail-label">Expiry Date</span>
+                                                                            <span class="detail-value">{{ document.expiry_date|date:"F j, Y"|default:"—" }}</span>
+                                                                        </div>
+                                                                        <div class="detail-item">
+                                                                            <span class="detail-label">Uploaded</span>
+                                                                            <span class="detail-value">{{ document.uploaded_at|date:"F j, Y - g:i A" }}</span>
+                                                                        </div>
+                                                                        <div class="detail-item">
+                                                                            <span class="detail-label">Required</span>
+                                                                            <span class="detail-value">{{ document.is_required|yesno:"Yes,No" }}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    {% if document.description %}
+                                                                        <p>{{ document.description }}</p>
+                                                                    {% endif %}
+                                                                    {% if document.file %}
+                                                                        <div class="page-actions" style="margin-top: 12px;">
+                                                                            <a class="btn btn-light" href="{{ document.file.url }}" target="_blank" rel="noopener">Open File</a>
+                                                                        </div>
+                                                                    {% endif %}
+                                                                </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="empty-state">
+                                                            <h3>No supporting files</h3>
+                                                            <p>This request was submitted without an attached document.</p>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endwith %}
+                                {% endfor %}
+                            </div>
+                        </details>
+                    {% endfor %}
+                </div>
+            </details>
+        {% empty %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="empty-state">
+                        <h3>No employee requests found</h3>
+                        <p>There are no employee requests matching the current filters.</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="card request-overview-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <div class="section-heading">
+                <div>
+                    <h2>Required Employee Submission Queue</h2>
+                    <p class="page-subtitle">Manager-created employee file requests and their current submission state.</p>
+                </div>
+                <span class="badge badge-primary">{{ submission_request_total }} Request{{ submission_request_total|pluralize }}</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="summary-grid" style="margin-bottom: 18px;">
+                <div class="summary-card">
+                    <span class="summary-label">Open</span>
+                    <span class="summary-value">{{ submission_requested_total }}</span>
+                </div>
+                <div class="summary-card">
+                    <span class="summary-label">Submitted</span>
+                    <span class="summary-value">{{ submission_submitted_total }}</span>
+                </div>
+                <div class="summary-card">
+                    <span class="summary-label">Completed</span>
+                    <span class="summary-value">{{ submission_completed_total }}</span>
+                </div>
+            </div>
+
+            {% if latest_submission_requests %}
+                <div class="summary-list modern-list-gap">
+                    {% for submission_request in latest_submission_requests %}
+                        <div class="summary-list-item">
+                            <div class="request-overview-top">
+                                <div>
+                                    <strong>{{ submission_request.employee.full_name }}</strong>
+                                    <p class="request-overview-subtitle">{{ submission_request.employee.employee_id }} • {{ submission_request.title }}</p>
+                                </div>
+                                <div class="request-badge-row">
+                                    <span class="badge {{ submission_request.status_badge_class }}">{{ submission_request.get_status_display }}</span>
+                                    <span class="badge {{ submission_request.priority_badge_class }}">{{ submission_request.get_priority_display }}</span>
+                                    <span class="badge badge-light">{{ submission_request.get_request_type_display }}</span>
+                                    {% if submission_request.is_overdue %}<span class="badge badge-danger">Overdue</span>{% endif %}
+                                </div>
+                            </div>
+
+                            <div class="detail-grid two-col employee-org-grid">
+                                <div class="detail-item">
+                                    <span class="detail-label">Department</span>
+                                    <span class="detail-value">{{ submission_request.employee.department|default:"—" }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Branch</span>
+                                    <span class="detail-value">{{ submission_request.employee.branch|default:"—" }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Due Date</span>
+                                    <span class="detail-value">{{ submission_request.due_date|date:"F j, Y"|default:"—" }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Requested By</span>
+                                    <span class="detail-value">{{ submission_request.created_by|default:"—" }}</span>
+                                </div>
+                            </div>
+
+                            {% if submission_request.instructions %}
+                                <div class="document-description">{{ submission_request.instructions|linebreaksbr }}</div>
+                            {% endif %}
+
+                            <div class="page-actions" style="margin-top: 12px;">
+                                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' submission_request.employee.pk %}">Open Employee Profile</a>
+                                {% if submission_request.response_file %}
+                                    <a class="btn btn-light btn-sm" href="{{ submission_request.response_file.url }}" target="_blank" rel="noopener">View Submitted File</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state compact-empty-state">
+                    <h3>No employee submission requests found</h3>
+                    <p>Required employee file requests will appear here after managers start sending them from employee profiles.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+
+    <div class="card request-overview-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <div class="section-heading">
+                <div>
+                    <h2>Employee Document Request Queue</h2>
+                    <p class="page-subtitle">Employee-originated requests for salary certificates, HR letters, and other management-delivered files.</p>
+                </div>
+                <span class="badge badge-primary">{{ employee_document_request_total }} Request{{ employee_document_request_total|pluralize }}</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="summary-grid" style="margin-bottom: 18px;">
+                <div class="summary-card"><span class="summary-label">Requested</span><span class="summary-value">{{ employee_document_request_requested_total }}</span></div>
+                <div class="summary-card"><span class="summary-label">Approved / In Progress</span><span class="summary-value">{{ employee_document_request_approved_total }}</span></div>
+                <div class="summary-card"><span class="summary-label">Completed</span><span class="summary-value">{{ employee_document_request_completed_total }}</span></div>
+                <div class="summary-card"><span class="summary-label">Closed</span><span class="summary-value">{{ employee_document_request_rejected_total|add:employee_document_request_cancelled_total }}</span></div>
+            </div>
+
+            {% if employee_document_requests %}
+                <div class="summary-list modern-list-gap">
+                    {% for document_request in employee_document_requests %}
+                        <div class="summary-list-item">
+                            <div class="request-overview-top">
+                                <div>
+                                    <strong>{{ document_request.employee.full_name }}</strong>
+                                    <p class="request-overview-subtitle">{{ document_request.employee.employee_id }} • {{ document_request.title }}</p>
+                                </div>
+                                <div class="request-badge-row">
+                                    <span class="badge {{ document_request.status_badge_class }}">{{ document_request.get_status_display }}</span>
+                                    <span class="badge {{ document_request.priority_badge_class }}">{{ document_request.get_priority_display }}</span>
+                                    <span class="badge badge-light">{{ document_request.get_request_type_display }}</span>
+                                    {% if document_request.is_overdue %}<span class="badge badge-danger">Overdue</span>{% endif %}
+                                </div>
+                            </div>
+
+                            <div class="detail-grid two-col employee-org-grid">
+                                <div class="detail-item"><span class="detail-label">Department</span><span class="detail-value">{{ document_request.employee.department|default:"—" }}</span></div>
+                                <div class="detail-item"><span class="detail-label">Branch</span><span class="detail-value">{{ document_request.employee.branch|default:"—" }}</span></div>
+                                <div class="detail-item"><span class="detail-label">Requested</span><span class="detail-value">{{ document_request.submitted_at|date:"F j, Y - g:i A"|default:"—" }}</span></div>
+                                <div class="detail-item"><span class="detail-label">Needed By</span><span class="detail-value">{{ document_request.needed_by_date|date:"F j, Y"|default:"—" }}</span></div>
+                            </div>
+
+                            {% if document_request.request_note %}<div class="document-description"><strong>Employee Note:</strong> {{ document_request.request_note|linebreaksbr }}</div>{% endif %}
+                            {% if document_request.management_note %}<div class="document-description"><strong>Management Note:</strong> {{ document_request.management_note|linebreaksbr }}</div>{% endif %}
+
+                            <div class="page-actions" style="margin-top: 12px;">
+                                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' document_request.employee.pk %}">Open Employee Profile</a>
+                                {% if document_request.response_file %}<a class="btn btn-light btn-sm" href="{{ document_request.response_file.url }}" target="_blank" rel="noopener">View Reply File</a>{% endif %}
+                            </div>
+
+                            {% if document_request.review_form %}
+                                <form action="{% url 'employees:employee_document_request_review' document_request.pk %}" method="post" enctype="multipart/form-data" class="action-record-form-grid request-review-form-grid" style="margin-top: 14px;">
+                                    {% csrf_token %}
+                                    {% for field in document_request.review_form %}
+                                        <div class="form-group {% if field.name == 'management_note' %}form-group-full{% endif %}">
+                                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                            {{ field }}
+                                            {% if field.help_text %}<p class="form-help">{{ field.help_text }}</p>{% endif %}
+                                            {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+                                        </div>
+                                    {% endfor %}
+                                    <div class="attendance-form-actions form-group-full">
+                                        <button type="submit" class="btn btn-primary">Update Document Request</button>
+                                    </div>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state compact-empty-state">
+                    <h3>No employee document requests found</h3>
+                    <p>Employee-originated salary certificate and document requests will appear here after they are submitted.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card request-overview-card request-documents-overview-card request-documents-overview-card-compact">
+        <div class="card-header request-documents-overview-header">
+            <div>
+                <h2>Uploaded Employee Documents</h2>
+                <p class="card-subtitle">Compact grouped file history for follow-up, compliance checks, and quick employee document review.</p>
+            </div>
+            <div class="page-actions">
+                <span class="badge badge-primary">{{ employee_documents_total }} File{{ employee_documents_total|pluralize }}</span>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if latest_employee_document_groups %}
+                <div class="request-document-group-grid request-document-group-grid-compact">
+                    {% for document_group in latest_employee_document_groups %}
+                        <div class="request-document-group-card">
+                            <div class="request-document-group-head">
+                                <div class="table-stack">
+                                    <strong class="document-card-title">{{ document_group.label }}</strong>
+                                    <span class="muted-text">
+                                        {{ document_group.count }} file{{ document_group.count|pluralize }}
+                                        {% if document_group.hidden_count %}
+                                            • showing latest {{ document_group.documents|length }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="request-document-group-actions">
+                                    <div class="request-badge-row">
+                                        {% if document_group.has_expired %}
+                                            <span class="badge badge-danger">Needs Attention</span>
+                                        {% elif document_group.has_expiring_soon %}
+                                            <span class="badge badge-primary">Expiring Soon</span>
+                                        {% else %}
+                                            <span class="badge badge-success">Tracked</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if document_group.hidden_count or document_group.is_expanded %}
+                                        <a class="btn btn-light btn-sm" href="{{ document_group.toggle_url }}">{% if document_group.is_expanded %}Show Latest 3{% else %}Show All{% endif %}</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="request-document-file-list">
+                                {% for document in document_group.documents %}
+                                    <article class="request-document-file-item">
+                                        <div class="document-card-head">
+                                            <div class="table-stack">
+                                                <strong class="document-card-title">{{ document.title|default:document.filename }}</strong>
+                                                <span class="request-document-employee-line">
+                                                    {{ document.employee.full_name }}
+                                                    {% if document.employee.employee_id %}• {{ document.employee.employee_id }}{% endif %}
+                                                    {% if document.employee.branch %}• {{ document.employee.branch }}{% endif %}
+                                                </span>
+                                            </div>
+                                            <span class="badge {{ document.compliance_badge_class }}">{{ document.compliance_status_label }}</span>
+                                        </div>
+
+                                        <div class="detail-grid two-col request-file-detail-grid">
+                                            <div class="detail-item">
+                                                <span class="detail-label">Document Type</span>
+                                                <span class="detail-value">{{ document.get_document_type_display }}</span>
+                                            </div>
+                                            <div class="detail-item">
+                                                <span class="detail-label">Uploaded</span>
+                                                <span class="detail-value">{{ document.uploaded_at|date:"F j, Y - g:i A" }}</span>
+                                            </div>
+                                            <div class="detail-item">
+                                                <span class="detail-label">Reference</span>
+                                                <span class="detail-value">{% if document.reference_number %}{{ document.reference_number }}{% else %}—{% endif %}</span>
+                                            </div>
+                                            <div class="detail-item">
+                                                <span class="detail-label">Expiry Date</span>
+                                                <span class="detail-value">{% if document.expiry_date %}{{ document.expiry_date|date:"F j, Y" }}{% else %}—{% endif %}</span>
+                                            </div>
+                                        </div>
+
+                                        {% if document.description %}
+                                            <div class="document-description document-description--framed">{{ document.description|linebreaksbr }}</div>
+                                        {% endif %}
+
+                                        <div class="page-actions document-actions-row">
+                                            {% if document.file %}
+                                                <a class="btn btn-light btn-sm" href="{{ document.file.url }}" target="_blank" rel="noopener">View File</a>
+                                            {% endif %}
+                                            <a class="btn btn-secondary btn-sm" href="{% url 'employees:employee_detail' document.employee.pk %}">Open Employee</a>
+                                        </div>
+                                    </article>
+                                {% endfor %}
+                            </div>
+
+                            {% if document_group.hidden_count %}
+                                <div class="request-document-group-footer">
+                                    <span class="muted-text">{{ document_group.hidden_count }} older file{{ document_group.hidden_count|pluralize }} hidden in this group.</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No employee documents found</h3>
+                    <p>Uploaded employee files will appear here after documents are added inside the visible scope and current filters.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

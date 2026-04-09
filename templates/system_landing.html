@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}System Home{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/system_landing.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="system-home-shell">
+    <section class="system-home-hero system-home-hero-simple">
+        <div class="system-home-hero-main">
+            <span class="system-home-kicker">Welcome</span>
+            <h1 class="system-home-title">Welcome to your HR System</h1>
+            <p class="system-home-lead">
+                A clean starting page for your daily work.
+                Use the left navigation to move directly to the right workspace, employee pages, organization setup, and system tools.
+            </p>
+        </div>
+    </section>
+</div>
+{% endblock %}

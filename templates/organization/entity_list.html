@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/branches.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="org-page-shell">
+    <div class="page-header org-page-header org-page-header-spacious">
+        <div>
+            <h1 class="page-title">{{ page_title }}</h1>
+            <p class="page-subtitle org-page-subtitle-wide">{{ page_subtitle }}</p>
+        </div>
+
+        {% if create_url %}
+            <div class="page-actions org-page-actions-top">
+                <a href="{{ create_url }}" class="btn btn-primary">Add New</a>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if stat_cards %}
+    <div class="stats-grid employee-stats-grid org-stats-grid-tight{% if organization_list_variant == 'branch_compliance_overview' %} org-stats-grid-branch-overview{% endif %}">
+        {% for stat in stat_cards %}
+            <div class="{{ stat.card_class|default:'metric-card' }} org-metric-card{% if organization_list_variant == 'branch_compliance_overview' %} org-metric-card-compact{% endif %}">
+                <p class="metric-label">{{ stat.label }}</p>
+                <p class="metric-value">{{ stat.value }}</p>
+                <p class="metric-help">{{ stat.help_text }}</p>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if organization_list_variant == "branch_compliance_overview" %}
+    <div class="card org-directory-card branch-overview-card-shell">
+        <div class="card-header org-related-header">
+            <div>
+                <h2 class="card-title">Branch Compliance Overview</h2>
+                <p class="card-subtitle">Management-wide branch compliance health based on the active checklist and uploaded branch documents.</p>
+            </div>
+            <div class="page-actions branch-overview-header-badges">
+                <span class="badge badge-light">{{ branch_compliance_summary.requirement_total }} Required Items</span>
+                {% if branch_compliance_summary.no_checklist_total %}
+                    <span class="badge badge-light">{{ branch_compliance_summary.no_checklist_total }} No Checklist</span>
+                {% endif %}
+                {% if branch_filters_applied %}
+                    <span class="badge badge-primary">Filtered View</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card-body branch-overview-card-body">
+            {% if branch_compliance_rows %}
+                <div class="branch-overview-records-list">
+                    {% for row in branch_compliance_rows %}
+                        <article class="branch-overview-record-row">
+                            <div class="branch-overview-record-main">
+                                <div class="branch-overview-record-block branch-overview-record-identity">
+                                    <div class="org-list-avatar-shell">
+                                        {% if row.branch_image_url %}
+                                            <img src="{{ row.branch_image_url }}" alt="{{ row.branch_name }}" class="org-list-avatar">
+                                        {% else %}
+                                            <div class="org-list-avatar org-list-avatar-fallback">
+                                                {{ row.branch_name|first|upper }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="org-name-copy">
+                                        <div class="org-name-title">
+                                            <a href="{{ row.detail_url }}" class="org-name-link">{{ row.branch_name }}</a>
+                                        </div>
+                                        <div class="org-name-subtitle branch-overview-branch-meta">
+                                            <span>{{ row.company_name }}</span>
+                                            <span>{{ row.employee_total }} Employee{{ row.employee_total|pluralize }} · {{ row.document_total }} File{{ row.document_total|pluralize }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="branch-overview-record-block branch-overview-record-compliance">
+                                    <span class="branch-overview-record-label">Compliance</span>
+                                    <div class="table-stack branch-overview-compliance-cell">
+                                        <strong>{{ row.compliance_percentage }}%</strong>
+                                        <small>Checklist coverage</small>
+                                    </div>
+                                </div>
+
+                                <div class="branch-overview-record-block branch-overview-record-summary">
+                                    <span class="branch-overview-record-label">Checklist Summary</span>
+                                    <div class="branch-overview-summary-grid">
+                                        <div class="branch-overview-summary-item">
+                                            <span class="branch-overview-summary-label">Req</span>
+                                            <strong class="branch-overview-summary-value">{{ row.requirement_total }}</strong>
+                                        </div>
+                                        <div class="branch-overview-summary-item">
+                                            <span class="branch-overview-summary-label">Miss</span>
+                                            <strong class="branch-overview-summary-value">{{ row.missing_total }}</strong>
+                                        </div>
+                                        <div class="branch-overview-summary-item">
+                                            <span class="branch-overview-summary-label">Exp</span>
+                                            <strong class="branch-overview-summary-value">{{ row.expired_total }}</strong>
+                                        </div>
+                                        <div class="branch-overview-summary-item">
+                                            <span class="branch-overview-summary-label">Soon</span>
+                                            <strong class="branch-overview-summary-value">{{ row.expiring_soon_total }}</strong>
+                                        </div>
+                                        <div class="branch-overview-summary-item">
+                                            <span class="branch-overview-summary-label">OK</span>
+                                            <strong class="branch-overview-summary-value">{{ row.compliant_total }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="branch-overview-record-block branch-overview-record-status">
+                                    <span class="branch-overview-record-label">Status</span>
+                                    <div class="table-stack branch-overview-status-cell">
+                                        <span class="badge branch-overview-status-badge {{ row.status_badge_class }}">{{ row.status_label }}</span>
+                                        <small>{{ row.status_help_text }}</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="branch-overview-record-actions">
+                                <span class="branch-overview-record-label">Actions</span>
+                                <div class="table-action-buttons">
+                                    <a href="{{ row.detail_url }}" class="btn btn-sm btn-light">View</a>
+                                    <a href="{{ row.document_center_url }}" class="btn btn-sm btn-outline">Documents</a>
+                                    {% if update_url_name %}
+                                        <a href="{% url update_url_name row.branch_id %}" class="btn btn-sm btn-outline">Edit</a>
+                                    {% endif %}
+                                    {% if delete_url_name %}
+                                        <a href="{% url delete_url_name row.branch_id %}" class="btn btn-sm btn-danger">Delete</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No branches found</h3>
+                    <p>There are no branch records to display in the compliance overview right now.</p>
+                    {% if create_url %}
+                        <a href="{{ create_url }}" class="btn btn-primary">Add First Branch</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="card org-directory-card org-directory-card-premium">
+        <div class="card-header org-related-header org-list-header-band">
+            <div>
+                <h2 class="card-title">{{ page_title }}</h2>
+                <p class="card-subtitle">Browse records, open details, and keep organization setup clean and structured.</p>
+            </div>
+            <div class="page-actions org-list-header-badges">
+                <span class="badge badge-light">{{ objects|length }} Record{{ objects|length|pluralize }}</span>
+            </div>
+        </div>
+
+        <div class="table-responsive org-directory-table">
+            <table class="table org-standard-list-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th class="branch-overview-status-col">Status</th>
+                        <th class="table-actions-col branch-overview-actions-col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for object in objects %}
+                        <tr>
+                            <td>
+                                <div class="org-name-cell org-name-cell-premium org-name-cell-with-media">
+                                    <div class="org-list-avatar-shell">
+                                        {% if object.logo %}
+                                            <img src="{{ object.logo.url }}" alt="{{ object }}" class="org-list-avatar">
+                                        {% elif object.image %}
+                                            <img src="{{ object.image.url }}" alt="{{ object }}" class="org-list-avatar">
+                                        {% else %}
+                                            <div class="org-list-avatar org-list-avatar-fallback">
+                                                {{ object|stringformat:'s'|first|upper }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="org-name-copy">
+                                        <div class="org-name-title">
+                                            {% if detail_url_name %}
+                                                <a href="{% url detail_url_name object.pk %}" class="org-name-link">
+                                                    {{ object }}
+                                                </a>
+                                            {% elif update_url_name %}
+                                                <a href="{% url update_url_name object.pk %}" class="org-name-link">
+                                                    {{ object }}
+                                                </a>
+                                            {% else %}
+                                                {{ object }}
+                                            {% endif %}
+                                        </div>
+                                        <div class="org-name-subtitle">
+                                            Open this record to review full details and linked team data.
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="org-status-cell">
+                                    {% if object.is_active %}
+                                        <span class="badge badge-success">Active</span>
+                                    {% else %}
+                                        <span class="badge badge-danger">Inactive</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                            <td class="table-actions-cell">
+                                <div class="table-action-buttons table-action-buttons-premium table-action-buttons-row table-action-buttons-compact">
+                                    {% if detail_url_name %}
+                                        <a href="{% url detail_url_name object.pk %}" class="btn btn-sm btn-light">View</a>
+                                    {% endif %}
+                                    {% if update_url_name %}
+                                        <a href="{% url update_url_name object.pk %}" class="btn btn-sm btn-outline">Edit</a>
+                                    {% endif %}
+                                    {% if delete_url_name %}
+                                        <a href="{% url delete_url_name object.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3">
+                                <div class="empty-state">
+                                    <h3>No records found</h3>
+                                    <p>There are no {{ page_title|lower }} to display right now.</p>
+                                    {% if create_url %}
+                                        <a href="{{ create_url }}" class="btn btn-primary">Add First Record</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

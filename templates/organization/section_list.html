@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Sections | HR System{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <div>
+        <h1>Sections</h1>
+        <p class="page-subtitle">Sections under departments.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Section</th>
+                    <th>Department</th>
+                    <th>Code</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for section in sections %}
+                <tr>
+                    <td>{{ section.name }}</td>
+                    <td>{{ section.department.name }}</td>
+                    <td>{{ section.code }}</td>
+                    <td>{{ section.description|default:"—"|truncatechars:60 }}</td>
+                    <td>
+                        {% if section.is_active %}
+                            <span class="badge badge-success">Active</span>
+                        {% else %}
+                            <span class="badge badge-muted">Inactive</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="empty-row">No sections found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

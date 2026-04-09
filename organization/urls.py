@@ -1,0 +1,73 @@
+from django.urls import path
+
+from .views import (
+    BranchCreateView,
+    BranchDeleteView,
+    BranchDetailView,
+    BranchDocumentListView,
+    BranchListView,
+    BranchUpdateView,
+    CompanyCreateView,
+    CompanyDeleteView,
+    CompanyDetailView,
+    CompanyListView,
+    CompanyUpdateView,
+    DepartmentCreateView,
+    DepartmentDeleteView,
+    DepartmentDetailView,
+    DepartmentListView,
+    DepartmentUpdateView,
+    JobTitleCreateView,
+    JobTitleDeleteView,
+    JobTitleDetailView,
+    JobTitleListView,
+    JobTitleUpdateView,
+    SectionCreateView,
+    SectionDeleteView,
+    SectionDetailView,
+    SectionListView,
+    SectionUpdateView,
+    branch_document_create,
+    branch_document_delete,
+    branch_document_requirement_create,
+    branch_document_requirement_delete,
+)
+
+app_name = "organization"
+
+urlpatterns = [
+    path("companies/", CompanyListView.as_view(), name="company_list"),
+    path("companies/create/", CompanyCreateView.as_view(), name="company_create"),
+    path("companies/<int:pk>/", CompanyDetailView.as_view(), name="company_detail"),
+    path("companies/<int:pk>/update/", CompanyUpdateView.as_view(), name="company_update"),
+    path("companies/<int:pk>/delete/", CompanyDeleteView.as_view(), name="company_delete"),
+
+    path("branches/", BranchListView.as_view(), name="branch_list"),
+    path("branch-documents/", BranchDocumentListView.as_view(), name="branch_document_list"),
+    path("branches/create/", BranchCreateView.as_view(), name="branch_create"),
+    path("branches/<int:pk>/", BranchDetailView.as_view(), name="branch_detail"),
+    path("branches/<int:pk>/update/", BranchUpdateView.as_view(), name="branch_update"),
+    path("branches/<int:pk>/delete/", BranchDeleteView.as_view(), name="branch_delete"),
+    path("branches/<int:pk>/documents/create/", branch_document_create, name="branch_document_create"),
+    path("branches/<int:branch_pk>/documents/<int:document_pk>/delete/", branch_document_delete, name="branch_document_delete"),
+    path("branches/<int:pk>/document-requirements/create/", branch_document_requirement_create, name="branch_document_requirement_create"),
+    path("branches/<int:branch_pk>/document-requirements/<int:requirement_pk>/delete/", branch_document_requirement_delete, name="branch_document_requirement_delete"),
+
+    path("departments/", DepartmentListView.as_view(), name="department_list"),
+    path("departments/create/", DepartmentCreateView.as_view(), name="department_create"),
+    path("departments/<int:pk>/", DepartmentDetailView.as_view(), name="department_detail"),
+    path("departments/<int:pk>/update/", DepartmentUpdateView.as_view(), name="department_update"),
+    path("departments/<int:pk>/delete/", DepartmentDeleteView.as_view(), name="department_delete"),
+
+    path("sections/", SectionListView.as_view(), name="section_list"),
+    path("sections/create/", SectionCreateView.as_view(), name="section_create"),
+    path("sections/<int:pk>/", SectionDetailView.as_view(), name="section_detail"),
+    path("sections/<int:pk>/update/", SectionUpdateView.as_view(), name="section_update"),
+    path("sections/<int:pk>/delete/", SectionDeleteView.as_view(), name="section_delete"),
+
+    path("jobtitles/", JobTitleListView.as_view(), name="jobtitle_list"),
+    path("jobtitles/create/", JobTitleCreateView.as_view(), name="jobtitle_create"),
+    path("jobtitles/<int:pk>/", JobTitleDetailView.as_view(), name="jobtitle_detail"),
+    path("jobtitles/<int:pk>/update/", JobTitleUpdateView.as_view(), name="jobtitle_update"),
+    path("jobtitles/<int:pk>/delete/", JobTitleDeleteView.as_view(), name="jobtitle_delete"),
+]

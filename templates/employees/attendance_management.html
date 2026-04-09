@@ -1,0 +1,473 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Attendance Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/employees.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="attendance-management-page">
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Attendance Management</h1>
+        <p class="page-subtitle">
+            Admin-only attendance review center for filtering, auditing, and following attendance performance across the organization.
+        </p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">Back to Directory</a>
+    </div>
+</div>
+
+<div class="card filter-card">
+    <div class="card-header">
+        <h2>Attendance Filters</h2>
+    </div>
+    <div class="card-body">
+        <form method="get" class="directory-filter-form">
+            <div class="filter-grid attendance-filter-grid">
+                <div class="form-group filter-search-group">
+                    <label for="id_search">Search</label>
+                    {{ attendance_filter_form.search }}
+                </div>
+                <div class="form-group">
+                    <label for="id_filter_type">Range</label>
+                    {{ attendance_filter_form.filter_type }}
+                </div>
+                <div class="form-group">
+                    <label for="id_start_date">Start Date</label>
+                    {{ attendance_filter_form.start_date }}
+                </div>
+                <div class="form-group">
+                    <label for="id_end_date">End Date</label>
+                    {{ attendance_filter_form.end_date }}
+                </div>
+                <div class="form-group">
+                    <label for="id_employee">Employee</label>
+                    {{ attendance_filter_form.employee }}
+                </div>
+                <div class="form-group">
+                    <label for="id_company">Company</label>
+                    {{ attendance_filter_form.company }}
+                </div>
+                <div class="form-group">
+                    <label for="id_branch">Branch</label>
+                    {{ attendance_filter_form.branch }}
+                </div>
+                <div class="form-group">
+                    <label for="id_department">Department</label>
+                    {{ attendance_filter_form.department }}
+                </div>
+                <div class="form-group">
+                    <label for="id_section">Section</label>
+                    {{ attendance_filter_form.section }}
+                </div>
+                <div class="form-group">
+                    <label for="id_day_status">Day Status</label>
+                    {{ attendance_filter_form.day_status }}
+                </div>
+            </div>
+            {% if attendance_filter_form.non_field_errors or attendance_filter_form.errors %}
+                <div class="status-sync-note attendance-error-note">
+                    Please review the attendance filters and correct any invalid date range before applying.
+                </div>
+            {% endif %}
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <a href="{% url 'employees:attendance_management' %}" class="btn btn-secondary">Clear Filters</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card table-card attendance-snapshot-card">
+    <div class="card-header attendance-table-header">
+        <div>
+            <h2>Daily Attendance Snapshot</h2>
+            <p class="page-subtitle attendance-header-subtitle">
+                Snapshot date: {{ attendance_snapshot_date|date:"M j, Y" }}. {{ attendance_snapshot_note }}
+            </p>
+        </div>
+        {% if attendance_snapshot_is_single_day %}
+            <span class="badge badge-success">Single-Day Focus</span>
+        {% else %}
+            <span class="badge badge-light">Snapshot View</span>
+        {% endif %}
+    </div>
+    <div class="card-body attendance-snapshot-body">
+        <div class="summary-grid attendance-summary-grid attendance-snapshot-grid">
+            <div class="summary-card">
+                <span class="summary-label">Scoped Active Employees</span>
+                <span class="summary-value">{{ attendance_snapshot_scope_count }}</span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Recorded For Snapshot Day</span>
+                <span class="summary-value">{{ attendance_snapshot_recorded_count }}</span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Still Missing</span>
+                <span class="summary-value">{{ attendance_snapshot_missing_count }}</span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Approved Leave Coverage</span>
+                <span class="summary-value">{{ attendance_snapshot_leave_covered_count }}</span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Policy Weekly Off</span>
+                <span class="summary-value">{{ attendance_snapshot_weekly_off_count }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if selected_attendance_record and attendance_correction_form %}
+<div class="card table-card" style="margin-bottom: 22px;">
+    <div class="card-header attendance-table-header">
+        <div>
+            <h2>Request Attendance Correction</h2>
+            <p class="page-subtitle attendance-header-subtitle">
+                Create a correction request for {{ selected_attendance_record.employee.full_name }} on {{ selected_attendance_record.attendance_date|date:"M j, Y" }} without directly overwriting the original row first.
+            </p>
+        </div>
+        <a href="{{ attendance_management_base_url }}" class="btn btn-secondary">Close</a>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'employees:employee_attendance_correction_create' selected_attendance_record.pk %}" class="attendance-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ attendance_management_base_url }}">
+            {% for field in attendance_correction_form %}
+                <div class="form-group {% if field.name == 'requested_notes' or field.name == 'request_reason' %}form-group-full{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<p class="form-help">{{ field.help_text }}</p>{% endif %}
+                    {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+                </div>
+            {% endfor %}
+            <div class="attendance-form-actions form-group-full">
+                <button type="submit" class="btn btn-primary">Submit Correction Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<div class="summary-grid attendance-summary-grid">
+    <div class="summary-card">
+        <span class="summary-label">Period</span>
+        <span class="summary-value attendance-summary-text">{{ attendance_period_label }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Records</span>
+        <span class="summary-value">{{ attendance_total }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Employees Covered</span>
+        <span class="summary-value">{{ attendance_employee_count }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Present</span>
+        <span class="summary-value">{{ present_attendance_count }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Half Day</span>
+        <span class="summary-value">{{ half_day_attendance_count }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Absence</span>
+        <span class="summary-value">{{ absence_attendance_count }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Leave</span>
+        <span class="summary-value">{{ leave_attendance_count }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Weekly Off</span>
+        <span class="summary-value">{{ weekly_off_attendance_count }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Holiday</span>
+        <span class="summary-value">{{ holiday_attendance_count }}</span>
+    </div>
+</div>
+
+<div class="summary-grid attendance-summary-grid attendance-summary-grid-secondary">
+    <div class="summary-card">
+        <span class="summary-label">Worked Hours</span>
+        <span class="summary-value">{{ total_worked_hours }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Scheduled Hours</span>
+        <span class="summary-value">{{ total_scheduled_hours }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Late Minutes</span>
+        <span class="summary-value">{{ total_late_minutes }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Early Departure</span>
+        <span class="summary-value">{{ total_early_departure_minutes }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Overtime Minutes</span>
+        <span class="summary-value">{{ total_overtime_minutes }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Early Exit Flags</span>
+        <span class="summary-value">{{ early_exit_flag_count }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Overtime-Ready</span>
+        <span class="summary-value">{{ overtime_ready_count }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Paid Days</span>
+        <span class="summary-value">{{ paid_day_count }}</span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Unpaid Days</span>
+        <span class="summary-value">{{ unpaid_day_count }}</span>
+    </div>
+</div>
+
+<div class="card table-card">
+    <div class="card-header attendance-table-header">
+        <div>
+            <h2>Attendance Ledger</h2>
+            <p class="page-subtitle attendance-header-subtitle">
+                Filtered company-wide attendance records with quick access back to each employee profile.
+            </p>
+        </div>
+        {% if attendance_filter_applied %}
+            <span class="badge badge-primary">Filtered View</span>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        {% if attendance_records %}
+            <div class="table-responsive">
+                <table class="table attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Employee</th>
+                            <th>Placement</th>
+                            <th>Status</th>
+                            <th>Hours</th>
+                            <th>Punctuality</th>
+                            <th>Source</th>
+                            <th>Rule</th>
+                            <th>Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in attendance_records %}
+                            <tr>
+                                <td>
+                                    <div class="table-stack">
+                                        <strong>{{ record.attendance_date|date:"M j, Y" }}</strong>
+                                        <small>{{ record.attendance_date|date:"l" }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="table-stack">
+                                        <strong><a class="org-name-link" href="{% url 'employees:employee_detail' record.employee.pk %}">{{ record.employee.full_name }}</a></strong>
+                                        <span>{{ record.employee.employee_id }}</span>
+                                        {% if record.employee.email %}<small>{{ record.employee.email }}</small>{% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="table-stack">
+                                        <strong>{{ record.employee.branch|default:"—" }}</strong>
+                                        <span>{{ record.employee.department|default:"—" }}</span>
+                                        <small>{{ record.employee.section|default:record.employee.company }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="status-cell-stack">
+                                        <span class="badge {{ record.day_status_badge_class }}">{{ record.get_day_status_display }}</span>
+                                        <small>{% if record.is_paid_day %}Paid day{% else %}Unpaid day{% endif %}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="table-stack">
+                                        <strong>{{ record.worked_hours }}</strong>
+                                        <span>Scheduled: {{ record.scheduled_hours }}</span>
+                                        {% if record.clock_in_time or record.clock_out_time %}
+                                            <small>
+                                                {% if record.clock_in_time %}In {{ record.clock_in_time|time:"H:i" }}{% endif %}
+                                                {% if record.clock_out_time %} · Out {{ record.clock_out_time|time:"H:i" }}{% endif %}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="table-stack">
+                                        <strong>Late: {{ record.late_minutes }}m</strong>
+                                        <span>Early: {{ record.early_departure_minutes }}m</span>
+                                        <small>Overtime: {{ record.overtime_minutes }}m</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="status-cell-stack">
+                                        <span class="badge {{ record.source_badge_class }}">{{ record.get_source_display }}</span>
+                                        {% if record.created_by %}<small>By {{ record.created_by }}</small>{% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="status-cell-stack">
+                                        <span class="badge {{ record.attendance_rule_badge_class }}">{{ record.attendance_rule_label }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="table-stack">
+                                        {% if record.notes %}
+                                            <span>{{ record.notes }}</span>
+                                        {% else %}
+                                            <span class="muted-text">No notes</span>
+                                        {% endif %}
+                                        {% if record.linked_leave %}
+                                            <small>Linked leave: {{ record.linked_leave.get_leave_type_display }}</small>
+                                        {% endif %}
+                                        {% if record.linked_action_record %}
+                                            <small>Linked action: {{ record.linked_action_record.get_action_type_display }}</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <a class="btn btn-secondary btn-sm" href="{% url 'employees:attendance_management' %}?{% if attendance_management_querystring %}{{ attendance_management_querystring }}&{% endif %}correct={{ record.pk }}">Request Correction</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if attendance_page_obj.has_other_pages %}
+                <div class="pagination-wrap">
+                    <div class="pagination">
+                        {% if attendance_page_obj.has_previous %}
+                            <a class="btn btn-secondary" href="?{% if attendance_management_querystring %}{{ attendance_management_querystring }}&{% endif %}page={{ attendance_page_obj.previous_page_number }}">Previous</a>
+                        {% endif %}
+                        <span class="pagination-info">Page {{ attendance_page_obj.number }} of {{ attendance_page_obj.paginator.num_pages }}</span>
+                        {% if attendance_page_obj.has_next %}
+                            <a class="btn btn-secondary" href="?{% if attendance_management_querystring %}{{ attendance_management_querystring }}&{% endif %}page={{ attendance_page_obj.next_page_number }}">Next</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <h3>No attendance records found</h3>
+                <p>Adjust the filters or start creating attendance ledger entries from employee profiles.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card table-card" style="margin-top: 22px;">
+    <div class="card-header attendance-table-header">
+        <div>
+            <h2>Recent Attendance Corrections</h2>
+            <p class="page-subtitle attendance-header-subtitle">
+                Latest correction requests for the filtered scope, kept separate from the original ledger for audit safety.
+            </p>
+        </div>
+        <div class="attendance-inline-badges">
+            <span class="badge badge-warning">Pending {{ attendance_correction_pending_count }}</span>
+            <span class="badge badge-success">Applied {{ attendance_correction_applied_count }}</span>
+            <span class="badge badge-danger">Rejected {{ attendance_correction_rejected_count }}</span>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if attendance_correction_records %}
+            <div class="table-responsive">
+                <table class="table attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Attendance Date</th>
+                            <th>Employee</th>
+                            <th>Requested Change</th>
+                            <th>Rule</th>
+                            <th>Status</th>
+                            <th>Requested / Reviewed By</th>
+                            <th>Reason</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for correction in attendance_correction_records %}
+                            <tr>
+                                <td>
+                                    <div class="table-stack">
+                                        <strong>{{ correction.linked_attendance.attendance_date|date:"M j, Y" }}</strong>
+                                        <small>{{ correction.linked_attendance.attendance_date|date:"l" }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="table-stack">
+                                        <strong><a class="org-name-link" href="{% url 'employees:employee_detail' correction.employee.pk %}">{{ correction.employee.full_name }}</a></strong>
+                                        <span>{{ correction.employee.employee_id }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="table-stack">
+                                        <strong>{{ correction.get_requested_day_status_display }}</strong>
+                                        <span>In {{ correction.requested_clock_in_time|time:"H:i"|default:"—" }} · Out {{ correction.requested_clock_out_time|time:"H:i"|default:"—" }}</span>
+                                        <small>Late {{ correction.requested_late_minutes }}m · Early {{ correction.requested_early_departure_minutes }}m · Overtime {{ correction.requested_overtime_minutes }}m</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge {{ correction.requested_rule_badge_class }}">{{ correction.requested_rule_label }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge {{ correction.status_badge_class }}">{{ correction.get_status_display }}</span>
+                                </td>
+                                <td>
+                                    <div class="table-stack">
+                                        <strong>{{ correction.requested_by|default:"System" }}</strong>
+                                        <small>{% if correction.reviewed_by %}Reviewed by {{ correction.reviewed_by }}{% else %}Awaiting review{% endif %}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="table-stack">
+                                        <span>{{ correction.request_reason }}</span>
+                                        {% if correction.review_notes %}<small>Review: {{ correction.review_notes }}</small>{% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if correction.status == 'pending' %}
+                                        <div class="table-stack">
+                                            <form method="post" action="{% url 'employees:employee_attendance_correction_apply' correction.pk %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                <textarea name="review_notes" rows="2" class="form-control" placeholder="Optional approval note"></textarea>
+                                                <button type="submit" class="btn btn-primary btn-sm" style="margin-top:8px;">Apply</button>
+                                            </form>
+                                            <form method="post" action="{% url 'employees:employee_attendance_correction_reject' correction.pk %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                <textarea name="review_notes" rows="2" class="form-control" placeholder="Optional rejection note"></textarea>
+                                                <button type="submit" class="btn btn-secondary btn-sm" style="margin-top:8px;">Reject</button>
+                                            </form>
+                                        </div>
+                                    {% else %}
+                                        <span class="muted-text">Completed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state compact-empty-state">
+                <h3>No correction requests found</h3>
+                <p>No attendance corrections matched the current attendance management filters.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+</div>
+{% endblock %}

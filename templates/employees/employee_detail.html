@@ -1,0 +1,2023 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Employee Profile | {{ employee.full_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/employees.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="employee-profile-page">
+
+{% if is_self_service_view or is_supervisor_own_profile_view or is_operations_own_profile_view %}
+<div class="page-header employee-profile-header">
+    
+    <div>
+        <h1 class="page-title">{% if is_operations_own_profile_view %}My Operations Profile{% elif is_supervisor_own_profile_view %}My Supervisor Profile{% else %}My Profile{% endif %}</h1>
+        <p class="page-subtitle">
+            {% if is_operations_own_profile_view %}View your own operations profile, personal placement details, branch context, and personal request workflow without mixing it with management actions.{% elif is_supervisor_own_profile_view %}View your own supervisor profile, personal placement details, branch team structure, and self-service requests without mixing them with team management actions.{% else %}View your personal profile, professional placement, branch team structure, and your request workflow safely.{% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="modern-shell">
+<div class="employee-profile-grid">
+    <div class="employee-profile-main">
+        <div class="card employee-hero-card modern-section-card">
+            <div class="card-body">
+                <div class="employee-hero">
+                    <div class="employee-hero-media">
+                        {% if employee.photo %}
+                            <img alt="{{ employee.full_name }}" class="employee-photo" src="{{ employee.photo.url }}">
+                        {% else %}
+                            <div class="employee-avatar employee-avatar-lg">
+                                {{ employee.full_name|slice:":1"|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="employee-hero-content">
+                        <div class="employee-hero-topline">
+                            <h2 class="employee-hero-name">{{ employee.full_name|default:"—" }}</h2>
+                            {% if employee.is_active %}
+                                <span class="badge badge-success">Active</span>
+                            {% else %}
+                                <span class="badge badge-danger">Inactive</span>
+                            {% endif %}
+                            <span class="badge badge-light">{% if is_operations_own_profile_view %}Operations Self-Profile{% elif is_supervisor_own_profile_view %}Supervisor Self-Profile{% else %}Self-Service View{% endif %}</span>
+                        </div>
+
+                        <p class="employee-hero-role">{{ employee_display_job_title|default:"No job title assigned" }}</p>
+
+                        <div class="employee-hero-meta">
+                            <div class="employee-hero-meta-item">
+                                <span class="detail-label">Employee ID</span>
+                                <span class="detail-value">{{ employee.employee_id|default:"—" }}</span>
+                            </div>
+                            <div class="employee-hero-meta-item">
+                                <span class="detail-label">Company</span>
+                                <span class="detail-value">{{ employee_display_company|default:"—" }}</span>
+                            </div>
+                            <div class="employee-hero-meta-item">
+                                <span class="detail-label">Branch</span>
+                                <span class="detail-value">{{ employee_display_branch|default:"—" }}</span>
+                            </div>
+                            <div class="employee-hero-meta-item">
+                                <span class="detail-label">Department</span>
+                                <span class="detail-value">{{ employee_display_department|default:"—" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-card-grid modern-list-gap">
+            <div class="card detail-card modern-soft-card employee-information-card">
+                <div class="card-header profile-section-card-header">
+                    <h2>Personal Information</h2>
+                    {% if can_use_profile_section_edit and profile_section_actions.employee_information %}
+                        <button
+                            type="button"
+                            class="section-edit-button"
+                            data-modal-open="employee-information-modal"
+                            title="{{ profile_section_actions.employee_information.title }}"
+                            aria-label="{{ profile_section_actions.employee_information.title }}"
+                        >
+                            <span class="section-edit-button-icon">✎</span>
+                            <span class="section-edit-button-text">{{ profile_section_actions.employee_information.label }}</span>
+                        </button>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="detail-grid two-col employee-information-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Full Name</span>
+                            <span class="detail-value">{{ employee.full_name|default:"—" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Employee ID</span>
+                            <span class="detail-value">{{ employee.employee_id|default:"—" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Email</span>
+                            <span class="detail-value">
+                                {% if employee.email %}
+                                    <a href="mailto:{{ employee.email }}">{{ employee.email }}</a>
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Phone</span>
+                            <span class="detail-value">
+                                {% if employee.phone %}
+                                    <a href="tel:{{ employee.phone }}">{{ employee.phone }}</a>
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Birth Date</span>
+                            <span class="detail-value">{% if employee.birth_date %}{{ employee.birth_date|date:"F j, Y" }}{% else %}—{% endif %}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Age</span>
+                            <span class="detail-value">{{ employee.age|default:"—" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Marital Status</span>
+                            <span class="detail-value">{{ employee.get_marital_status_display|default:"—" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Nationality</span>
+                            <span class="detail-value">{{ employee.nationality|default:"—" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card detail-card modern-soft-card">
+                <div class="card-header profile-section-card-header">
+                    <h2>Professional Information</h2>
+                    {% if can_use_profile_section_edit and profile_section_actions.organization_information %}
+                        <a
+                            href="{{ profile_section_actions.organization_information.url }}"
+                            class="section-edit-button"
+                            title="{{ profile_section_actions.organization_information.title }}"
+                            aria-label="{{ profile_section_actions.organization_information.title }}"
+                        >
+                            <span class="section-edit-button-icon">✎</span>
+                            <span class="section-edit-button-text">{{ profile_section_actions.organization_information.label }}</span>
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="detail-grid two-col employee-org-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Job Title</span>
+                            <span class="detail-value">{{ employee_display_job_title|default:"—" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Section</span>
+                            <span class="detail-value">{{ employee_display_section|default:"—" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Team Leader</span>
+                            <span class="detail-value">{{ self_service_team_leader.full_name|default:"—" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Supervisor</span>
+                            <span class="detail-value">{{ self_service_supervisor.full_name|default:"—" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Branch</span>
+                            <span class="detail-value">{{ employee_display_branch|default:"—" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Department</span>
+                            <span class="detail-value">{{ employee_display_department|default:"—" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Company</span>
+                            <span class="detail-value">{{ employee_display_company|default:"—" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card detail-card modern-soft-card">
+                <div class="card-header">
+                    <div class="section-heading profile-section-heading-with-action">
+                        <div>
+                            <h2>ID Compliance Status</h2>
+                            <p class="page-subtitle">
+                                Passport and Civil ID expiry details visible for your own record.
+                            </p>
+                        </div>
+                        {% if can_use_profile_section_edit and profile_section_actions.identity_information %}
+                            <button
+                                type="button"
+                                class="section-edit-button"
+                                data-modal-open="identity-information-modal"
+                                title="{{ profile_section_actions.identity_information.title }}"
+                                aria-label="{{ profile_section_actions.identity_information.title }}"
+                            >
+                                <span class="section-edit-button-icon">✎</span>
+                                <span class="section-edit-button-text">{{ profile_section_actions.identity_information.label }}</span>
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if identity_document_statuses %}
+                        <div class="id-status-grid employee-identity-status-grid">
+                            {% for identity_document in identity_document_statuses %}
+                                <div class="id-status-card employee-identity-status-card id-status-card-{{ identity_document.state_key }}">
+                                    <div class="id-status-card-head">
+                                        <strong>{{ identity_document.label }}</strong>
+                                        <span class="badge {{ identity_document.badge_class }}">{{ identity_document.status_label }}</span>
+                                    </div>
+                                    <div class="detail-grid two-col">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Reference Number</span>
+                                            <span class="detail-value">{{ identity_document.reference_number|default:"—" }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Expiry Date</span>
+                                            <span class="detail-value">
+                                                {% if identity_document.expiry_date %}
+                                                    {{ identity_document.expiry_date|date:"F j, Y" }}
+                                                {% else %}
+                                                    —
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Issue Date</span>
+                                            <span class="detail-value">
+                                                {% if identity_document.issue_date %}
+                                                    {{ identity_document.issue_date|date:"F j, Y" }}
+                                                {% else %}
+                                                    —
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Days Remaining</span>
+                                            <span class="detail-value">{{ identity_document.days_remaining_display }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state compact-empty-state">
+                            <h3>No ID compliance records found</h3>
+                            <p>Passport and Civil ID expiry details will appear here when documents with expiry dates are uploaded.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+
+            <div class="card detail-card modern-soft-card">
+                <div class="card-header">
+                    <div class="section-heading">
+                        <div>
+                            <h2>Branch Team</h2>
+                            <p class="page-subtitle">
+                                Safe branch view showing your branch and team structure from supervisor down.
+                            </p>
+                        </div>
+                        <span class="badge badge-primary">{{ branch_team_total }} Member{{ branch_team_total|pluralize }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="detail-grid two-col employee-org-grid" style="margin-bottom: 18px;">
+                        <div class="detail-item">
+                            <span class="detail-label">Branch</span>
+                            <span class="detail-value">{{ employee_display_branch|default:"—" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Department</span>
+                            <span class="detail-value">{{ employee_display_department|default:"—" }}</span>
+                        </div>
+                    </div>
+
+                    {% if branch_team_groups %}
+                        <div class="summary-list document-list modern-list-gap">
+                            {% for group in branch_team_groups %}
+                                <div class="summary-list-item document-card-item">
+                                    <div class="table-stack document-card-stack">
+                                        <div class="status-badge-stack document-card-head">
+                                            <strong class="document-card-title">{{ group.label }}</strong>
+                                            <span class="badge badge-light">{{ group.members|length }} Member{{ group.members|length|pluralize }}</span>
+                                        </div>
+
+                                        <div class="detail-grid two-col employee-org-grid" style="margin-top: 10px;">
+                                            {% for member in group.members %}
+                                                <div class="detail-item branch-team-member-item">
+                                                    <span class="branch-team-member-name">{{ member.full_name }}</span>
+                                                    <span class="branch-team-member-meta">
+                                                        {{ member.short_job_title_display|default:"—" }}
+                                                        {% if member.section %}
+                                                            • {{ member.short_section_display }}
+                                                        {% endif %}
+                                                    </span>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <h3>No branch team records available</h3>
+                            <p>Branch team structure will appear here when related employee records exist in the same branch.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+
+            <div class="card detail-card modern-soft-card">
+                <div class="card-header">
+                    <div>
+                        <h2>Submit Leave / Request</h2>
+                        <p class="page-subtitle">
+                            Submit your leave request and upload any related supporting document in one safe self-service form.
+                        </p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'employees:employee_leave_create' employee.pk %}" class="employee-sidebar-form" enctype="multipart/form-data" method="post">
+                        {% csrf_token %}
+                        <div class="detail-grid two-col">
+                            {% for field in leave_form %}
+                                <div class="form-group {% if field.name == 'reason' or field.name == 'attachment_description' or field.name == 'attachment_file' %}full-width{% endif %}">
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <small class="muted-text">{{ field.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="form-error">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="page-actions" style="margin-top: 16px;">
+                            <button class="btn btn-primary" type="submit">Submit Request</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            
+
+
+            <div class="card detail-card modern-soft-card">
+                <div class="card-header">
+                    <div>
+                        <h2>Request Document / Certificate</h2>
+                        <p class="page-subtitle">Request a salary certificate, HR letter, experience certificate, or another management-issued file from your own profile.</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'employees:employee_document_request_create' employee.pk %}" class="employee-sidebar-form" method="post">
+                        {% csrf_token %}
+                        <div class="detail-grid two-col">
+                            {% for field in employee_document_request_create_form %}
+                                <div class="form-group {% if field.name == 'request_note' %}full-width{% endif %}">
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.help_text %}<small class="muted-text">{{ field.help_text }}</small>{% endif %}
+                                    {% for error in field.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="page-actions" style="margin-top: 16px;">
+                            <button class="btn btn-primary" type="submit">Send Document Request</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+
+            <div class="card detail-card modern-soft-card">
+                <div class="card-header">
+                    <div class="section-heading">
+                        <div>
+                            <h2>Requests From Management</h2>
+                            <p class="page-subtitle">Review file and compliance requests sent to you by supervisor, HR, or operations, then upload the requested document from your self-service profile.</p>
+                        </div>
+                        <span class="badge badge-primary">{{ required_submission_total }} Request{{ required_submission_total|pluralize }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="detail-grid two-col employee-org-grid" style="margin-bottom: 18px;">
+                        <div class="detail-item">
+                            <span class="detail-label">Requested</span>
+                            <span class="detail-value">{{ required_submission_requested_count }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Submitted</span>
+                            <span class="detail-value">{{ required_submission_submitted_count }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Completed</span>
+                            <span class="detail-value">{{ required_submission_completed_count }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Needs Correction</span>
+                            <span class="detail-value">{{ required_submission_needs_correction_count }}</span>
+                        </div>
+                    </div>
+
+                    {% if required_submission_requests %}
+                        <div class="summary-list document-list modern-list-gap">
+                            {% for submission_request in required_submission_requests %}
+                                <div class="summary-list-item document-card-item {% if submission_request.status == 'completed' %}document-card-item-success{% elif submission_request.status == 'needs_correction' or submission_request.is_overdue %}document-card-item-danger{% elif submission_request.status == 'submitted' %}document-card-item-warning{% endif %}">
+                                    <div class="table-stack document-card-stack">
+                                        <div class="status-badge-stack document-card-head">
+                                            <strong class="document-card-title">{{ submission_request.title }}</strong>
+                                            <span class="badge {{ submission_request.status_badge_class }}">{{ submission_request.get_status_display }}</span>
+                                        </div>
+
+                                        <div class="workflow-state-stack">
+                                            <span class="badge {{ submission_request.priority_badge_class }}">{{ submission_request.get_priority_display }}</span>
+                                            <span class="badge badge-light">{{ submission_request.get_request_type_display }}</span>
+                                            {% if submission_request.is_overdue %}
+                                                <span class="badge badge-danger">Overdue</span>
+                                            {% endif %}
+                                        </div>
+
+                                        <small>
+                                            Requested by {{ submission_request.created_by|default:'Management' }}
+                                            {% if submission_request.due_date %} • Due {{ submission_request.due_date|date:"F j, Y" }}{% endif %}
+                                            {% if submission_request.submitted_at %} • Submitted {{ submission_request.submitted_at|date:"F j, Y - g:i A" }}{% endif %}
+                                        </small>
+
+                                        {% if submission_request.instructions %}
+                                            <div class="document-description"><strong>Instructions:</strong> {{ submission_request.instructions|linebreaksbr }}</div>
+                                        {% endif %}
+
+                                        {% if submission_request.review_note %}
+                                            <div class="document-description"><strong>Review Note:</strong> {{ submission_request.review_note|linebreaksbr }}</div>
+                                        {% endif %}
+
+                                        {% if submission_request.response_file %}
+                                            <div class="document-description">
+                                                <strong>Latest Uploaded File:</strong>
+                                                <div class="page-actions document-actions-row" style="margin-top: 10px;">
+                                                    <a class="btn btn-light btn-sm" href="{{ submission_request.response_file.url }}" target="_blank" rel="noopener">View Uploaded File</a>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+
+                                        {% if submission_request.can_employee_submit %}
+                                            <form action="{% url 'employees:employee_required_submission_submit' submission_request.pk %}" method="post" enctype="multipart/form-data" class="action-record-form-grid" style="margin-top: 14px;">
+                                                {% csrf_token %}
+                                                {% for field in submission_request.response_form %}
+                                                    <div class="form-group {% if field.name == 'employee_note' %}form-group-full{% endif %}">
+                                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                                        {{ field }}
+                                                        {% if field.help_text %}
+                                                            <p class="form-help">{{ field.help_text }}</p>
+                                                        {% endif %}
+                                                        {% for error in field.errors %}
+                                                            <p class="form-error">{{ error }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endfor %}
+                                                <div class="attendance-form-actions form-group-full">
+                                                    <button type="submit" class="btn btn-primary">Upload and Submit</button>
+                                                </div>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <h3>No management requests right now</h3>
+                            <p>Any file or compliance request sent to you by supervisor, HR, or operations will appear here.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+
+    
+
+        <div class="card detail-card modern-soft-card self-service-document-request-status-card">
+            <div class="card-header">
+                <div class="section-heading">
+                    <div>
+                        <h2>My Document Request Status</h2>
+                        <p class="page-subtitle">Track management-issued document and certificate requests separately from leave workflow.</p>
+                    </div>
+                    <span class="badge badge-primary">{{ employee_document_request_total }} Request{{ employee_document_request_total|pluralize }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="detail-grid two-col employee-org-grid" style="margin-bottom: 18px;">
+                    <div class="detail-item"><span class="detail-label">Requested</span><span class="detail-value">{{ self_service_document_request_requested_count }}</span></div>
+                    <div class="detail-item"><span class="detail-label">Approved / In Progress</span><span class="detail-value">{{ self_service_document_request_approved_count }}</span></div>
+                    <div class="detail-item"><span class="detail-label">Completed</span><span class="detail-value">{{ self_service_document_request_completed_count }}</span></div>
+                    <div class="detail-item"><span class="detail-label">Rejected</span><span class="detail-value">{{ self_service_document_request_rejected_count }}</span></div>
+                </div>
+
+                {% if self_service_document_request_records %}
+                    <div class="summary-list document-list modern-list-gap">
+                        {% for document_request in self_service_document_request_records %}
+                            <div class="summary-list-item document-card-item {% if document_request.status == 'completed' %}document-card-item-success{% elif document_request.status == 'rejected' or document_request.status == 'cancelled' %}document-card-item-danger{% else %}document-card-item-warning{% endif %}">
+                                <div class="table-stack document-card-stack">
+                                    <div class="status-badge-stack document-card-head">
+                                        <strong class="document-card-title">{{ document_request.title }}</strong>
+                                        <span class="badge {{ document_request.status_badge_class }}">{{ document_request.get_status_display }}</span>
+                                    </div>
+                                    <div class="workflow-state-stack">
+                                        <span class="badge {{ document_request.priority_badge_class }}">{{ document_request.get_priority_display }}</span>
+                                        <span class="badge badge-light">{{ document_request.get_request_type_display }}</span>
+                                        {% if document_request.is_overdue %}<span class="badge badge-danger">Overdue</span>{% endif %}
+                                    </div>
+                                    <small>Requested {{ document_request.submitted_at|date:"F j, Y - g:i A"|default:"—" }}{% if document_request.needed_by_date %} • Needed by {{ document_request.needed_by_date|date:"F j, Y" }}{% endif %}</small>
+                                    {% if document_request.request_note %}<div class="document-description"><strong>My Note:</strong> {{ document_request.request_note|linebreaksbr }}</div>{% endif %}
+                                    {% if document_request.management_note %}<div class="document-description"><strong>Management Note:</strong> {{ document_request.management_note|linebreaksbr }}</div>{% endif %}
+                                    {% if document_request.response_file %}<div class="page-actions document-actions-row"><a class="btn btn-light btn-sm" href="{{ document_request.response_file.url }}" target="_blank" rel="noopener">View Reply File</a></div>{% endif %}
+                                    {% if document_request.can_employee_cancel and can_cancel_employee_document_request %}
+                                        <div class="page-actions document-actions-row" style="margin-top: 10px;">
+                                            <form action="{% url 'employees:employee_document_request_cancel' document_request.pk %}" method="post">
+                                                {% csrf_token %}
+                                                <button class="btn btn-danger btn-sm" type="submit">Cancel Document Request</button>
+                                            </form>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <h3>No document requests submitted yet</h3>
+                        <p>Your salary certificate and other management-issued document requests will appear here.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+
+        <div class="card detail-card modern-soft-card self-service-request-status-card">
+                <div class="card-header">
+                    <div class="section-heading">
+                        <div>
+                            <h2>My Request Status</h2>
+                            <p class="page-subtitle">Track the current status of your submitted requests.</p>
+                        </div>
+                        <span class="badge badge-primary">{{ leave_total }} Request{{ leave_total|pluralize }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="detail-grid two-col employee-org-grid" style="margin-bottom: 18px;">
+                        <div class="detail-item">
+                            <span class="detail-label">Pending</span>
+                            <span class="detail-value">{{ self_service_pending_leave_count }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Approved</span>
+                            <span class="detail-value">{{ self_service_approved_leave_count }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Rejected</span>
+                            <span class="detail-value">{{ self_service_rejected_leave_count }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Cancelled</span>
+                            <span class="detail-value">{{ self_service_cancelled_leave_count }}</span>
+                        </div>
+                    </div>
+
+                    {% if self_service_request_records %}
+                        <div class="summary-list document-list modern-list-gap">
+                            {% for leave_record in self_service_request_records %}
+                                <div class="summary-list-item document-card-item {% if leave_record.status == 'approved' %}document-card-item-success{% elif leave_record.status == 'rejected' or leave_record.status == 'cancelled' %}document-card-item-danger{% elif leave_record.status == 'pending' %}document-card-item-warning{% endif %}">
+                                    <div class="table-stack document-card-stack">
+                                        <div class="status-badge-stack document-card-head">
+                                            <strong class="document-card-title">{{ leave_record.get_leave_type_display }}</strong>
+                                            <span class="badge {{ leave_record.status_badge_class }}">{{ leave_record.get_status_display }}</span>
+                                        </div>
+                                        <div class="workflow-state-stack">
+                                            {% if leave_record.status == 'approved' %}
+                                                <span class="badge badge-success">Final Approved</span>
+                                            {% elif leave_record.status == 'rejected' %}
+                                                <span class="badge badge-danger">Final Rejected</span>
+                                            {% elif leave_record.status == 'cancelled' %}
+                                                <span class="badge badge-danger">Cancelled / Recalled</span>
+                                            {% elif leave_record.current_stage == 'supervisor_review' %}
+                                                <span class="badge badge-warning">Waiting for Supervisor</span>
+                                            {% elif leave_record.current_stage == 'operations_review' %}
+                                                <span class="badge badge-primary">Approved by Supervisor • Waiting for Operations</span>
+                                            {% elif leave_record.current_stage == 'hr_review' %}
+                                                <span class="badge badge-primary">Approved by Operations • Waiting for HR</span>
+                                            {% endif %}
+                                        </div>
+
+                                                                                <small>Current workflow owner: {{ leave_record.workflow_owner_label|default:"—" }}</small>
+<span>{{ leave_record.start_date|date:"F j, Y" }} → {{ leave_record.end_date|date:"F j, Y" }}</span>
+
+                                        <small>
+                                            Total days: {{ leave_record.total_days }}
+                                            {% if leave_record.created_at %}
+                                                • Submitted {{ leave_record.created_at|date:"F j, Y - g:i A" }}
+                                            {% endif %}
+                                            {% if leave_record.updated_by %}
+                                                • Updated by {{ leave_record.updated_by }}
+                                            {% endif %}
+                                        </small>
+
+                                        {% if leave_record.reason %}
+                                            <div class="document-description">
+                                                <strong>Reason:</strong> {{ leave_record.reason|linebreaksbr }}
+                                            </div>
+                                        {% endif %}
+
+                                        {% if leave_record.approval_note %}
+                                            <div class="document-description">
+                                                <strong>Review Note:</strong> {{ leave_record.approval_note|linebreaksbr }}
+                                            </div>
+                                        {% endif %}
+
+                                        {% with request_documents=leave_record.supporting_documents.all %}
+                                            {% if request_documents %}
+                                                <div class="document-description">
+                                                    <strong>Supporting Documents:</strong>
+                                                    <div class="page-actions document-actions-row" style="margin-top: 10px;">
+                                                        {% for document in request_documents %}
+                                                            {% if document.file %}
+                                                            <a class="btn btn-light btn-sm" href="{{ document.file.url }}" target="_blank" rel="noopener">
+                                                                {{ document.title|default:document.filename }}
+                                                            </a>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        {% endwith %}
+
+                                        {% if leave_record.status == 'pending' and leave_record.can_cancel and can_cancel_leave %}
+                                            <div class="page-actions document-actions-row" style="margin-top: 10px;">
+                                                <form action="{% url 'employees:employee_leave_cancel' employee.pk leave_record.pk %}" method="post">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="approval_note" value="{% if is_operations_own_profile_view %}Cancelled by operations user from own profile.{% else %}Cancelled by employee from self-service.{% endif %}">
+                                                    <button class="btn btn-danger btn-sm" type="submit">Recall / Cancel Request</button>
+                                                </form>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <h3>No requests submitted yet</h3>
+                            <p>Your leave and request status records will appear here.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if can_view_working_time_summary %}
+                            <div class="card detail-card modern-soft-card">
+                                <div class="card-header">
+                                    <div class="section-heading">
+                                        <div>
+                                            <h2>Working Time Summary</h2>
+                                            <p class="page-subtitle">Track working totals, leave workflow results, and approved leave breakdown by type.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body working-time-summary-body">
+                                    <div class="working-time-section-head">
+                                        <h3>Leave Balance Summary</h3>
+                                    </div>
+                                    <div class="modern-metric-grid working-time-metrics working-time-metrics--balance">
+                                        <div class="metric-card">
+
+                                            <span class="metric-label">Service Duration</span>
+
+                                            <span class="metric-value">{{ working_time_summary.service_duration_display }}</span>
+
+                                            <div class="metric-help">Total completed service shown as years and months.</div>
+
+                                        </div>
+
+                                        <div class="metric-card">
+
+                                            <span class="metric-label">Service Days</span>
+
+                                            <span class="metric-value">{{ working_time_summary.service_days }}</span>
+
+                                            <div class="metric-help">Days counted from hire date until today.</div>
+
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Annual Leave Entitlement</span>
+                                            <span class="metric-value">{{ working_time_summary.annual_leave_entitlement_days }}</span>
+                                            <div class="metric-help">Accrued from service period at 30 days per 365 days.</div>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Annual Leave Taken</span>
+                                            <span class="metric-value">{{ working_time_summary.annual_leave_taken_days }}</span>
+                                            <div class="metric-help">Approved annual leave already consumed up to today.</div>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Approved Future Leave Planned</span>
+                                            <span class="metric-value">{{ working_time_summary.approved_future_annual_leave_days }}</span>
+                                            <div class="metric-help">Approved annual leave booked for future dates.</div>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Available After Planning</span>
+                                            <span class="metric-value">{{ working_time_summary.annual_leave_available_after_planning_days }}</span>
+                                            <div class="metric-help">Remaining annual leave after taken days and future approved planning.</div>
+                                        </div>
+                                    </div>
+            
+                                    <div class="working-time-section-head">
+                                        <h3>Core Working Totals</h3>
+                                    </div>
+                                    <div class="modern-metric-grid working-time-metrics working-time-metrics--core">
+                                        <div class="metric-card">
+                                            <span class="metric-label">Scheduled Working Days</span>
+                                            <span class="metric-value">{{ working_time_summary.scheduled_working_days }}</span>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Absence Days</span>
+                                            <span class="metric-value">{{ working_time_summary.absence_days }}</span>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Punctuality Deduction Hours</span>
+                                            <span class="metric-value">{{ working_time_summary.punctuality_deduction_hours }}</span>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Total Working Days</span>
+                                            <span class="metric-value">{{ working_time_summary.total_working_days }}</span>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Total Working Hours</span>
+                                            <span class="metric-value">{{ working_time_summary.total_working_hours }}</span>
+                                        </div>
+                                    </div>
+            
+                                    <div class="working-time-section-head">
+                                        <h3>Leave Status Summary</h3>
+                                    </div>
+                                    <div class="modern-metric-grid working-time-metrics working-time-metrics--status">
+                                        <div class="metric-card">
+                                            <span class="metric-label">Approved Leave Days</span>
+                                            <span class="metric-value">{{ working_time_summary.approved_leave_days }}</span>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Pending Leave Days</span>
+                                            <span class="metric-value">{{ working_time_summary.pending_leave_days }}</span>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Rejected Requests</span>
+                                            <span class="metric-value">{{ working_time_summary.rejected_leave_requests }}</span>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Cancelled Requests</span>
+                                            <span class="metric-value">{{ working_time_summary.cancelled_leave_requests }}</span>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Unpaid Leave Days</span>
+                                            <span class="metric-value">{{ working_time_summary.unpaid_leave_days }}</span>
+                                        </div>
+                                    </div>
+            
+                                    <div class="working-time-section-head">
+                                        <h3>Approved Leave by Type</h3>
+                                    </div>
+                                    <div class="modern-metric-grid working-time-metrics working-time-metrics--types">
+                                        <div class="metric-card">
+                                            <span class="metric-label">Annual Leave Days</span>
+                                            <span class="metric-value">{{ working_time_summary.annual_leave_days }}</span>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Sick Leave Days</span>
+                                            <span class="metric-value">{{ working_time_summary.sick_leave_days }}</span>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Unpaid Leave Days</span>
+                                            <span class="metric-value">{{ working_time_summary.unpaid_leave_days }}</span>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Emergency Leave Days</span>
+                                            <span class="metric-value">{{ working_time_summary.emergency_leave_days }}</span>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span class="metric-label">Other Leave Days</span>
+                                            <span class="metric-value">{{ working_time_summary.other_leave_days }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                    </div>
+    </div>
+</div>
+{% else %}
+<div class="page-header employee-profile-header">
+    <div>
+        <h1 class="page-title">Employee Profile</h1>
+        <p class="page-subtitle">
+            Review employee identity, placement, working time, compliance visibility, and the complete HR timeline.
+        </p>
+        {% if is_branch_scoped_supervisor_view %}
+            <p class="page-subtitle" style="margin-top: 8px;">Read-only branch scope: you are viewing this employee because they belong to your branch.</p>
+        {% endif %}
+    </div>
+
+    <div class="page-actions">
+        {% if can_view_directory %}
+            <a class="btn btn-secondary" href="{% url 'employees:employee_list' %}">Back to Directory</a>
+        {% endif %}
+
+
+
+        {% if can_edit_employee %}
+            <a class="btn btn-primary" href="{% url 'employees:employee_update' employee.pk %}">Edit Employee</a>
+        {% endif %}
+
+        {% if can_delete_employee %}
+            <a class="btn btn-danger" href="{% url 'employees:employee_delete' employee.pk %}">Delete</a>
+        {% endif %}
+    </div>
+</div>
+
+
+<div class="modern-shell">
+    {% if is_branch_scoped_supervisor_view %}
+    <div class="card detail-card modern-soft-card">
+        <div class="card-header">
+            <div class="section-heading">
+                <div>
+                    <h2>Supervisor Workspace</h2>
+                    <p class="page-subtitle">Focused branch scope for this supervisor profile with safe links to the branch record and team member profiles.</p>
+                </div>
+                <span class="badge badge-primary">{{ branch_team_total }} Member{{ branch_team_total|pluralize }}</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="detail-grid two-col employee-org-grid" style="margin-bottom: 18px;">
+                <div class="detail-item">
+                    <span class="detail-label">Branch</span>
+                    <span class="detail-value">
+                        {% if employee.branch_id %}
+                            <a href="{% url 'organization:branch_detail' employee.branch_id %}">{{ employee_display_branch }}</a>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Department</span>
+                    <span class="detail-value">{{ employee_display_department|default:"—" }}</span>
+                </div>
+            </div>
+
+            {% if branch_team_groups %}
+                <div class="summary-list document-list modern-list-gap">
+                    {% for group in branch_team_groups %}
+                        <div class="summary-list-item document-card-item">
+                            <div class="table-stack document-card-stack">
+                                <div class="status-badge-stack document-card-head">
+                                    <strong class="document-card-title">{{ group.label }}</strong>
+                                    <span class="badge badge-light">{{ group.members|length }} Member{{ group.members|length|pluralize }}</span>
+                                </div>
+
+                                <div class="detail-grid two-col employee-org-grid" style="margin-top: 10px;">
+                                    {% for member in group.members %}
+                                        <div class="detail-item branch-team-member-item">
+                                            <span class="branch-team-member-name">
+                                                <a href="{% url 'employees:employee_detail' member.pk %}">{{ member.full_name }}</a>
+                                            </span>
+                                            <span class="branch-team-member-meta">
+                                                {{ member.short_job_title_display|default:"—" }}
+                                                {% if member.section %}
+                                                    • {{ member.short_section_display }}
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No branch team records available</h3>
+                    <p>This supervisor profile is linked, but no visible team members were found inside the current branch scope.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if show_supervisor_self_service_sections %}
+    <div class="detail-card-grid modern-list-gap">
+        <div class="card detail-card modern-soft-card">
+            <div class="card-header">
+                <div>
+                    <h2>My Leave / Request</h2>
+                    <p class="page-subtitle">
+                        Submit your own leave request and upload any related supporting document while keeping your supervisor team workspace separate.
+                    </p>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="{% url 'employees:employee_leave_create' employee.pk %}" class="employee-sidebar-form" enctype="multipart/form-data" method="post">
+                    {% csrf_token %}
+                    <div class="detail-grid two-col">
+                        {% for field in leave_form %}
+                            <div class="form-group {% if field.name == 'reason' or field.name == 'attachment_description' or field.name == 'attachment_file' %}full-width{% endif %}">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <small class="muted-text">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <div class="form-error">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="page-actions" style="margin-top: 16px;">
+                        <button class="btn btn-primary" type="submit">Submit My Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card detail-card modern-soft-card self-service-request-status-card">
+            <div class="card-header">
+                <div class="section-heading">
+                    <div>
+                        <h2>My Request Status</h2>
+                        <p class="page-subtitle">Track your own submitted requests separately from team requests.</p>
+                    </div>
+                    <span class="badge badge-primary">{{ leave_total }} Request{{ leave_total|pluralize }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="detail-grid two-col employee-org-grid" style="margin-bottom: 18px;">
+                    <div class="detail-item">
+                        <span class="detail-label">Pending</span>
+                        <span class="detail-value">{{ self_service_pending_leave_count }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Approved</span>
+                        <span class="detail-value">{{ self_service_approved_leave_count }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Rejected</span>
+                        <span class="detail-value">{{ self_service_rejected_leave_count }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Cancelled</span>
+                        <span class="detail-value">{{ self_service_cancelled_leave_count }}</span>
+                    </div>
+                </div>
+
+                {% if self_service_request_records %}
+                    <div class="summary-list document-list modern-list-gap">
+                        {% for leave_record in self_service_request_records %}
+                            <div class="summary-list-item document-card-item {% if leave_record.status == 'approved' %}document-card-item-success{% elif leave_record.status == 'rejected' or leave_record.status == 'cancelled' %}document-card-item-danger{% elif leave_record.status == 'pending' %}document-card-item-warning{% endif %}">
+                                <div class="table-stack document-card-stack">
+                                    <div class="status-badge-stack document-card-head">
+                                        <strong class="document-card-title">{{ leave_record.get_leave_type_display }}</strong>
+                                        <span class="badge {{ leave_record.status_badge_class }}">{{ leave_record.get_status_display }}</span>
+                                    </div>
+
+                                    <span>{{ leave_record.start_date|date:"F j, Y" }} → {{ leave_record.end_date|date:"F j, Y" }}</span>
+
+                                    <small>
+                                        Total days: {{ leave_record.total_days }}
+                                        {% if leave_record.created_at %}
+                                            • Submitted {{ leave_record.created_at|date:"F j, Y - g:i A" }}
+                                        {% endif %}
+                                        {% if leave_record.updated_by %}
+                                            • Updated by {{ leave_record.updated_by }}
+                                        {% endif %}
+                                    </small>
+
+                                    {% if leave_record.reason %}
+                                        <div class="document-description">
+                                            <strong>Reason:</strong> {{ leave_record.reason|linebreaksbr }}
+                                        </div>
+                                    {% endif %}
+
+                                    {% if leave_record.approval_note %}
+                                        <div class="document-description">
+                                            <strong>Review Note:</strong> {{ leave_record.approval_note|linebreaksbr }}
+                                        </div>
+                                    {% endif %}
+
+                                    {% with request_documents=leave_record.supporting_documents.all %}
+                                        {% if request_documents %}
+                                            <div class="document-description">
+                                                <strong>Supporting Documents:</strong>
+                                                <div class="page-actions document-actions-row" style="margin-top: 10px;">
+                                                    {% for document in request_documents %}
+                                                        {% if document.file %}
+                                                            <a class="btn btn-light btn-sm" href="{{ document.file.url }}" target="_blank" rel="noopener">
+                                                                {{ document.title|default:document.filename }}
+                                                            </button>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endwith %}
+
+                                    {% if leave_record.status == 'pending' and leave_record.can_cancel and can_cancel_leave %}
+                                        <div class="page-actions document-actions-row" style="margin-top: 10px;">
+                                            <form action="{% url 'employees:employee_leave_cancel' employee.pk leave_record.pk %}" method="post">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="approval_note" value="Cancelled by employee from supervisor self-service.">
+                                                <button class="btn btn-danger btn-sm" type="submit">Recall / Cancel Request</button>
+                                            </form>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <h3>No requests submitted yet</h3>
+                        <p>Your own leave and request records will appear here.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if is_branch_scoped_supervisor_view and user.employee_profile and user.employee_profile.pk == employee.pk %}
+    <div class="card detail-card modern-soft-card">
+        <div class="card-header">
+            <div>
+                <h2>Supervisor Self-Service</h2>
+                <p class="page-subtitle">Your own requests and supporting attachments stay available here, separate from team supervision.</p>
+            </div>
+        </div>
+        <div class="card-body">
+            <form action="{% url 'employees:employee_leave_create' employee.pk %}" class="employee-sidebar-form" enctype="multipart/form-data" method="post">
+                {% csrf_token %}
+                <div class="detail-grid two-col">
+                    {% for field in leave_form %}
+                        <div class="form-group {% if field.name == 'reason' or field.name == 'attachment_description' or field.name == 'attachment_file' %}full-width{% endif %}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <small class="muted-text">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="form-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="page-actions" style="margin-top: 16px;">
+                    <button class="btn btn-primary" type="submit">Submit My Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+
+    <div class="card detail-card modern-soft-card">
+                <div class="card-header">
+                    <div class="section-heading">
+                        <div>
+                            <h2>Requests From Management</h2>
+                            <p class="page-subtitle">Review file and compliance requests sent to you by supervisor, HR, or operations, then upload the requested document from your self-service profile.</p>
+                        </div>
+                        <span class="badge badge-primary">{{ required_submission_total }} Request{{ required_submission_total|pluralize }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="detail-grid two-col employee-org-grid" style="margin-bottom: 18px;">
+                        <div class="detail-item">
+                            <span class="detail-label">Requested</span>
+                            <span class="detail-value">{{ required_submission_requested_count }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Submitted</span>
+                            <span class="detail-value">{{ required_submission_submitted_count }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Completed</span>
+                            <span class="detail-value">{{ required_submission_completed_count }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Needs Correction</span>
+                            <span class="detail-value">{{ required_submission_needs_correction_count }}</span>
+                        </div>
+                    </div>
+
+                    {% if required_submission_requests %}
+                        <div class="summary-list document-list modern-list-gap">
+                            {% for submission_request in required_submission_requests %}
+                                <div class="summary-list-item document-card-item {% if submission_request.status == 'completed' %}document-card-item-success{% elif submission_request.status == 'needs_correction' or submission_request.is_overdue %}document-card-item-danger{% elif submission_request.status == 'submitted' %}document-card-item-warning{% endif %}">
+                                    <div class="table-stack document-card-stack">
+                                        <div class="status-badge-stack document-card-head">
+                                            <strong class="document-card-title">{{ submission_request.title }}</strong>
+                                            <span class="badge {{ submission_request.status_badge_class }}">{{ submission_request.get_status_display }}</span>
+                                        </div>
+
+                                        <div class="workflow-state-stack">
+                                            <span class="badge {{ submission_request.priority_badge_class }}">{{ submission_request.get_priority_display }}</span>
+                                            <span class="badge badge-light">{{ submission_request.get_request_type_display }}</span>
+                                            {% if submission_request.is_overdue %}
+                                                <span class="badge badge-danger">Overdue</span>
+                                            {% endif %}
+                                        </div>
+
+                                        <small>
+                                            Requested by {{ submission_request.created_by|default:'Management' }}
+                                            {% if submission_request.due_date %} • Due {{ submission_request.due_date|date:"F j, Y" }}{% endif %}
+                                            {% if submission_request.submitted_at %} • Submitted {{ submission_request.submitted_at|date:"F j, Y - g:i A" }}{% endif %}
+                                        </small>
+
+                                        {% if submission_request.instructions %}
+                                            <div class="document-description"><strong>Instructions:</strong> {{ submission_request.instructions|linebreaksbr }}</div>
+                                        {% endif %}
+
+                                        {% if submission_request.review_note %}
+                                            <div class="document-description"><strong>Review Note:</strong> {{ submission_request.review_note|linebreaksbr }}</div>
+                                        {% endif %}
+
+                                        {% if submission_request.response_file %}
+                                            <div class="document-description">
+                                                <strong>Latest Uploaded File:</strong>
+                                                <div class="page-actions document-actions-row" style="margin-top: 10px;">
+                                                    <a class="btn btn-light btn-sm" href="{{ submission_request.response_file.url }}" target="_blank" rel="noopener">View Uploaded File</a>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+
+                                        {% if submission_request.can_employee_submit %}
+                                            <form action="{% url 'employees:employee_required_submission_submit' submission_request.pk %}" method="post" enctype="multipart/form-data" class="action-record-form-grid" style="margin-top: 14px;">
+                                                {% csrf_token %}
+                                                {% for field in submission_request.response_form %}
+                                                    <div class="form-group {% if field.name == 'employee_note' %}form-group-full{% endif %}">
+                                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                                        {{ field }}
+                                                        {% if field.help_text %}
+                                                            <p class="form-help">{{ field.help_text }}</p>
+                                                        {% endif %}
+                                                        {% for error in field.errors %}
+                                                            <p class="form-error">{{ error }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endfor %}
+                                                <div class="attendance-form-actions form-group-full">
+                                                    <button type="submit" class="btn btn-primary">Upload and Submit</button>
+                                                </div>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <h3>No management requests right now</h3>
+                            <p>Any file or compliance request sent to you by supervisor, HR, or operations will appear here.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+
+    
+        <div class="card detail-card modern-soft-card self-service-request-status-card">
+        <div class="card-header">
+            <div class="section-heading">
+                <div>
+                    <h2>My Request Status</h2>
+                    <p class="page-subtitle">Track your own submitted requests separately from team requests.</p>
+                </div>
+                <span class="badge badge-primary">{{ leave_total }} Request{{ leave_total|pluralize }}</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="detail-grid two-col employee-org-grid" style="margin-bottom: 18px;">
+                <div class="detail-item">
+                    <span class="detail-label">Pending</span>
+                    <span class="detail-value">{{ self_service_pending_leave_count }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Approved</span>
+                    <span class="detail-value">{{ self_service_approved_leave_count }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Rejected</span>
+                    <span class="detail-value">{{ self_service_rejected_leave_count }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Cancelled</span>
+                    <span class="detail-value">{{ self_service_cancelled_leave_count }}</span>
+                </div>
+            </div>
+
+            {% if self_service_request_records %}
+                <div class="summary-list document-list modern-list-gap">
+                    {% for leave_record in self_service_request_records %}
+                        <div class="summary-list-item document-card-item {% if leave_record.status == 'approved' %}document-card-item-success{% elif leave_record.status == 'rejected' or leave_record.status == 'cancelled' %}document-card-item-danger{% elif leave_record.status == 'pending' %}document-card-item-warning{% endif %}">
+                            <div class="table-stack document-card-stack">
+                                <div class="status-badge-stack document-card-head">
+                                    <strong class="document-card-title">{{ leave_record.get_leave_type_display }}</strong>
+                                    <span class="badge {{ leave_record.status_badge_class }}">{{ leave_record.get_status_display }}</span>
+                                </div>
+                                <div class="workflow-state-stack">
+                                    {% if leave_record.status == 'approved' %}
+                                        <span class="badge badge-success">Final Approved</span>
+                                    {% elif leave_record.status == 'rejected' %}
+                                        <span class="badge badge-danger">Final Rejected</span>
+                                    {% elif leave_record.status == 'cancelled' %}
+                                        <span class="badge badge-danger">Cancelled / Recalled</span>
+                                    {% elif leave_record.current_stage == 'supervisor_review' %}
+                                        <span class="badge badge-warning">Waiting for Supervisor</span>
+                                    {% elif leave_record.current_stage == 'operations_review' %}
+                                        <span class="badge badge-primary">Approved by Supervisor • Waiting for Operations</span>
+                                    {% elif leave_record.current_stage == 'hr_review' %}
+                                        <span class="badge badge-primary">Approved by Operations • Waiting for HR</span>
+                                    {% endif %}
+                                </div>
+
+                                                                        <small>Current workflow owner: {{ leave_record.workflow_owner_label|default:"—" }}</small>
+<span>{{ leave_record.start_date|date:"F j, Y" }} → {{ leave_record.end_date|date:"F j, Y" }}</span>
+                                <small>
+                                    Total days: {{ leave_record.total_days }}
+                                    {% if leave_record.created_at %}
+                                        • Submitted {{ leave_record.created_at|date:"F j, Y - g:i A" }}
+                                    {% endif %}
+                                    {% if leave_record.updated_by %}
+                                        • Updated by {{ leave_record.updated_by }}
+                                    {% endif %}
+                                </small>
+
+                                {% if leave_record.reason %}
+                                    <div class="document-description"><strong>Reason:</strong> {{ leave_record.reason|linebreaksbr }}</div>
+                                {% endif %}
+
+                                {% with request_documents=leave_record.supporting_documents.all %}
+                                    {% if request_documents %}
+                                        <div class="document-description">
+                                            <strong>Supporting Documents:</strong>
+                                            <div class="page-actions document-actions-row" style="margin-top: 10px;">
+                                                {% for document in request_documents %}
+                                                    {% if document.file %}
+                                                        <a class="btn btn-light btn-sm" href="{{ document.file.url }}" target="_blank" rel="noopener">{{ document.title|default:document.filename }}</a>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+
+                                {% if leave_record.status == 'pending' and leave_record.can_cancel and can_cancel_leave %}
+                                    <div class="page-actions document-actions-row" style="margin-top: 10px;">
+                                        <form action="{% url 'employees:employee_leave_cancel' employee.pk leave_record.pk %}" method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="approval_note" value="Cancelled by supervisor from self-service.">
+                                            <button class="btn btn-danger btn-sm" type="submit">Recall / Cancel Request</button>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No requests submitted yet</h3>
+                    <p>Your own request states will appear here after you submit a request.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="employee-profile-grid">
+        <div class="employee-profile-main">
+            <div class="profile-main-stack">
+                <div class="card employee-hero-card modern-section-card">
+                    <div class="card-body">
+                        <div class="employee-hero">
+                            <div class="employee-hero-media">
+                                {% if employee.photo %}
+                                    <img alt="{{ employee.full_name }}" class="employee-photo" src="{{ employee.photo.url }}">
+                                {% else %}
+                                    <div class="employee-avatar employee-avatar-lg">
+                                        {{ employee.full_name|slice:":1"|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="employee-hero-content">
+                                <div class="employee-hero-topline">
+                                    <h2 class="employee-hero-name">{{ employee.full_name|default:"—" }}</h2>
+
+                                    <div class="employee-hero-badge-row">
+                                        <span class="badge {{ employee.employment_status_badge_class }}">
+                                            {{ employee.get_employment_status_display }}
+                                        </span>
+                                        {% if employee.is_active %}
+                                            <span class="badge badge-success">Operationally Active</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">Operationally Inactive</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <p class="employee-hero-role">
+                                    {{ employee_display_job_title|default:"No job title assigned" }}
+                                </p>
+
+                                <div class="employee-hero-meta">
+                                    <div class="employee-hero-meta-item">
+                                        <span class="detail-label">Employee ID</span>
+                                        <span class="detail-value">{{ employee.employee_id|default:"—" }}</span>
+                                    </div>
+
+                                    <div class="employee-hero-meta-item">
+                                        <span class="detail-label">Company</span>
+                                        <span class="detail-value">{{ employee_display_company|default:"—" }}</span>
+                                    </div>
+
+                                    <div class="employee-hero-meta-item">
+                                        <span class="detail-label">Hire Date</span>
+                                        <span class="detail-value">
+                                            {% if employee.hire_date %}
+                                                {{ employee.hire_date|date:"F j, Y" }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </span>
+                                    </div>
+
+                                    <div class="employee-hero-meta-item">
+                                        <span class="detail-label">Salary</span>
+                                        <span class="detail-value">
+                                            {% if employee.salary %}
+                                                {{ employee.salary }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card detail-card modern-soft-card employee-information-card" id="employee-information-section">
+                    <div class="card-header profile-section-card-header">
+                        <h2>Employee &amp; Organization Information</h2>
+                        {% if can_use_profile_section_edit and profile_section_actions.employee_information %}
+                            <button
+                                type="button"
+                                class="section-edit-button"
+                                data-modal-open="employee-information-modal"
+                                title="{{ profile_section_actions.employee_information.title }}"
+                                aria-label="{{ profile_section_actions.employee_information.title }}"
+                            >
+                                <span class="section-edit-button-icon">✎</span>
+                                <span class="section-edit-button-text">{{ profile_section_actions.employee_information.label }}</span>
+                            </button>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="organization-summary-band">
+                            <div class="organization-summary-copy">
+                                <strong class="organization-summary-title">Placement Overview</strong>
+                                
+                            </div>
+                            <div class="placement-token-wrap placement-token-wrap-profile organization-token-wrap">
+                                <span class="placement-token placement-token-primary">
+                                    Company: {{ employee_display_company|default:"—" }}
+                                </span>
+                                <span class="placement-token">
+                                    Department: {{ employee_display_department|default:"—" }}
+                                </span>
+                                <span class="placement-token">
+                                    Branch: {{ employee_display_branch|default:"—" }}
+                                </span>
+                                <span class="placement-token placement-token-muted">
+                                    Section: {{ employee_display_section|default:"—" }}
+                                </span>
+                                <span class="placement-token">
+                                    Job Title: {{ employee_display_job_title|default:"—" }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="detail-grid two-col employee-information-grid organization-detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Full Name</span>
+                                <span class="detail-value">{{ employee.full_name|default:"—" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Employee ID</span>
+                                <span class="detail-value">{{ employee.employee_id|default:"—" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Email</span>
+                                <span class="detail-value">{% if employee.email %}<a href="mailto:{{ employee.email }}">{{ employee.email }}</a>{% else %}—{% endif %}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Phone</span>
+                                <span class="detail-value">{% if employee.phone %}<a href="tel:{{ employee.phone }}">{{ employee.phone }}</a>{% else %}—{% endif %}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Birth Date</span>
+                                <span class="detail-value">{% if employee.birth_date %}{{ employee.birth_date|date:"F j, Y" }}{% else %}—{% endif %}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Age</span>
+                                <span class="detail-value">{{ employee.age|default:"—" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Marital Status</span>
+                                <span class="detail-value">{{ employee.get_marital_status_display|default:"—" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Nationality</span>
+                                <span class="detail-value">{{ employee.nationality|default:"—" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Hire Date</span>
+                                <span class="detail-value">{% if employee.hire_date %}{{ employee.hire_date|date:"F j, Y" }}{% else %}—{% endif %}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Salary</span>
+                                <span class="detail-value">{% if employee.salary %}{{ employee.salary }}{% else %}—{% endif %}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Employment Status</span>
+                                <span class="detail-value"><span class="badge {{ employee.employment_status_badge_class }}">{{ employee.get_employment_status_display }}</span></span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Operational Status</span>
+                                <span class="detail-value">{{ employee.operational_status_label }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Company</span>
+                                <span class="detail-value">{{ employee_display_company|default:"—" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Department</span>
+                                <span class="detail-value">{{ employee_display_department|default:"—" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Branch</span>
+                                <span class="detail-value">{{ employee_display_branch|default:"—" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Section</span>
+                                <span class="detail-value">{{ employee_display_section|default:"—" }}</span>
+                            </div>
+                            <div class="detail-item form-group-full">
+                                <span class="detail-label">Job Title</span>
+                                <span class="detail-value">{{ employee_display_job_title|default:"—" }}</span>
+                            </div>
+                        </div>
+
+                        <div class="card-divider"></div>
+
+                        <div class="identity-compliance-panel employee-identity-compliance-panel">
+                            <div class="section-heading identity-compliance-heading profile-section-heading-with-action">
+                                <div>
+                                    <h3>Passport &amp; Civil ID Status</h3>
+                                    <p class="page-subtitle">
+                                        Expiry visibility for daily HR follow-up and employee-side awareness.
+                                    </p>
+                                </div>
+                                {% if can_use_profile_section_edit and profile_section_actions.identity_information %}
+                                    <button
+                                        type="button"
+                                        class="section-edit-button"
+                                        data-modal-open="identity-information-modal"
+                                        title="{{ profile_section_actions.identity_information.title }}"
+                                        aria-label="{{ profile_section_actions.identity_information.title }}"
+                                    >
+                                        <span class="section-edit-button-icon">✎</span>
+                                        <span class="section-edit-button-text">{{ profile_section_actions.identity_information.label }}</span>
+                                    </button>
+                                {% endif %}
+                            </div>
+
+                            {% if identity_document_statuses %}
+                                <div class="id-status-grid employee-identity-status-grid">
+                                    {% for identity_document in identity_document_statuses %}
+                                        <div class="id-status-card employee-identity-status-card id-status-card-{{ identity_document.state_key }}">
+                                            <div class="id-status-card-head">
+                                                <strong>{{ identity_document.label }}</strong>
+                                                <span class="badge {{ identity_document.badge_class }}">{{ identity_document.status_label }}</span>
+                                            </div>
+                                            <div class="detail-grid two-col">
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Reference Number</span>
+                                                    <span class="detail-value">{{ identity_document.reference_number|default:"—" }}</span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Expiry Date</span>
+                                                    <span class="detail-value">{% if identity_document.expiry_date %}{{ identity_document.expiry_date|date:"F j, Y" }}{% else %}—{% endif %}</span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Issue Date</span>
+                                                    <span class="detail-value">{% if identity_document.issue_date %}{{ identity_document.issue_date|date:"F j, Y" }}{% else %}—{% endif %}</span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Days Remaining</span>
+                                                    <span class="detail-value">{{ identity_document.days_remaining_display }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="empty-state compact-empty-state">
+                                    <h3>No ID compliance records found</h3>
+                                    <p>Passport and Civil ID expiry details will appear here when documents with expiry dates are uploaded.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if can_view_working_time_summary %}
+                <div class="card detail-card modern-soft-card">
+                    <div class="card-header">
+                        <div class="section-heading">
+                            <div>
+                                <h2>Working Time Summary</h2>
+                                <p class="page-subtitle">Track working totals, leave workflow results, and approved leave breakdown by type.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body working-time-summary-body">
+                        <div class="working-time-section-head">
+                            <h3>Leave Balance Summary</h3>
+                        </div>
+                        <div class="modern-metric-grid working-time-metrics working-time-metrics--balance">
+                            <div class="metric-card">
+
+                                <span class="metric-label">Service Duration</span>
+
+                                <span class="metric-value">{{ working_time_summary.service_duration_display }}</span>
+
+                                <div class="metric-help">Total completed service shown as years and months.</div>
+
+                            </div>
+
+                            <div class="metric-card">
+
+                                <span class="metric-label">Service Days</span>
+
+                                <span class="metric-value">{{ working_time_summary.service_days }}</span>
+
+                                <div class="metric-help">Days counted from hire date until today.</div>
+
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Annual Leave Entitlement</span>
+                                <span class="metric-value">{{ working_time_summary.annual_leave_entitlement_days }}</span>
+                                <div class="metric-help">Accrued from service period at 30 days per 365 days.</div>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Annual Leave Taken</span>
+                                <span class="metric-value">{{ working_time_summary.annual_leave_taken_days }}</span>
+                                <div class="metric-help">Approved annual leave already consumed up to today.</div>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Approved Future Leave Planned</span>
+                                <span class="metric-value">{{ working_time_summary.approved_future_annual_leave_days }}</span>
+                                <div class="metric-help">Approved annual leave booked for future dates.</div>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Available After Planning</span>
+                                <span class="metric-value">{{ working_time_summary.annual_leave_available_after_planning_days }}</span>
+                                <div class="metric-help">Remaining annual leave after taken days and future approved planning.</div>
+                            </div>
+                        </div>
+
+                        <div class="working-time-section-head">
+                            <h3>Core Working Totals</h3>
+                        </div>
+                        <div class="modern-metric-grid working-time-metrics working-time-metrics--core">
+                            <div class="metric-card">
+                                <span class="metric-label">Scheduled Working Days</span>
+                                <span class="metric-value">{{ working_time_summary.scheduled_working_days }}</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Absence Days</span>
+                                <span class="metric-value">{{ working_time_summary.absence_days }}</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Punctuality Deduction Hours</span>
+                                <span class="metric-value">{{ working_time_summary.punctuality_deduction_hours }}</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Total Working Days</span>
+                                <span class="metric-value">{{ working_time_summary.total_working_days }}</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Total Working Hours</span>
+                                <span class="metric-value">{{ working_time_summary.total_working_hours }}</span>
+                            </div>
+                        </div>
+
+                        <div class="working-time-section-head">
+                            <h3>Leave Status Summary</h3>
+                        </div>
+                        <div class="modern-metric-grid working-time-metrics working-time-metrics--status">
+                            <div class="metric-card">
+                                <span class="metric-label">Approved Leave Days</span>
+                                <span class="metric-value">{{ working_time_summary.approved_leave_days }}</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Pending Leave Days</span>
+                                <span class="metric-value">{{ working_time_summary.pending_leave_days }}</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Rejected Requests</span>
+                                <span class="metric-value">{{ working_time_summary.rejected_leave_requests }}</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Cancelled Requests</span>
+                                <span class="metric-value">{{ working_time_summary.cancelled_leave_requests }}</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Unpaid Leave Days</span>
+                                <span class="metric-value">{{ working_time_summary.unpaid_leave_days }}</span>
+                            </div>
+                        </div>
+
+                        <div class="working-time-section-head">
+                            <h3>Approved Leave by Type</h3>
+                        </div>
+                        <div class="modern-metric-grid working-time-metrics working-time-metrics--types">
+                            <div class="metric-card">
+                                <span class="metric-label">Annual Leave Days</span>
+                                <span class="metric-value">{{ working_time_summary.annual_leave_days }}</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Sick Leave Days</span>
+                                <span class="metric-value">{{ working_time_summary.sick_leave_days }}</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Unpaid Leave Days</span>
+                                <span class="metric-value">{{ working_time_summary.unpaid_leave_days }}</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Emergency Leave Days</span>
+                                <span class="metric-value">{{ working_time_summary.emergency_leave_days }}</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Other Leave Days</span>
+                                <span class="metric-value">{{ working_time_summary.other_leave_days }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+
+                <div class="card detail-card modern-soft-card management-workspace-links-card">
+                    <div class="card-header">
+                        <h2>Management Workspaces</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="detail-grid two-col employee-org-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Employee Action Center</span>
+                                <span class="detail-value">Status actions, incident records, required submission requests, and management leave actions now stay in the Action Center workspace.</span>
+                                <div class="page-actions document-actions-row" style="margin-top: 12px;">
+                                    <a class="btn btn-light btn-sm" href="{% url 'employees:employee_admin_action_center' %}?employee={{ employee.pk }}">Open Action Center</a>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Attendance Management</span>
+                                <span class="detail-value">Attendance filtering, ledger entries, correction workflow, and attendance review now stay in Attendance Management.</span>
+                                <div class="page-actions document-actions-row" style="margin-top: 12px;">
+                                    <a class="btn btn-light btn-sm" href="{% url 'employees:attendance_management' %}?employee={{ employee.pk }}">Open Attendance Management</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card detail-card modern-soft-card" id="employee-timeline-section">
+                    <div class="card-header timeline-section-header">
+                        <div>
+                            <h2>Employee Timeline</h2>
+                            {% if total_history_count %}
+                                <p class="timeline-summary-note">
+                                    Showing {{ visible_history_count }} of {{ total_history_count }} timeline entr{{ total_history_count|pluralize:"y,ies" }}.
+                                </p>
+                            {% endif %}
+                        </div>
+                        {% if total_history_count > 3 %}
+                            <div class="timeline-header-actions">
+                                {% if show_all_timeline %}
+                                    <a class="btn btn-secondary btn-sm timeline-toggle-button" href="{{ show_latest_timeline_url }}">Show Latest 3</a>
+                                {% else %}
+                                    <a class="btn btn-secondary btn-sm timeline-toggle-button" href="{{ show_all_timeline_url }}">Show All Timeline</a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        {% if history_entries %}
+                            <div class="summary-list modern-list-gap">
+                                {% for entry in history_entries %}
+                                    <div class="summary-list-item">
+                                        <strong>{{ entry.title }}</strong>
+                                        <small>
+                                            {% if entry.event_date %}{{ entry.event_date|date:"F j, Y" }}{% endif %}
+                                            {% if entry.created_by %} • {{ entry.created_by }}{% endif %}
+                                        </small>
+                                        {% if entry.description %}
+                                            <div class="document-description">{{ entry.description|linebreaksbr }}</div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty-state compact-empty-state">
+                                <h3>No timeline records found</h3>
+                                <p>Profile history, movement updates, and workflow notes will appear here.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+</div>
+
+{% if can_use_profile_section_edit %}
+<div class="profile-modal-shell{% if active_profile_modal == 'employee_information' %} is-visible{% endif %}" id="employee-information-modal" aria-hidden="{% if active_profile_modal == 'employee_information' %}false{% else %}true{% endif %}">
+    <div class="profile-modal-backdrop" data-modal-close="employee-information-modal"></div>
+    <div class="profile-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="employee-information-modal-title">
+        <div class="profile-modal-page">
+            <div class="profile-modal-header">
+                <div>
+                    <span class="profile-modal-eyebrow">Employee Profile Section</span>
+                    <h2 id="employee-information-modal-title">Edit Employee &amp; Organization Information</h2>
+                    <p class="page-subtitle">Update employee details and organization placement here without leaving the employee profile page.</p>
+                </div>
+                <button type="button" class="profile-modal-close" data-modal-close="employee-information-modal" aria-label="Close employee information editor">×</button>
+            </div>
+            <form method="post" action="{% url 'employees:employee_profile_employee_information_update' employee.pk %}" enctype="multipart/form-data" class="profile-modal-form">
+                {% csrf_token %}
+                <div class="profile-modal-body">
+                    {% if employee_information_modal_form.non_field_errors %}
+                        <div class="alert alert-danger">{{ employee_information_modal_form.non_field_errors }}</div>
+                    {% endif %}
+                    <div class="profile-modal-section-card">
+                        <div class="profile-modal-section-head">
+                            <h3>Employee Information</h3>
+                        </div>
+                        <div class="profile-modal-grid profile-modal-grid-two">
+                            <div class="form-group profile-modal-grid-span-two">
+                                <label for="{{ employee_information_modal_form.full_name.id_for_label }}">Full Name</label>
+                                {{ employee_information_modal_form.full_name }}
+                                {% if employee_information_modal_form.full_name.errors %}<div class="invalid-feedback d-block">{{ employee_information_modal_form.full_name.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group profile-modal-grid-span-two">
+                                <label for="{{ employee_information_modal_form.photo.id_for_label }}">Profile Photo</label>
+                                {{ employee_information_modal_form.photo }}
+                                {% if employee_information_modal_form.photo.errors %}<div class="invalid-feedback d-block">{{ employee_information_modal_form.photo.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ employee_information_modal_form.email.id_for_label }}">Email</label>
+                                {{ employee_information_modal_form.email }}
+                                {% if employee_information_modal_form.email.errors %}<div class="invalid-feedback d-block">{{ employee_information_modal_form.email.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ employee_information_modal_form.phone.id_for_label }}">Phone</label>
+                                {{ employee_information_modal_form.phone }}
+                                {% if employee_information_modal_form.phone.errors %}<div class="invalid-feedback d-block">{{ employee_information_modal_form.phone.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ employee_information_modal_form.birth_date.id_for_label }}">Birth Date</label>
+                                {{ employee_information_modal_form.birth_date }}
+                                {% if employee_information_modal_form.birth_date.errors %}<div class="invalid-feedback d-block">{{ employee_information_modal_form.birth_date.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ employee_information_modal_form.marital_status.id_for_label }}">Marital Status</label>
+                                {{ employee_information_modal_form.marital_status }}
+                                {% if employee_information_modal_form.marital_status.errors %}<div class="invalid-feedback d-block">{{ employee_information_modal_form.marital_status.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ employee_information_modal_form.nationality.id_for_label }}">Nationality</label>
+                                {{ employee_information_modal_form.nationality }}
+                                {% if employee_information_modal_form.nationality.errors %}<div class="invalid-feedback d-block">{{ employee_information_modal_form.nationality.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ employee_information_modal_form.hire_date.id_for_label }}">Hire Date</label>
+                                {{ employee_information_modal_form.hire_date }}
+                                {% if employee_information_modal_form.hire_date.errors %}<div class="invalid-feedback d-block">{{ employee_information_modal_form.hire_date.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ employee_information_modal_form.salary.id_for_label }}">Salary</label>
+                                {{ employee_information_modal_form.salary }}
+                                {% if employee_information_modal_form.salary.errors %}<div class="invalid-feedback d-block">{{ employee_information_modal_form.salary.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-modal-section-card">
+                        <div class="profile-modal-section-head">
+                            <h3>Organization Information</h3>
+                        </div>
+                        <div class="profile-modal-grid profile-modal-grid-two">
+                            <div class="form-group">
+                                <label for="{{ employee_information_modal_form.company.id_for_label }}">Company</label>
+                                {{ employee_information_modal_form.company }}
+                                {% if employee_information_modal_form.company.errors %}<div class="invalid-feedback d-block">{{ employee_information_modal_form.company.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ employee_information_modal_form.department.id_for_label }}">Department</label>
+                                {{ employee_information_modal_form.department }}
+                                {% if employee_information_modal_form.department.errors %}<div class="invalid-feedback d-block">{{ employee_information_modal_form.department.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ employee_information_modal_form.branch.id_for_label }}">Branch</label>
+                                {{ employee_information_modal_form.branch }}
+                                {% if employee_information_modal_form.branch.errors %}<div class="invalid-feedback d-block">{{ employee_information_modal_form.branch.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ employee_information_modal_form.section.id_for_label }}">Section</label>
+                                {{ employee_information_modal_form.section }}
+                                {% if employee_information_modal_form.section.errors %}<div class="invalid-feedback d-block">{{ employee_information_modal_form.section.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group profile-modal-grid-span-two">
+                                <label for="{{ employee_information_modal_form.job_title.id_for_label }}">Job Title</label>
+                                {{ employee_information_modal_form.job_title }}
+                                {% if employee_information_modal_form.job_title.errors %}<div class="invalid-feedback d-block">{{ employee_information_modal_form.job_title.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-modal-footer">
+                    <button type="button" class="btn btn-light" data-modal-close="employee-information-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Employee & Organization Information</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="profile-modal-shell{% if active_profile_modal == 'identity_information' %} is-visible{% endif %}" id="identity-information-modal" aria-hidden="{% if active_profile_modal == 'identity_information' %}false{% else %}true{% endif %}">
+    <div class="profile-modal-backdrop" data-modal-close="identity-information-modal"></div>
+    <div class="profile-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="identity-information-modal-title">
+        <div class="profile-modal-page">
+            <div class="profile-modal-header">
+                <div>
+                    <span class="profile-modal-eyebrow">Employee Profile Section</span>
+                    <h2 id="identity-information-modal-title">Edit Passport &amp; Civil ID Status</h2>
+                    <p class="page-subtitle">Update passport and Civil ID reference numbers with issue and expiry dates inside the same premium profile page flow.</p>
+                </div>
+                <button type="button" class="profile-modal-close" data-modal-close="identity-information-modal" aria-label="Close identity information editor">×</button>
+            </div>
+            <form method="post" action="{% url 'employees:employee_profile_identity_information_update' employee.pk %}" class="profile-modal-form">
+                {% csrf_token %}
+                <div class="profile-modal-body">
+                    {% if identity_information_modal_form.non_field_errors %}
+                        <div class="alert alert-danger">{{ identity_information_modal_form.non_field_errors }}</div>
+                    {% endif %}
+                    <div class="profile-modal-section-card">
+                        <div class="profile-modal-section-head">
+                            <h3>Passport Details</h3>
+                        </div>
+                        <div class="profile-modal-grid profile-modal-grid-three">
+                            <div class="form-group profile-modal-grid-span-two">
+                                <label for="{{ identity_information_modal_form.passport_reference_number.id_for_label }}">Passport Reference Number</label>
+                                {{ identity_information_modal_form.passport_reference_number }}
+                                {% if identity_information_modal_form.passport_reference_number.errors %}<div class="invalid-feedback d-block">{{ identity_information_modal_form.passport_reference_number.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ identity_information_modal_form.passport_issue_date.id_for_label }}">Passport Issue Date</label>
+                                {{ identity_information_modal_form.passport_issue_date }}
+                                {% if identity_information_modal_form.passport_issue_date.errors %}<div class="invalid-feedback d-block">{{ identity_information_modal_form.passport_issue_date.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ identity_information_modal_form.passport_expiry_date.id_for_label }}">Passport Expiry Date</label>
+                                {{ identity_information_modal_form.passport_expiry_date }}
+                                {% if identity_information_modal_form.passport_expiry_date.errors %}<div class="invalid-feedback d-block">{{ identity_information_modal_form.passport_expiry_date.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-modal-section-card">
+                        <div class="profile-modal-section-head">
+                            <h3>Civil ID Details</h3>
+                        </div>
+                        <div class="profile-modal-grid profile-modal-grid-three">
+                            <div class="form-group profile-modal-grid-span-two">
+                                <label for="{{ identity_information_modal_form.civil_id_reference_number.id_for_label }}">Civil ID Reference Number</label>
+                                {{ identity_information_modal_form.civil_id_reference_number }}
+                                {% if identity_information_modal_form.civil_id_reference_number.errors %}<div class="invalid-feedback d-block">{{ identity_information_modal_form.civil_id_reference_number.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ identity_information_modal_form.civil_id_issue_date.id_for_label }}">Civil ID Issue Date</label>
+                                {{ identity_information_modal_form.civil_id_issue_date }}
+                                {% if identity_information_modal_form.civil_id_issue_date.errors %}<div class="invalid-feedback d-block">{{ identity_information_modal_form.civil_id_issue_date.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ identity_information_modal_form.civil_id_expiry_date.id_for_label }}">Civil ID Expiry Date</label>
+                                {{ identity_information_modal_form.civil_id_expiry_date }}
+                                {% if identity_information_modal_form.civil_id_expiry_date.errors %}<div class="invalid-feedback d-block">{{ identity_information_modal_form.civil_id_expiry_date.errors|join:', ' }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-modal-footer">
+                    <button type="button" class="btn btn-light" data-modal-close="identity-information-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Identity Information</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const statusDropdowns = document.querySelectorAll(".profile-status-dropdown");
+    const modalOpenButtons = document.querySelectorAll("[data-modal-open]");
+    const modalCloseButtons = document.querySelectorAll("[data-modal-close]");
+    const modalShells = document.querySelectorAll(".profile-modal-shell");
+
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        modal.classList.add("is-visible");
+        modal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("profile-modal-open");
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        modal.classList.remove("is-visible");
+        modal.setAttribute("aria-hidden", "true");
+        if (!document.querySelector(".profile-modal-shell.is-visible")) {
+            document.body.classList.remove("profile-modal-open");
+        }
+    }
+
+    modalOpenButtons.forEach(function (button) {
+        button.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            openModal(button.getAttribute("data-modal-open"));
+        });
+    });
+
+    modalCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            closeModal(button.getAttribute("data-modal-close"));
+        });
+    });
+
+    document.addEventListener("click", function (event) {
+        statusDropdowns.forEach(function (dropdown) {
+            if (!dropdown.contains(event.target)) {
+                dropdown.removeAttribute("open");
+            }
+        });
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            modalShells.forEach(function (modal) {
+                closeModal(modal.id);
+            });
+        }
+    });
+
+    if (document.querySelector(".profile-modal-shell.is-visible")) {
+        document.body.classList.add("profile-modal-open");
+    }
+
+    window.addEventListener("pageshow", function () {
+        if (!document.querySelector(".profile-modal-shell.is-visible")) {
+            document.body.classList.remove("profile-modal-open");
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

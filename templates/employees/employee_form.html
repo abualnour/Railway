@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle">
+            Manage employee identity, organization placement, employment details, and HR operational status.
+        </p>
+    </div>
+
+    <div class="page-actions">
+        <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">Back to Directory</a>
+        {% if form.instance.pk %}
+            <a href="{% url 'employees:employee_detail' form.instance.pk %}" class="btn btn-light">View Profile</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card form-shell-card">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data" class="employee-form-pro" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="form-error">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <section class="form-section">
+                <div class="form-section-header">
+                    <h2>Employee Identity</h2>
+                    <p>Basic personal and contact information for the employee profile.</p>
+                </div>
+
+                <div class="form-grid two-col">
+                    <div class="form-group">
+                        <label for="{{ form.full_name.id_for_label }}">Full Name</label>
+                        {{ form.full_name }}
+                        {{ form.full_name.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.photo.id_for_label }}">Photo</label>
+                        {{ form.photo }}
+                        {{ form.photo.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.email.id_for_label }}">Employee Email</label>
+                        {{ form.email }}
+                        {{ form.email.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.phone.id_for_label }}">Phone</label>
+                        {{ form.phone }}
+                        {{ form.phone.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.birth_date.id_for_label }}">Birth Date</label>
+                        {{ form.birth_date }}
+                        {{ form.birth_date.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.marital_status.id_for_label }}">Marital Status</label>
+                        {{ form.marital_status }}
+                        {{ form.marital_status.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.nationality.id_for_label }}">Nationality</label>
+                        {{ form.nationality }}
+                        {{ form.nationality.errors }}
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <div class="form-section-header">
+                    <h2>Identity Documents</h2>
+                    <p>Store the main passport and Civil ID issue and expiry dates directly on the employee profile.</p>
+                </div>
+
+                <div class="form-grid two-col">
+                    <div class="form-group">
+                        <label for="{{ form.passport_reference_number.id_for_label }}">Passport Reference Number</label>
+                        {{ form.passport_reference_number }}
+                        {{ form.passport_reference_number.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.civil_id_reference_number.id_for_label }}">Civil ID Reference Number</label>
+                        {{ form.civil_id_reference_number }}
+                        {{ form.civil_id_reference_number.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.passport_issue_date.id_for_label }}">Passport Issue Date</label>
+                        {{ form.passport_issue_date }}
+                        {{ form.passport_issue_date.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.civil_id_issue_date.id_for_label }}">Civil ID Issue Date</label>
+                        {{ form.civil_id_issue_date }}
+                        {{ form.civil_id_issue_date.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.passport_expiry_date.id_for_label }}">Passport Expiry Date</label>
+                        {{ form.passport_expiry_date }}
+                        {{ form.passport_expiry_date.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.civil_id_expiry_date.id_for_label }}">Civil ID Expiry Date</label>
+                        {{ form.civil_id_expiry_date }}
+                        {{ form.civil_id_expiry_date.errors }}
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <div class="form-section-header">
+                    <h2>Organization Placement</h2>
+                    <p>Assign the employee using the current shared structure. Company stays as the employee company assignment, while departments, branches, sections, and job titles can be reused across company selections.</p>
+                </div>
+
+                <div class="form-grid three-col">
+                    <div class="form-group">
+                        <label for="{{ form.company.id_for_label }}">Company</label>
+                        {{ form.company }}
+                        {{ form.company.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.department.id_for_label }}">Department</label>
+                        {{ form.department }}
+                        {{ form.department.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.branch.id_for_label }}">Branch</label>
+                        {{ form.branch }}
+                        {{ form.branch.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.section.id_for_label }}">Section</label>
+                        {{ form.section }}
+                        {{ form.section.errors }}
+                    </div>
+
+                    <div class="form-group form-group-full">
+                        <label for="{{ form.job_title.id_for_label }}">Job Title</label>
+                        {{ form.job_title }}
+                        {{ form.job_title.errors }}
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <div class="form-section-header">
+                    <h2>Employment Details</h2>
+                    <p>Core employment information and current operational active/inactive state.</p>
+                </div>
+
+                <div class="form-grid three-col">
+                    <div class="form-group">
+                        <label for="{{ form.hire_date.id_for_label }}">Hire Date</label>
+                        {{ form.hire_date }}
+                        {{ form.hire_date.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.salary.id_for_label }}">Salary</label>
+                        {{ form.salary }}
+                        {{ form.salary.errors }}
+                    </div>
+
+                    <div class="form-group form-checkbox-group">
+                        <label class="checkbox-label" for="{{ form.is_active.id_for_label }}">
+                            {{ form.is_active }}
+                            <span>Employee is active</span>
+                        </label>
+                        {{ form.is_active.errors }}
+                        <small class="form-help">
+                            Turn this off only when the employee should be operationally inactive.
+                        </small>
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <div class="form-section-header">
+                    <h2>System Login Account</h2>
+                    <p>
+                        Create or update the linked login account for this employee.
+                        Leave all fields in this section empty if this employee should not sign in to the system.
+                    </p>
+                </div>
+
+                <div class="form-grid two-col">
+                    <div class="form-group">
+                        <label for="{{ form.login_email.id_for_label }}">Login Email</label>
+                        {{ form.login_email }}
+                        {{ form.login_email.errors }}
+                        <small class="form-help">{{ form.login_email.help_text }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.password1.id_for_label }}">Password</label>
+                        {{ form.password1 }}
+                        {{ form.password1.errors }}
+                        <small class="form-help">{{ form.password1.help_text }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                        {{ form.password2 }}
+                        {{ form.password2.errors }}
+                        <small class="form-help">{{ form.password2.help_text }}</small>
+                    </div>
+
+                    <div class="form-group form-checkbox-group">
+                        <label class="checkbox-label" for="{{ form.login_is_active.id_for_label }}">
+                            {{ form.login_is_active }}
+                            <span>Login account is active</span>
+                        </label>
+                        {{ form.login_is_active.errors }}
+                        <small class="form-help">
+                            Disable this only when the linked user account should not be able to sign in.
+                        </small>
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <div class="form-section-header">
+                    <h2>General Notes</h2>
+                    <p>Store free-form HR or operational notes that should remain visible on the employee profile.</p>
+                </div>
+
+                <div class="form-grid one-col">
+                    <div class="form-group">
+                        <label for="{{ form.notes.id_for_label }}">Notes</label>
+                        {{ form.notes }}
+                        {{ form.notes.errors }}
+                    </div>
+                </div>
+            </section>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
+                {% if form.instance.pk %}
+                <a href="{% url 'employees:employee_detail' form.instance.pk %}" class="btn btn-secondary">Cancel</a>
+                {% else %}
+                <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">Cancel</a>
+                {% endif %}
+                {% if form.instance.pk %}
+                <a href="{% url 'employees:employee_list' %}" class="btn btn-light">Back to Directory</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const companyField = document.getElementById("id_company");
+    const departmentField = document.getElementById("id_department");
+    const branchField = document.getElementById("id_branch");
+    const sectionField = document.getElementById("id_section");
+    const jobTitleField = document.getElementById("id_job_title");
+
+    if (!companyField || !departmentField || !branchField || !sectionField || !jobTitleField) {
+        return;
+    }
+
+    function resetSelect(selectElement, placeholder) {
+        selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+    }
+
+    function populateSelect(selectElement, items, placeholder, selectedValue = "") {
+        resetSelect(selectElement, placeholder);
+
+        items.forEach(function (item) {
+            const option = document.createElement("option");
+            option.value = item.id;
+            option.textContent = item.name;
+
+            if (String(item.id) === String(selectedValue)) {
+                option.selected = true;
+            }
+
+            selectElement.appendChild(option);
+        });
+    }
+
+    function fetchJson(url) {
+        return fetch(url, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        }).then(function (response) {
+            if (!response.ok) {
+                throw new Error("Failed to load dependent dropdown data.");
+            }
+            return response.json();
+        });
+    }
+
+    const initialDepartment = departmentField.value;
+    const initialBranch = branchField.value;
+    const initialSection = sectionField.value;
+    const initialJobTitle = jobTitleField.value;
+
+    function loadDepartments(companyId, selectedValue = "") {
+        if (!companyId) {
+            resetSelect(departmentField, "---------");
+            return Promise.resolve();
+        }
+
+        return fetchJson(`{% url 'employees:departments_by_company' %}?company_id=${companyId}`)
+            .then(function (data) {
+                populateSelect(departmentField, data.results || [], "---------", selectedValue);
+            });
+    }
+
+    function loadBranches(companyId, selectedValue = "") {
+        if (!companyId) {
+            resetSelect(branchField, "---------");
+            return Promise.resolve();
+        }
+
+        return fetchJson(`{% url 'employees:branches_by_company' %}?company_id=${companyId}`)
+            .then(function (data) {
+                populateSelect(branchField, data.results || [], "---------", selectedValue);
+            });
+    }
+
+    function loadSections(departmentId, selectedValue = "") {
+        if (!departmentId) {
+            resetSelect(sectionField, "---------");
+            return Promise.resolve();
+        }
+
+        return fetchJson(`{% url 'employees:sections_by_department' %}?department_id=${departmentId}`)
+            .then(function (data) {
+                populateSelect(sectionField, data.results || [], "---------", selectedValue);
+            });
+    }
+
+    function loadJobTitles(departmentId, sectionId = "", selectedValue = "") {
+        if (!departmentId) {
+            resetSelect(jobTitleField, "---------");
+            return Promise.resolve();
+        }
+
+        let url = `{% url 'employees:job_titles_by_department' %}?department_id=${departmentId}`;
+        if (sectionId) {
+            url += `&section_id=${sectionId}`;
+        }
+
+        return fetchJson(url)
+            .then(function (data) {
+                populateSelect(jobTitleField, data.results || [], "---------", selectedValue);
+            });
+    }
+
+    companyField.addEventListener("change", function () {
+        const companyId = this.value;
+
+        resetSelect(departmentField, "---------");
+        resetSelect(branchField, "---------");
+        resetSelect(sectionField, "---------");
+        resetSelect(jobTitleField, "---------");
+
+        loadDepartments(companyId);
+        loadBranches(companyId);
+    });
+
+    departmentField.addEventListener("change", function () {
+        const departmentId = this.value;
+
+        resetSelect(sectionField, "---------");
+        resetSelect(jobTitleField, "---------");
+
+        loadSections(departmentId);
+        loadJobTitles(departmentId);
+    });
+
+    sectionField.addEventListener("change", function () {
+        const departmentId = departmentField.value;
+        const sectionId = this.value;
+
+        resetSelect(jobTitleField, "---------");
+        loadJobTitles(departmentId, sectionId);
+    });
+
+    if (companyField.value) {
+        Promise.all([
+            loadDepartments(companyField.value, initialDepartment),
+            loadBranches(companyField.value, initialBranch)
+        ]).then(function () {
+            if (departmentField.value) {
+                return loadSections(departmentField.value, initialSection).then(function () {
+                    return loadJobTitles(departmentField.value, sectionField.value, initialJobTitle);
+                });
+            }
+        }).catch(function (error) {
+            console.error("Employee form dependent dropdown initialization failed:", error);
+        });
+    }
+});
+</script>
+{% endblock %}

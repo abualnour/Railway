@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Branches | HR System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/branches.css' %}">
+{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <div>
+        <h1>Branches / Showrooms</h1>
+        <p class="page-subtitle">Branches linked to each company.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Branch</th>
+                    <th>Company</th>
+                    <th>Code</th>
+                    <th>Location</th>
+                    <th>Manager</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for branch in branches %}
+                <tr>
+                    <td>{{ branch.name }}</td>
+                    <td>{{ branch.company.name }}</td>
+                    <td>{{ branch.code }}</td>
+                    <td>{{ branch.location|default:"—" }}</td>
+                    <td>{{ branch.manager_name|default:"—" }}</td>
+                    <td>
+                        {% if branch.is_active %}
+                            <span class="badge badge-success">Active</span>
+                        {% else %}
+                            <span class="badge badge-muted">Inactive</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-row">No branches found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

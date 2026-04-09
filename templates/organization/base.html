@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/branches.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="organization-shell">
+    {% block organization_shell_header %}
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Organization Management</h1>
+            <p class="page-subtitle">
+                Manage companies, branches, branch documents, departments, sections, and job titles from one place.
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="page-actions">
+                <a href="{% url 'organization:company_list' %}" class="btn btn-light">Companies</a>
+                <a href="{% url 'organization:branch_list' %}" class="btn btn-light">Branches</a>
+                <a href="{% url 'organization:branch_document_list' %}" class="btn btn-light">Branch Documents</a>
+                <a href="{% url 'organization:department_list' %}" class="btn btn-light">Departments</a>
+                <a href="{% url 'organization:section_list' %}" class="btn btn-light">Sections</a>
+                <a href="{% url 'organization:jobtitle_list' %}" class="btn btn-light">Job Titles</a>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
+    {% block organization_content %}{% endblock %}
+</div>
+{% endblock %}

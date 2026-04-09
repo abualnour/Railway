@@ -1,0 +1,155 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="premium-dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
+    <meta name="theme-color" content="#0b111b">
+    <title>{% block title %}HR System{% endblock %} | HR System</title>
+    <script>
+        (function () {
+            const STORAGE_KEY = "hr_theme_preference";
+            const DEFAULT_THEME = "premium-dark";
+            const ALLOWED_THEMES = ["premium-dark", "premium-light", "dark-accent", "sunrise"];
+            const THEME_META_COLORS = {
+                "premium-dark": "#0b111b",
+                "premium-light": "#eef2f7",
+                "dark-accent": "#657166",
+                "sunrise": "#FFF9D4"
+            };
+
+            function normalizeTheme(theme) {
+                return ALLOWED_THEMES.includes(theme) ? theme : DEFAULT_THEME;
+            }
+
+            try {
+                const storedTheme = normalizeTheme(window.localStorage.getItem(STORAGE_KEY));
+                const themeToApply = storedTheme || DEFAULT_THEME;
+                document.documentElement.setAttribute("data-theme", themeToApply);
+
+                const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+                if (themeColorMeta) {
+                    themeColorMeta.setAttribute("content", THEME_META_COLORS[themeToApply] || THEME_META_COLORS[DEFAULT_THEME]);
+                }
+            } catch (error) {
+                document.documentElement.setAttribute("data-theme", DEFAULT_THEME);
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-dark.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <div class="layout">
+        {% include "includes/navbar.html" %}
+
+        <main class="main-content">
+            <div class="container">
+                {% if messages %}
+                    <div class="messages-wrapper">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags|default:'info' }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% block page_header %}{% endblock %}
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    </div>
+
+{% block extra_js %}{% endblock %}
+    <script>
+        (function () {
+            const STORAGE_KEY = "hr_sidebar_scroll_top";
+
+            function getSidebarScrollElement() {
+                return document.querySelector(".sidebar-scroll");
+            }
+
+            function restoreSidebarScroll() {
+                const sidebarScroll = getSidebarScrollElement();
+                if (!sidebarScroll) {
+                    return;
+                }
+
+                const savedValue = window.sessionStorage.getItem(STORAGE_KEY);
+                if (savedValue === null) {
+                    return;
+                }
+
+                const parsed = parseInt(savedValue, 10);
+                if (!Number.isNaN(parsed)) {
+                    sidebarScroll.scrollTop = parsed;
+                }
+            }
+
+            function persistSidebarScroll() {
+                const sidebarScroll = getSidebarScrollElement();
+                if (!sidebarScroll) {
+                    return;
+                }
+                window.sessionStorage.setItem(STORAGE_KEY, String(sidebarScroll.scrollTop || 0));
+            }
+
+            document.addEventListener("DOMContentLoaded", function () {
+                const sidebarScroll = getSidebarScrollElement();
+                restoreSidebarScroll();
+
+                if (sidebarScroll) {
+                    sidebarScroll.addEventListener("scroll", persistSidebarScroll, { passive: true });
+                    sidebarScroll.querySelectorAll("a").forEach(function (link) {
+                        link.addEventListener("click", persistSidebarScroll);
+                    });
+                    const logoutForm = document.querySelector(".sidebar-logout-form");
+                    if (logoutForm) {
+                        logoutForm.addEventListener("submit", persistSidebarScroll);
+                    }
+                }
+
+                const STORAGE_KEY_THEME = "hr_theme_preference";
+                const BUTTONS = document.querySelectorAll("[data-theme-choice]");
+                const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+                const metaColors = {
+                    "premium-dark": "#0b111b",
+                    "premium-light": "#eef2f7",
+                    "dark-accent": "#657166",
+                    "sunrise": "#FFF9D4"
+                };
+
+                function applyTheme(theme) {
+                    document.documentElement.setAttribute("data-theme", theme);
+                    try {
+                        window.localStorage.setItem(STORAGE_KEY_THEME, theme);
+                    } catch (error) {}
+                    if (themeColorMeta) {
+                        themeColorMeta.setAttribute("content", metaColors[theme] || metaColors["premium-dark"]);
+                    }
+                    BUTTONS.forEach(function (button) {
+                        button.classList.toggle("is-active", button.dataset.themeChoice === theme);
+                    });
+                }
+
+                const activeTheme = document.documentElement.getAttribute("data-theme") || "premium-dark";
+                applyTheme(activeTheme);
+                BUTTONS.forEach(function (button) {
+                    button.addEventListener("click", function () {
+                        applyTheme(button.dataset.themeChoice);
+                    });
+                });
+            });
+
+            window.addEventListener("beforeunload", persistSidebarScroll);
+        })();
+    </script>
+</body>
+</html>
