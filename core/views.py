@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
+import io
 import re
 import zipfile
 from pathlib import Path
@@ -532,17 +533,25 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        action = (request.POST.get("action") or "create_backup").strip()
+        action = (request.POST.get("action") or "create_backup_server").strip()
 
-        if action == "create_backup":
+        if action in {"create_backup", "create_backup_server"}:
             note = (request.POST.get("backup_note") or "").strip()
             try:
                 backup_file = self.create_backup(note=note)
             except Exception as exc:
                 messages.error(request, f"Backup creation failed: {exc}")
             else:
-                messages.success(request, f"Backup created successfully: {backup_file.name}")
+                messages.success(request, f"Backup created successfully on server: {backup_file.name}")
             return redirect("backup_center")
+
+        if action == "download_backup_now":
+            note = (request.POST.get("backup_note") or "").strip()
+            try:
+                return self.download_backup_response(note=note)
+            except Exception as exc:
+                messages.error(request, f"Backup download failed: {exc}")
+                return redirect("backup_center")
 
         if action == "export_employee_master":
             return self.export_employee_master_data()
@@ -608,46 +617,75 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
             elif child.is_file() and not self.should_skip_file(child):
                 yield child
 
-    def create_backup(self, note=""):
-        backup_root = self.get_backup_root()
+    def build_backup_filename(self, note=""):
         timestamp = timezone.localtime().strftime("%Y-%m-%d_%H-%M-%S")
         safe_note = self.sanitize_note(note)
-        filename = f"hr_backup_{timestamp}"
+        filename = f"nouraxis_backup_{timestamp}"
         if safe_note:
             filename = f"{filename}_{safe_note}"
-        backup_file = backup_root / f"{filename}.zip"
+        return f"{filename}.zip", safe_note
 
+    def write_backup_zip(self, zip_handle, archive_label, safe_note, backup_root_label):
         include_paths = self.get_include_paths()
         if not include_paths:
             raise ValueError("No valid backup include paths were found in settings.py.")
 
+        manifest_lines = [
+            "NourAxis Backup Manifest",
+            f"Created at: {timezone.localtime().strftime('%Y-%m-%d %H:%M:%S %Z')}",
+            f"Created by: {self.request.user.get_username()}",
+            f"Backup file: {archive_label}",
+            f"Backup root: {backup_root_label}",
+            f"Note: {safe_note or '—'}",
+            "",
+            "Included paths:",
+        ]
+        for include_path in include_paths:
+            manifest_lines.append(f"- {include_path.relative_to(settings.BASE_DIR)}")
+
+        for include_path in include_paths:
+            if include_path.is_file():
+                archive_name = include_path.relative_to(settings.BASE_DIR)
+                zip_handle.write(include_path, arcname=str(archive_name))
+                continue
+
+            for child_file in self.iter_backup_files(include_path):
+                archive_name = child_file.relative_to(settings.BASE_DIR)
+                zip_handle.write(child_file, arcname=str(archive_name))
+
+        zip_handle.writestr("backup_manifest.txt", "\n".join(manifest_lines))
+
+    def create_backup(self, note=""):
+        backup_root = self.get_backup_root()
+        filename, safe_note = self.build_backup_filename(note=note)
+        backup_file = backup_root / filename
+
         with zipfile.ZipFile(backup_file, "w", compression=zipfile.ZIP_DEFLATED) as zip_handle:
-            manifest_lines = [
-                "HR System Backup Manifest",
-                f"Created at: {timezone.localtime().strftime('%Y-%m-%d %H:%M:%S %Z')}",
-                f"Created by: {self.request.user.get_username()}",
-                f"Backup file: {backup_file.name}",
-                f"Backup root: {backup_root}",
-                f"Note: {safe_note or '—'}",
-                "",
-                "Included paths:",
-            ]
-            for include_path in include_paths:
-                manifest_lines.append(f"- {include_path.relative_to(settings.BASE_DIR)}")
-
-            for include_path in include_paths:
-                if include_path.is_file():
-                    archive_name = include_path.relative_to(settings.BASE_DIR)
-                    zip_handle.write(include_path, arcname=str(archive_name))
-                    continue
-
-                for child_file in self.iter_backup_files(include_path):
-                    archive_name = child_file.relative_to(settings.BASE_DIR)
-                    zip_handle.write(child_file, arcname=str(archive_name))
-
-            zip_handle.writestr("backup_manifest.txt", "\n".join(manifest_lines))
+            self.write_backup_zip(
+                zip_handle=zip_handle,
+                archive_label=backup_file.name,
+                safe_note=safe_note,
+                backup_root_label=str(backup_root),
+            )
 
         return backup_file
+
+    def download_backup_response(self, note=""):
+        filename, safe_note = self.build_backup_filename(note=note)
+        buffer = io.BytesIO()
+
+        with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as zip_handle:
+            self.write_backup_zip(
+                zip_handle=zip_handle,
+                archive_label=filename,
+                safe_note=safe_note,
+                backup_root_label="Downloaded to browser",
+            )
+
+        buffer.seek(0)
+        response = HttpResponse(buffer.getvalue(), content_type="application/zip")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
 
     def get_latest_backups(self):
         backup_root = self.get_backup_root()

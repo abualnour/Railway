@@ -62,7 +62,6 @@
 
                 <form method="post" class="backup-form-stack">
                     {% csrf_token %}
-                    <input type="hidden" name="action" value="create_backup">
 
                     <div class="form-group">
                         <label for="id_backup_note">Backup Note</label>
@@ -77,13 +76,22 @@
                         <p class="form-help">Optional short label added to the backup file name.</p>
                     </div>
 
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Create Backup Now</button>
+                    <div class="backup-destination-grid">
+                        <div class="backup-destination-card">
+                            <span class="backup-destination-label">Save on Server</span>
+                            <p class="backup-destination-help">Create the backup ZIP and store it in the configured server backup folder so it appears in the backup audit list below.</p>
+                            <button type="submit" name="action" value="create_backup_server" class="btn btn-primary backup-action-btn">Save Backup on Server</button>
+                        </div>
+                        <div class="backup-destination-card">
+                            <span class="backup-destination-label">Download to This Device</span>
+                            <p class="backup-destination-help">Generate the same backup package and download it immediately through the browser without saving it in the server backup list.</p>
+                            <button type="submit" name="action" value="download_backup_now" class="btn btn-light backup-action-btn">Download Backup Now</button>
+                        </div>
                     </div>
                 </form>
 
                 <div class="backup-path-note">
-                    <span class="backup-path-note-label">Save Location</span>
+                    <span class="backup-path-note-label">Server Save Location</span>
                     <strong>{{ backup_root }}</strong>
                 </div>
             </div>

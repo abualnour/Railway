@@ -136,6 +136,41 @@
     gap: 18px;
 }
 
+.backup-destination-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.backup-destination-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--surface-gradient-2);
+}
+
+.backup-destination-label {
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.backup-destination-help {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 13px;
+    line-height: 1.6;
+    flex: 1;
+}
+
+.backup-action-btn {
+    width: 100%;
+}
+
 .backup-path-note {
     display: flex;
     flex-direction: column;
@@ -231,7 +266,8 @@
     }
 
     .backup-center-grid-top,
-    .backup-export-grid {
+    .backup-export-grid,
+    .backup-destination-grid {
         grid-template-columns: 1fr;
 }
 
