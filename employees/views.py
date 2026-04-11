@@ -1,6 +1,8 @@
 from datetime import timedelta
 from decimal import Decimal
+import mimetypes
 import re
+from pathlib import Path
 
 from django import forms
 from django.contrib import messages
@@ -9,7 +11,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Case, IntegerField, Prefetch, Q, When
-from django.http import JsonResponse
+from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -534,6 +536,39 @@ def build_employee_transfer_summary(old_employee, new_employee, transfer_note=""
 
     return " ".join(changes)
 
+
+
+
+PREVIEWABLE_FILE_EXTENSIONS = {"pdf", "png", "jpg", "jpeg", "webp", "gif", "bmp", "txt"}
+
+
+def get_file_extension(file_field):
+    if not file_field or not getattr(file_field, "name", ""):
+        return ""
+    return Path(file_field.name).suffix.lower().lstrip(".")
+
+
+def build_browser_file_response(file_field, *, force_download=False):
+    if not file_field or not getattr(file_field, "name", ""):
+        raise Http404("The requested file is not available.")
+
+    filename = Path(file_field.name).name
+    extension = get_file_extension(file_field)
+    content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    as_attachment = force_download or extension not in PREVIEWABLE_FILE_EXTENSIONS
+
+    file_handle = file_field.open("rb")
+    response = FileResponse(
+        file_handle,
+        as_attachment=as_attachment,
+        filename=filename,
+        content_type=content_type,
+    )
+
+    if not as_attachment:
+        response["Content-Disposition"] = f'inline; filename="{filename}"'
+
+    return response
 
 def build_document_summary(document):
     parts = [
@@ -2006,6 +2041,109 @@ def employee_status_update(request, pk):
 
     messages.success(request, "Employee status updated successfully.")
     return redirect("employees:employee_detail", pk=employee.pk)
+
+
+@login_required
+def employee_document_view(request, employee_pk, document_pk):
+    employee = get_object_or_404(Employee, pk=employee_pk)
+    document = get_object_or_404(EmployeeDocument, pk=document_pk, employee=employee)
+
+    if not can_view_employee_profile(request.user, employee):
+        return deny_employee_access(
+            request,
+            "You do not have permission to view this employee document.",
+            employee=employee,
+        )
+
+    return build_browser_file_response(document.file, force_download=False)
+
+
+@login_required
+def employee_document_download(request, employee_pk, document_pk):
+    employee = get_object_or_404(Employee, pk=employee_pk)
+    document = get_object_or_404(EmployeeDocument, pk=document_pk, employee=employee)
+
+    if not can_view_employee_profile(request.user, employee):
+        return deny_employee_access(
+            request,
+            "You do not have permission to download this employee document.",
+            employee=employee,
+        )
+
+    return build_browser_file_response(document.file, force_download=True)
+
+
+@login_required
+def employee_required_submission_response_view(request, request_pk):
+    submission_request = get_object_or_404(
+        EmployeeRequiredSubmission.objects.select_related("employee"),
+        pk=request_pk,
+    )
+    employee = submission_request.employee
+
+    if not can_view_employee_profile(request.user, employee):
+        return deny_employee_access(
+            request,
+            "You do not have permission to view this submitted file.",
+            employee=employee,
+        )
+
+    return build_browser_file_response(submission_request.response_file, force_download=False)
+
+
+@login_required
+def employee_required_submission_response_download(request, request_pk):
+    submission_request = get_object_or_404(
+        EmployeeRequiredSubmission.objects.select_related("employee"),
+        pk=request_pk,
+    )
+    employee = submission_request.employee
+
+    if not can_view_employee_profile(request.user, employee):
+        return deny_employee_access(
+            request,
+            "You do not have permission to download this submitted file.",
+            employee=employee,
+        )
+
+    return build_browser_file_response(submission_request.response_file, force_download=True)
+
+
+@login_required
+def employee_document_request_response_view(request, request_pk):
+    document_request = get_object_or_404(
+        EmployeeDocumentRequest.objects.select_related("employee"),
+        pk=request_pk,
+    )
+    employee = document_request.employee
+
+    if not can_view_employee_profile(request.user, employee):
+        return deny_employee_access(
+            request,
+            "You do not have permission to view this reply file.",
+            employee=employee,
+        )
+
+    return build_browser_file_response(document_request.response_file, force_download=False)
+
+
+@login_required
+def employee_document_request_response_download(request, request_pk):
+    document_request = get_object_or_404(
+        EmployeeDocumentRequest.objects.select_related("employee"),
+        pk=request_pk,
+    )
+    employee = document_request.employee
+
+    if not can_view_employee_profile(request.user, employee):
+        return deny_employee_access(
+            request,
+            "You do not have permission to download this reply file.",
+            employee=employee,
+        )
+
+    return build_browser_file_response(document_request.response_file, force_download=True)
+
 
 
 @login_required

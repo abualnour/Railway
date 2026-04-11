@@ -530,7 +530,8 @@
                                                                     {% endif %}
                                                                     {% if document.file %}
                                                                         <div class="page-actions" style="margin-top: 12px;">
-                                                                            <a class="btn btn-light" href="{{ document.file.url }}" target="_blank" rel="noopener">Open File</a>
+                                                                            <a class="btn btn-light" href="{% url 'employees:employee_document_view' employee.pk document.pk %}" target="_blank" rel="noopener">Open File</a>
+                                                                            <a class="btn btn-secondary" href="{% url 'employees:employee_document_download' employee.pk document.pk %}">Download File</a>
                                                                         </div>
                                                                     {% endif %}
                                                                 </div>
@@ -634,7 +635,8 @@
                             <div class="page-actions" style="margin-top: 12px;">
                                 <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' submission_request.employee.pk %}">Open Employee Profile</a>
                                 {% if submission_request.response_file %}
-                                    <a class="btn btn-light btn-sm" href="{{ submission_request.response_file.url }}" target="_blank" rel="noopener">View Submitted File</a>
+                                    <a class="btn btn-light btn-sm" href="{% url 'employees:employee_required_submission_response_view' submission_request.pk %}" target="_blank" rel="noopener">View Submitted File</a>
+                                    <a class="btn btn-secondary btn-sm" href="{% url 'employees:employee_required_submission_response_download' submission_request.pk %}">Download File</a>
                                 {% endif %}
                             </div>
                         </div>
@@ -697,7 +699,8 @@
 
                             <div class="page-actions" style="margin-top: 12px;">
                                 <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' document_request.employee.pk %}">Open Employee Profile</a>
-                                {% if document_request.response_file %}<a class="btn btn-light btn-sm" href="{{ document_request.response_file.url }}" target="_blank" rel="noopener">View Reply File</a>{% endif %}
+                                {% if document_request.response_file %}<a class="btn btn-light btn-sm" href="{% url 'employees:employee_document_request_response_view' document_request.pk %}" target="_blank" rel="noopener">View Reply File</a>
+                                <a class="btn btn-secondary btn-sm" href="{% url 'employees:employee_document_request_response_download' document_request.pk %}">Download File</a>{% endif %}
                             </div>
 
                             {% if document_request.review_form %}
@@ -809,7 +812,8 @@
 
                                         <div class="page-actions document-actions-row">
                                             {% if document.file %}
-                                                <a class="btn btn-light btn-sm" href="{{ document.file.url }}" target="_blank" rel="noopener">View File</a>
+                                                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_document_view' employee.pk document.pk %}" target="_blank" rel="noopener">View File</a>
+                                                <a class="btn btn-secondary btn-sm" href="{% url 'employees:employee_document_download' employee.pk document.pk %}">Download File</a>
                                             {% endif %}
                                             <a class="btn btn-secondary btn-sm" href="{% url 'employees:employee_detail' document.employee.pk %}">Open Employee</a>
                                         </div>

@@ -455,7 +455,8 @@
                                             <div class="document-description">
                                                 <strong>Latest Uploaded File:</strong>
                                                 <div class="page-actions document-actions-row" style="margin-top: 10px;">
-                                                    <a class="btn btn-light btn-sm" href="{{ submission_request.response_file.url }}" target="_blank" rel="noopener">View Uploaded File</a>
+                                                    <a class="btn btn-light btn-sm" href="{% url 'employees:employee_required_submission_response_view' submission_request.pk %}" target="_blank" rel="noopener">View Uploaded File</a>
+                                                    <a class="btn btn-secondary btn-sm" href="{% url 'employees:employee_required_submission_response_download' submission_request.pk %}">Download File</a>
                                                 </div>
                                             </div>
                                         {% endif %}
@@ -531,7 +532,8 @@
                                     <small>Requested {{ document_request.submitted_at|date:"F j, Y - g:i A"|default:"—" }}{% if document_request.needed_by_date %} • Needed by {{ document_request.needed_by_date|date:"F j, Y" }}{% endif %}</small>
                                     {% if document_request.request_note %}<div class="document-description"><strong>My Note:</strong> {{ document_request.request_note|linebreaksbr }}</div>{% endif %}
                                     {% if document_request.management_note %}<div class="document-description"><strong>Management Note:</strong> {{ document_request.management_note|linebreaksbr }}</div>{% endif %}
-                                    {% if document_request.response_file %}<div class="page-actions document-actions-row"><a class="btn btn-light btn-sm" href="{{ document_request.response_file.url }}" target="_blank" rel="noopener">View Reply File</a></div>{% endif %}
+                                    {% if document_request.response_file %}<div class="page-actions document-actions-row"><a class="btn btn-light btn-sm" href="{% url 'employees:employee_document_request_response_view' document_request.pk %}" target="_blank" rel="noopener">View Reply File</a>
+                                    <a class="btn btn-secondary btn-sm" href="{% url 'employees:employee_document_request_response_download' document_request.pk %}">Download File</a></div>{% endif %}
                                     {% if document_request.can_employee_cancel and can_cancel_employee_document_request %}
                                         <div class="page-actions document-actions-row" style="margin-top: 10px;">
                                             <form action="{% url 'employees:employee_document_request_cancel' document_request.pk %}" method="post">
@@ -641,9 +643,10 @@
                                                     <div class="page-actions document-actions-row" style="margin-top: 10px;">
                                                         {% for document in request_documents %}
                                                             {% if document.file %}
-                                                            <a class="btn btn-light btn-sm" href="{{ document.file.url }}" target="_blank" rel="noopener">
+                                                            <a class="btn btn-light btn-sm" href="{% url 'employees:employee_document_view' employee.pk document.pk %}" target="_blank" rel="noopener">
                                                                 {{ document.title|default:document.filename }}
                                                             </a>
+                                                            <a class="btn btn-secondary btn-sm" href="{% url 'employees:employee_document_download' employee.pk document.pk %}">Download File</a>
                                                             {% endif %}
                                                         {% endfor %}
                                                     </div>
@@ -1018,9 +1021,10 @@
                                                 <div class="page-actions document-actions-row" style="margin-top: 10px;">
                                                     {% for document in request_documents %}
                                                         {% if document.file %}
-                                                            <a class="btn btn-light btn-sm" href="{{ document.file.url }}" target="_blank" rel="noopener">
+                                                            <a class="btn btn-light btn-sm" href="{% url 'employees:employee_document_view' employee.pk document.pk %}" target="_blank" rel="noopener">
                                                                 {{ document.title|default:document.filename }}
-                                                            </button>
+                                                            </a>
+                                                            <a class="btn btn-secondary btn-sm" href="{% url 'employees:employee_document_download' employee.pk document.pk %}">Download File</a>
                                                         {% endif %}
                                                     {% endfor %}
                                                 </div>
@@ -1152,7 +1156,8 @@
                                             <div class="document-description">
                                                 <strong>Latest Uploaded File:</strong>
                                                 <div class="page-actions document-actions-row" style="margin-top: 10px;">
-                                                    <a class="btn btn-light btn-sm" href="{{ submission_request.response_file.url }}" target="_blank" rel="noopener">View Uploaded File</a>
+                                                    <a class="btn btn-light btn-sm" href="{% url 'employees:employee_required_submission_response_view' submission_request.pk %}" target="_blank" rel="noopener">View Uploaded File</a>
+                                                    <a class="btn btn-secondary btn-sm" href="{% url 'employees:employee_required_submission_response_download' submission_request.pk %}">Download File</a>
                                                 </div>
                                             </div>
                                         {% endif %}
@@ -1270,7 +1275,8 @@
                                             <div class="page-actions document-actions-row" style="margin-top: 10px;">
                                                 {% for document in request_documents %}
                                                     {% if document.file %}
-                                                        <a class="btn btn-light btn-sm" href="{{ document.file.url }}" target="_blank" rel="noopener">{{ document.title|default:document.filename }}</a>
+                                                        <a class="btn btn-light btn-sm" href="{% url 'employees:employee_document_view' employee.pk document.pk %}" target="_blank" rel="noopener">{{ document.title|default:document.filename }}</a>
+                                                        <a class="btn btn-secondary btn-sm" href="{% url 'employees:employee_document_download' employee.pk document.pk %}">Download File</a>
                                                     {% endif %}
                                                 {% endfor %}
                                             </div>
