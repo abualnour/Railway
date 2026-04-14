@@ -1,15 +1,14 @@
-HR System Backup Manifest
-Created at: 2026-04-05 12:08:54 +03
+NourAxis Backup Manifest
+Created at: 2026-04-14 19:07:40 +03
 Created by: nour@email.com
-Backup file: hr_backup_2026-04-05_12-08-54_last-fixed-for-today.zip
-Backup root: C:\Users\AbuNour\Desktop\HR_System_Backups
-Note: last-fixed-for-today
+Backup file: nouraxis_backup_2026-04-14_19-07-40_restored.zip
+Backup root: Downloaded to browser
+Note: restored
 
 Included paths:
 - manage.py
-- db.sqlite3
-- media
 - employees
+- operations
 - organization
 - accounts
 - core
@@ -18,3 +17,4 @@ Included paths:
 - templates
 - static
 - config
+- requirements.txt
