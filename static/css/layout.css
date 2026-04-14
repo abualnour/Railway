@@ -531,3 +531,53 @@ html[data-theme="dark-accent"] .theme-switcher-btn[data-theme-choice="dark-accen
         padding: 14px 12px 18px;
     }
 }
+
+
+html[data-theme="macos-glass"] .topbar {
+    padding-top: 18px;
+}
+
+html[data-theme="macos-glass"] .topbar-inner,
+html[data-theme="macos-glass"] .topbar-brand,
+html[data-theme="macos-glass"] .topbar-theme-switcher,
+html[data-theme="macos-glass"] .topbar-user-card,
+html[data-theme="macos-glass"] .topbar-group-menu {
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    border-color: rgba(255, 255, 255, 0.58);
+}
+
+html[data-theme="macos-glass"] .topbar-inner {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.68) 0%, rgba(244, 247, 251, 0.60) 100%);
+}
+
+html[data-theme="macos-glass"] .topbar-brand,
+html[data-theme="macos-glass"] .topbar-user-card,
+html[data-theme="macos-glass"] .topbar-theme-switcher,
+html[data-theme="macos-glass"] .topbar-group-menu {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(247, 249, 252, 0.54) 100%);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+html[data-theme="macos-glass"] .topbar-link,
+html[data-theme="macos-glass"] .topbar-group-trigger,
+html[data-theme="macos-glass"] .topbar-sub-link,
+html[data-theme="macos-glass"] .topbar-theme-btn {
+    font-weight: 600;
+}
+
+html[data-theme="macos-glass"] .topbar-brand-logo {
+    box-shadow: 0 12px 24px rgba(10, 132, 255, 0.16);
+}
+
+html[data-theme="macos-glass"] .main-content {
+    padding-top: 24px;
+}
+
+html[data-theme="macos-glass"] .page-title {
+    letter-spacing: -0.04em;
+}
+
+html[data-theme="macos-glass"] .page-subtitle {
+    font-size: 14px;
+}

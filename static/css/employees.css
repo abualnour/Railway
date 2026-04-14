@@ -5904,3 +5904,102 @@ input[type="date"]::-webkit-datetime-edit-year-field,
         flex: 1 1 auto;
     }
 }
+
+/* -------------------------------------------------------------
+   Self-service profile information: force left-to-right row order
+-------------------------------------------------------------- */
+.employee-profile-page .detail-grid.two-col.employee-information-grid,
+.employee-profile-page .detail-grid.two-col.employee-org-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-auto-flow: row !important;
+    gap: 10px !important;
+    align-items: start !important;
+}
+
+.employee-profile-page .detail-grid.two-col.employee-information-grid .detail-item,
+.employee-profile-page .detail-grid.two-col.employee-org-grid .detail-item {
+    min-width: 0;
+}
+
+@media (max-width: 1180px) {
+    .employee-profile-page .detail-grid.two-col.employee-information-grid,
+    .employee-profile-page .detail-grid.two-col.employee-org-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .employee-profile-page .detail-grid.two-col.employee-information-grid,
+    .employee-profile-page .detail-grid.two-col.employee-org-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+
+/* -------------------------------------------------------------
+   Employee Detail: ID Compliance exact final fix
+-------------------------------------------------------------- */
+.employee-profile-page .identity-detail-stack {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+}
+
+.employee-profile-page .employee-identity-status-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 18px !important;
+    align-items: start !important;
+}
+
+.employee-profile-page .employee-identity-status-card {
+    display: grid !important;
+    gap: 14px !important;
+    align-content: start !important;
+}
+
+@media (max-width: 900px) {
+    .employee-profile-page .employee-identity-status-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+
+/* -------------------------------------------------------------
+   Identity cards: same vertical order across all profiles
+-------------------------------------------------------------- */
+.employee-profile-page .identity-detail-stack,
+.employee-profile-page .compliance-meta-grid.compliance-meta-grid-vertical {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+}
+
+.employee-profile-page .employee-identity-status-grid,
+.employee-profile-page .id-status-grid.employee-identity-status-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 18px !important;
+    align-items: start !important;
+}
+
+.employee-profile-page .employee-identity-status-card,
+.employee-profile-page .id-status-card.employee-identity-status-card {
+    display: grid !important;
+    gap: 14px !important;
+    align-content: start !important;
+}
+
+.employee-profile-page .identity-detail-stack .detail-item,
+.employee-profile-page .compliance-meta-grid.compliance-meta-grid-vertical .detail-item {
+    width: 100% !important;
+    min-height: 0 !important;
+}
+
+@media (max-width: 900px) {
+    .employee-profile-page .employee-identity-status-grid,
+    .employee-profile-page .id-status-grid.employee-identity-status-grid {
+        grid-template-columns: 1fr !important;
+    }
+}

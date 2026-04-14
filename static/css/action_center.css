@@ -1250,3 +1250,25 @@ html[data-theme="premium-olive"] .action-center-page .page-header {
         min-height: 0;
     }
 }
+
+
+html[data-theme="macos-glass"] .dashboard-page-header,
+html[data-theme="macos-glass"] .home-hero-panel,
+html[data-theme="macos-glass"] .home-aside-card,
+html[data-theme="macos-glass"] .home-stat-pill,
+html[data-theme="macos-glass"] .system-home-hero-main,
+html[data-theme="macos-glass"] .system-home-feature-card,
+html[data-theme="macos-glass"] .auth-modern-intro,
+html[data-theme="macos-glass"] .auth-modern-card,
+html[data-theme="macos-glass"] .action-center-page .page-header,
+html[data-theme="macos-glass"] .action-center-page .summary-card,
+html[data-theme="macos-glass"] .action-center-page .action-center-sidebar-card,
+html[data-theme="macos-glass"] .action-center-page .action-center-queue-card,
+html[data-theme="macos-glass"] .action-center-page .employee-summary-card,
+html[data-theme="macos-glass"] .action-center-page .action-center-guidance-card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(245, 248, 252, 0.62) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.60) !important;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08) !important;
+    backdrop-filter: blur(20px) saturate(170%);
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+}

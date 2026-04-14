@@ -12,21 +12,26 @@
             const STORAGE_KEY = "hr_theme_preference";
             const DEFAULT_THEME = "premium-dark";
             const ALLOWED_THEMES = ["premium-dark", "premium-light", "dark-accent", "sunrise"];
+            const LEGACY_THEME_MAP = {
+                "macos-glass": "sunrise"
+            };
             const THEME_META_COLORS = {
                 "premium-dark": "#091426",
                 "premium-light": "#edf4ff",
                 "dark-accent": "#12312d",
-                "sunrise": "#FFF9D4"
+                "sunrise": "#eef3f8"
             };
 
             function normalizeTheme(theme) {
-                return ALLOWED_THEMES.includes(theme) ? theme : DEFAULT_THEME;
+                const mappedTheme = LEGACY_THEME_MAP[theme] || theme;
+                return ALLOWED_THEMES.includes(mappedTheme) ? mappedTheme : DEFAULT_THEME;
             }
 
             try {
-                const storedTheme = normalizeTheme(window.localStorage.getItem(STORAGE_KEY));
-                const themeToApply = storedTheme || DEFAULT_THEME;
+                const rawStoredTheme = window.localStorage.getItem(STORAGE_KEY);
+                const themeToApply = normalizeTheme(rawStoredTheme || document.documentElement.getAttribute("data-theme"));
                 document.documentElement.setAttribute("data-theme", themeToApply);
+                window.localStorage.setItem(STORAGE_KEY, themeToApply);
 
                 const themeColorMeta = document.querySelector('meta[name="theme-color"]');
                 if (themeColorMeta) {
@@ -70,29 +75,45 @@
         (function () {
             document.addEventListener("DOMContentLoaded", function () {
                 const STORAGE_KEY_THEME = "hr_theme_preference";
+                const DEFAULT_THEME = "premium-dark";
+                const ALLOWED_THEMES = ["premium-dark", "premium-light", "dark-accent", "sunrise"];
+                const LEGACY_THEME_MAP = {
+                    "macos-glass": "sunrise"
+                };
                 const BUTTONS = document.querySelectorAll("[data-theme-choice]");
                 const themeColorMeta = document.querySelector('meta[name="theme-color"]');
                 const metaColors = {
                     "premium-dark": "#091426",
                     "premium-light": "#edf4ff",
                     "dark-accent": "#12312d",
-                    "sunrise": "#FFF9D4"
+                    "sunrise": "#eef3f8"
                 };
 
+                function normalizeTheme(theme) {
+                    const mappedTheme = LEGACY_THEME_MAP[theme] || theme;
+                    return ALLOWED_THEMES.includes(mappedTheme) ? mappedTheme : DEFAULT_THEME;
+                }
+
                 function applyTheme(theme) {
-                    document.documentElement.setAttribute("data-theme", theme);
+                    const normalizedTheme = normalizeTheme(theme);
+                    document.documentElement.setAttribute("data-theme", normalizedTheme);
                     try {
-                        window.localStorage.setItem(STORAGE_KEY_THEME, theme);
+                        window.localStorage.setItem(STORAGE_KEY_THEME, normalizedTheme);
                     } catch (error) {}
                     if (themeColorMeta) {
-                        themeColorMeta.setAttribute("content", metaColors[theme] || metaColors["premium-dark"]);
+                        themeColorMeta.setAttribute("content", metaColors[normalizedTheme] || metaColors[DEFAULT_THEME]);
                     }
                     BUTTONS.forEach(function (button) {
-                        button.classList.toggle("is-active", button.dataset.themeChoice === theme);
+                        button.classList.toggle("is-active", button.dataset.themeChoice === normalizedTheme);
                     });
                 }
 
-                const activeTheme = document.documentElement.getAttribute("data-theme") || "premium-dark";
+                let activeTheme = DEFAULT_THEME;
+                try {
+                    activeTheme = normalizeTheme(window.localStorage.getItem(STORAGE_KEY_THEME) || document.documentElement.getAttribute("data-theme"));
+                } catch (error) {
+                    activeTheme = DEFAULT_THEME;
+                }
                 applyTheme(activeTheme);
                 BUTTONS.forEach(function (button) {
                     button.addEventListener("click", function () {

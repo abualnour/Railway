@@ -239,26 +239,26 @@
                                         <strong>{{ identity_document.label }}</strong>
                                         <span class="badge {{ identity_document.badge_class }}">{{ identity_document.status_label }}</span>
                                     </div>
-                                    <div class="detail-grid two-col">
+                                    <div class="detail-grid one-col identity-detail-stack">
                                         <div class="detail-item">
                                             <span class="detail-label">Reference Number</span>
                                             <span class="detail-value">{{ identity_document.reference_number|default:"—" }}</span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Expiry Date</span>
-                                            <span class="detail-value">
-                                                {% if identity_document.expiry_date %}
-                                                    {{ identity_document.expiry_date|date:"F j, Y" }}
-                                                {% else %}
-                                                    —
-                                                {% endif %}
-                                            </span>
                                         </div>
                                         <div class="detail-item">
                                             <span class="detail-label">Issue Date</span>
                                             <span class="detail-value">
                                                 {% if identity_document.issue_date %}
                                                     {{ identity_document.issue_date|date:"F j, Y" }}
+                                                {% else %}
+                                                    —
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Expiry Date</span>
+                                            <span class="detail-value">
+                                                {% if identity_document.expiry_date %}
+                                                    {{ identity_document.expiry_date|date:"F j, Y" }}
                                                 {% else %}
                                                     —
                                                 {% endif %}
@@ -1498,18 +1498,18 @@
                                                 <strong>{{ identity_document.label }}</strong>
                                                 <span class="badge {{ identity_document.badge_class }}">{{ identity_document.status_label }}</span>
                                             </div>
-                                            <div class="detail-grid two-col">
+                                            <div class="detail-grid one-col identity-detail-stack">
                                                 <div class="detail-item">
                                                     <span class="detail-label">Reference Number</span>
                                                     <span class="detail-value">{{ identity_document.reference_number|default:"â€”" }}</span>
                                                 </div>
                                                 <div class="detail-item">
-                                                    <span class="detail-label">Expiry Date</span>
-                                                    <span class="detail-value">{% if identity_document.expiry_date %}{{ identity_document.expiry_date|date:"F j, Y" }}{% else %}â€”{% endif %}</span>
-                                                </div>
-                                                <div class="detail-item">
                                                     <span class="detail-label">Issue Date</span>
                                                     <span class="detail-value">{% if identity_document.issue_date %}{{ identity_document.issue_date|date:"F j, Y" }}{% else %}â€”{% endif %}</span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Expiry Date</span>
+                                                    <span class="detail-value">{% if identity_document.expiry_date %}{{ identity_document.expiry_date|date:"F j, Y" }}{% else %}â€”{% endif %}</span>
                                                 </div>
                                                 <div class="detail-item">
                                                     <span class="detail-label">Days Remaining</span>
@@ -1708,18 +1708,18 @@
                                                 <strong>{{ identity_document.label }}</strong>
                                                 <span class="badge {{ identity_document.badge_class }}">{{ identity_document.status_label }}</span>
                                             </div>
-                                            <div class="detail-grid two-col">
+                                            <div class="detail-grid one-col identity-detail-stack">
                                                 <div class="detail-item">
                                                     <span class="detail-label">Reference Number</span>
                                                     <span class="detail-value">{{ identity_document.reference_number|default:"—" }}</span>
                                                 </div>
                                                 <div class="detail-item">
-                                                    <span class="detail-label">Expiry Date</span>
-                                                    <span class="detail-value">{% if identity_document.expiry_date %}{{ identity_document.expiry_date|date:"F j, Y" }}{% else %}—{% endif %}</span>
-                                                </div>
-                                                <div class="detail-item">
                                                     <span class="detail-label">Issue Date</span>
                                                     <span class="detail-value">{% if identity_document.issue_date %}{{ identity_document.issue_date|date:"F j, Y" }}{% else %}—{% endif %}</span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Expiry Date</span>
+                                                    <span class="detail-value">{% if identity_document.expiry_date %}{{ identity_document.expiry_date|date:"F j, Y" }}{% else %}—{% endif %}</span>
                                                 </div>
                                                 <div class="detail-item">
                                                     <span class="detail-label">Days Remaining</span>

@@ -1,0 +1,28 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="18" y1="14" x2="111" y2="116" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#DDE8F4" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="29" y1="23" x2="96" y2="91" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.12"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="43" y1="37" x2="87" y2="82" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#62B0FF"/>
+      <stop offset="1" stop-color="#0A84FF"/>
+    </linearGradient>
+    <filter id="blur" x="0" y="0" width="128" height="128" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+  <circle cx="64" cy="64" r="51" fill="#B7D7FF" fill-opacity="0.35" filter="url(#blur)"/>
+  <rect x="19" y="15" width="90" height="98" rx="24" fill="url(#bg)" stroke="#FFFFFF" stroke-opacity="0.7" stroke-width="1.5"/>
+  <rect x="19" y="15" width="90" height="98" rx="24" fill="url(#shine)"/>
+  <circle cx="35" cy="31" r="5" fill="#FF5F57"/>
+  <circle cx="50" cy="31" r="5" fill="#FEBC2E"/>
+  <circle cx="65" cy="31" r="5" fill="#28C840"/>
+  <rect x="33" y="47" width="62" height="48" rx="16" fill="url(#accent)" fill-opacity="0.18"/>
+  <path d="M45 77L59 61L68 69L83 53" stroke="url(#accent)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M79 53H83V57" stroke="url(#accent)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
