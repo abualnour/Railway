@@ -112,12 +112,21 @@ def navbar_context(request):
     nav_self_service_working_time_url = ""
     nav_self_service_branch_url = ""
     nav_self_service_weekly_schedule_url = ""
+
     if employee_profile:
-        nav_self_service_profile_url = reverse("employees:self_service_profile")
+        if is_admin_compatible or is_hr_user or is_operations_manager_user:
+            nav_self_service_profile_url = reverse(
+                "employees:employee_detail",
+                kwargs={"pk": employee_profile.pk},
+            )
+        else:
+            nav_self_service_profile_url = reverse("employees:self_service_profile")
+
         nav_self_service_leave_url = reverse("employees:self_service_leave")
         nav_self_service_documents_url = reverse("employees:self_service_documents")
         nav_self_service_attendance_url = reverse("employees:self_service_attendance")
         nav_self_service_working_time_url = reverse("employees:self_service_working_time")
+
         if getattr(employee_profile, "branch_id", None):
             nav_self_service_branch_url = reverse("employees:self_service_branch")
             nav_self_service_weekly_schedule_url = reverse("employees:self_service_weekly_schedule")

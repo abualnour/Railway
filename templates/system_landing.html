@@ -15,24 +15,26 @@
                 <img src="{% static 'brand/nouraxis-logo.png' %}" alt="NourAxis logo" class="system-home-logo">
                 <div>
                     <span class="system-home-kicker">NourAxis Platform</span>
-                    <h1 class="system-home-title">One HR space for branches, teams, attendance, and daily operations</h1>
+                    <h1 class="system-home-title">One HR space for branches, teams, attendance, and daily operations
+                    </h1>
                 </div>
             </div>
 
             <p class="system-home-lead">
-                A more distinctive home page built for real work, with a stronger first impression and a clearer path into self-service, supervision, and management tools.
+                A more distinctive home page built for real work, with a stronger first impression and a clearer path
+                into self-service, supervision, and management tools.
             </p>
 
             <div class="system-home-actions">
                 {% if user.is_authenticated and linked_employee %}
                     <a href="{% url 'employees:self_service_profile' %}" class="btn btn-primary">Open My Workspace</a>
+                {% if can_view_dashboard %}
+                    <a href="{% url 'dashboard_home' %}" class="btn btn-secondary">Go to Dashboard</a>
+                {% endif %}
                 {% elif user.is_authenticated %}
                     <a href="{% url 'dashboard_home' %}" class="btn btn-primary">Open Dashboard</a>
                 {% else %}
                     <a href="{% url 'login' %}" class="btn btn-primary">Sign In</a>
-                {% endif %}
-                {% if can_view_dashboard %}
-                    <a href="{% url 'dashboard_home' %}" class="btn btn-secondary">Go to Dashboard</a>
                 {% endif %}
             </div>
 
@@ -49,7 +51,8 @@
         <article class="system-home-feature-card system-home-feature-card-large">
             <span class="system-home-feature-kicker">Daily Flow</span>
             <h2>Move from login to action faster</h2>
-            <p>Open requests, branch pages, schedules, attendance, and employee records from a cleaner connected workspace.</p>
+            <p>Open requests, branch pages, schedules, attendance, and employee records from a cleaner connected
+                workspace.</p>
         </article>
 
         <article class="system-home-feature-card">
@@ -67,13 +70,15 @@
         <article class="system-home-feature-card">
             <span class="system-home-feature-kicker">Management</span>
             <h2>Organization control</h2>
-            <p>Handle directory access, attendance management, requests, and company structure from a modern dashboard.</p>
+            <p>Handle directory access, attendance management, requests, and company structure from a modern dashboard.
+            </p>
         </article>
 
         <article class="system-home-feature-card">
             <span class="system-home-feature-kicker">HR Workspace</span>
             <h2>Policies, compliance, and people operations</h2>
-            <p>Build an HR control layer for requests, internal announcements, employee actions, and compliance follow-up.</p>
+            <p>Build an HR control layer for requests, internal announcements, employee actions, and compliance
+                follow-up.</p>
         </article>
 
         <article class="system-home-feature-card">
