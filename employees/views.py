@@ -3460,6 +3460,120 @@ def self_service_branch_page(request):
     return render(request, "employees/self_service_branch.html", context)
 
 
+def get_branch_standard_duty_option_seed_data():
+    return [
+        {"label": "9 am to 5 pm", "duty_type": BranchWeeklyScheduleEntry.DUTY_TYPE_SHIFT, "start": "09:00", "end": "17:00", "bg": "#ef4444", "text": "#f8fafc", "order": 1},
+        {"label": "2 pm to 10 pm", "duty_type": BranchWeeklyScheduleEntry.DUTY_TYPE_SHIFT, "start": "14:00", "end": "22:00", "bg": "#2563eb", "text": "#f8fafc", "order": 2},
+        {"label": "3 pm to 11 pm", "duty_type": BranchWeeklyScheduleEntry.DUTY_TYPE_SHIFT, "start": "15:00", "end": "23:00", "bg": "#7c3aed", "text": "#f8fafc", "order": 3},
+        {"label": "4 pm to 12 am", "duty_type": BranchWeeklyScheduleEntry.DUTY_TYPE_SHIFT, "start": "16:00", "end": "23:59", "bg": "#8b5cf6", "text": "#f8fafc", "order": 4},
+        {"label": "1 pm to 9 pm", "duty_type": BranchWeeklyScheduleEntry.DUTY_TYPE_SHIFT, "start": "13:00", "end": "21:00", "bg": "#0ea5e9", "text": "#f8fafc", "order": 5},
+        {"label": "12 pm to 8 pm", "duty_type": BranchWeeklyScheduleEntry.DUTY_TYPE_SHIFT, "start": "12:00", "end": "20:00", "bg": "#3b82f6", "text": "#f8fafc", "order": 6},
+        {"label": "off", "duty_type": BranchWeeklyScheduleEntry.DUTY_TYPE_OFF, "start": None, "end": None, "bg": "#facc15", "text": "#111827", "order": 7},
+        {"label": "extra off", "duty_type": BranchWeeklyScheduleEntry.DUTY_TYPE_EXTRA_OFF, "start": None, "end": None, "bg": "#eab308", "text": "#111827", "order": 8},
+        {"label": "sick leave", "duty_type": BranchWeeklyScheduleEntry.DUTY_TYPE_CUSTOM, "start": None, "end": None, "bg": "#22c55e", "text": "#052e16", "order": 9},
+        {"label": "emergency leave", "duty_type": BranchWeeklyScheduleEntry.DUTY_TYPE_CUSTOM, "start": None, "end": None, "bg": "#f97316", "text": "#fff7ed", "order": 10},
+        {"label": "vacation", "duty_type": BranchWeeklyScheduleEntry.DUTY_TYPE_CUSTOM, "start": None, "end": None, "bg": "#14b8a6", "text": "#f0fdfa", "order": 11},
+        {"label": "support", "duty_type": BranchWeeklyScheduleEntry.DUTY_TYPE_CUSTOM, "start": None, "end": None, "bg": "#64748b", "text": "#f8fafc", "order": 12},
+        {"label": "Morning shift", "duty_type": BranchWeeklyScheduleEntry.DUTY_TYPE_SHIFT, "start": "09:00", "end": "17:00", "bg": "#f59e0b", "text": "#111827", "order": 13},
+        {"label": "Middle shift", "duty_type": BranchWeeklyScheduleEntry.DUTY_TYPE_SHIFT, "start": "13:00", "end": "21:00", "bg": "#06b6d4", "text": "#083344", "order": 14},
+        {"label": "Evening shift", "duty_type": BranchWeeklyScheduleEntry.DUTY_TYPE_SHIFT, "start": "15:00", "end": "23:00", "bg": "#8b5cf6", "text": "#f8fafc", "order": 15},
+    ]
+
+
+def _parse_seed_time(value):
+    if not value:
+        return None
+    return datetime.strptime(value, "%H:%M").time()
+
+
+def seed_branch_standard_duty_options(branch):
+    created = 0
+    updated = 0
+    for row in get_branch_standard_duty_option_seed_data():
+        option, was_created = BranchWeeklyDutyOption.objects.get_or_create(
+            branch=branch,
+            label=row["label"],
+            defaults={
+                "duty_type": row["duty_type"],
+                "default_start_time": _parse_seed_time(row["start"]),
+                "default_end_time": _parse_seed_time(row["end"]),
+                "background_color": row["bg"],
+                "text_color": row["text"],
+                "display_order": row["order"],
+                "is_active": True,
+            },
+        )
+        if was_created:
+            created += 1
+            continue
+
+        changed = False
+        # Safe live fix:
+        # keep custom colors that managers already changed manually.
+        # Seed should refresh structure/order/timing only for existing rows.
+        for field_name, value in {
+            "duty_type": row["duty_type"],
+            "default_start_time": _parse_seed_time(row["start"]),
+            "default_end_time": _parse_seed_time(row["end"]),
+            "display_order": row["order"],
+            "is_active": True,
+        }.items():
+            if getattr(option, field_name) != value:
+                setattr(option, field_name, value)
+                changed = True
+
+        if changed:
+            option.save()
+            sync_schedule_entries_for_duty_option(option)
+            updated += 1
+    return created, updated
+
+
+def sync_schedule_entries_for_duty_option(duty_option):
+    if not duty_option:
+        return
+    update_kwargs = {
+        "duty_type": duty_option.duty_type,
+        "shift_label": duty_option.label,
+        "updated_by": "Duty Shift Master",
+    }
+    if duty_option.duty_type == BranchWeeklyScheduleEntry.DUTY_TYPE_SHIFT:
+        update_kwargs["start_time"] = duty_option.default_start_time
+        update_kwargs["end_time"] = duty_option.default_end_time
+    else:
+        update_kwargs["start_time"] = None
+        update_kwargs["end_time"] = None
+    BranchWeeklyScheduleEntry.objects.filter(duty_option=duty_option).update(**update_kwargs)
+
+
+def build_manual_schedule_builder_rows(*, team_schedule_rows, week_days):
+    rows = []
+    for row in team_schedule_rows:
+        employee = row.get("employee")
+        if not employee:
+            continue
+        cells = []
+        for current_date, cell in zip(week_days, row.get("cells", [])):
+            entry = cell.get("entry")
+            cells.append(
+                {
+                    "date": current_date,
+                    "field_name": f"manual_duty_{employee.id}_{current_date.isoformat()}",
+                    "selected_duty_option_id": str(entry.duty_option_id) if entry and entry.duty_option_id else "",
+                    "entry": entry,
+                }
+            )
+        rows.append(
+            {
+                "employee": employee,
+                "pending_off_total": row.get("pending_off_total", 0),
+                "pending_off_field_name": f"manual_pending_off_{employee.id}",
+                "cells": cells,
+            }
+        )
+    return rows
+
+
 @login_required
 def self_service_weekly_schedule_page(request):
     employee = get_user_employee_profile(request.user)
@@ -3475,7 +3589,7 @@ def self_service_weekly_schedule_page(request):
         messages.error(request, "This employee is not linked to any branch yet.")
         return redirect("employees:self_service_profile")
 
-    week_value = (request.GET.get("week") or "").strip()
+    week_value = (request.GET.get("week") or request.POST.get("week") or "").strip()
     selected_week_start = get_schedule_week_start(timezone.localdate())
     if week_value:
         try:
@@ -3489,6 +3603,7 @@ def self_service_weekly_schedule_page(request):
 
     if request.method == "POST" and can_manage_schedule:
         action = (request.POST.get("schedule_action") or "").strip()
+        redirect_url = f"{reverse('employees:self_service_weekly_schedule')}?week={selected_week_start.isoformat()}"
 
         if action == "import_schedule":
             import_form = BranchWeeklyScheduleImportForm(request.POST, request.FILES)
@@ -3502,88 +3617,83 @@ def self_service_weekly_schedule_page(request):
                 )
                 if import_result["imported_count"]:
                     mode_label = "replaced" if import_result.get("replace_existing") else "merged into"
-                    messages.success(
-                        request,
-                        f"Imported {import_result['imported_count']} schedule row(s) and {mode_label} the selected branch week.",
-                    )
+                    messages.success(request, f"Imported {import_result['imported_count']} schedule row(s) and {mode_label} the selected branch week.")
                 elif import_result.get("replace_existing"):
-                    messages.warning(
-                        request,
-                        "The current week was cleared, but no non-empty duty cells were imported from the file.",
-                    )
+                    messages.warning(request, "The current week was cleared, but no non-empty duty cells were imported from the file.")
                 else:
-                    messages.warning(
-                        request,
-                        "No schedule rows were imported. If you want the uploaded file to fully replace the current sheet, keep 'Replace current week schedule before import' checked.",
-                    )
+                    messages.warning(request, "No schedule rows were imported. If you want the uploaded file to fully replace the current sheet, keep 'Replace current week schedule before import' checked.")
                 if import_result.get("skipped_empty_cells"):
-                    messages.info(
-                        request,
-                        f"Skipped {import_result['skipped_empty_cells']} empty schedule cell(s). Empty cells only clear old values when replacement mode is enabled.",
-                    )
+                    messages.info(request, f"Skipped {import_result['skipped_empty_cells']} empty schedule cell(s). Empty cells only clear old values when replacement mode is enabled.")
                 if import_result["errors"]:
                     messages.warning(request, "Some rows were skipped during import: " + " | ".join(import_result["errors"][:5]))
-                return redirect(f"{reverse('employees:self_service_weekly_schedule')}?week={selected_week_start.isoformat()}")
+                return redirect(redirect_url)
             messages.error(request, "Please upload a valid .xlsx or .csv file for schedule import.")
 
         if action == "export_schedule":
             workbook = build_branch_schedule_export_workbook(branch, selected_week_start, include_existing_entries=True)
-            response = HttpResponse(
-                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-            response["Content-Disposition"] = (
-                f'attachment; filename="{branch.name.lower().replace(" ", "-")}-schedule-{selected_week_start.isoformat()}.xlsx"'
-            )
+            response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            response["Content-Disposition"] = f'attachment; filename="{branch.name.lower().replace(" ", "-")}-schedule-{selected_week_start.isoformat()}.xlsx"'
             workbook.save(response)
             return response
 
         if action == "export_schedule_template":
             workbook = build_branch_schedule_export_workbook(branch, selected_week_start, include_existing_entries=False)
-            response = HttpResponse(
-                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-            response["Content-Disposition"] = (
-                f'attachment; filename="{branch.name.lower().replace(" ", "-")}-schedule-template-{selected_week_start.isoformat()}.xlsx"'
-            )
+            response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            response["Content-Disposition"] = f'attachment; filename="{branch.name.lower().replace(" ", "-")}-schedule-template-{selected_week_start.isoformat()}.xlsx"'
             workbook.save(response)
             return response
 
-        if action == "update_duty_option_style":
-            duty_option = get_object_or_404(
-                BranchWeeklyDutyOption,
-                pk=request.POST.get("duty_option_id"),
-                branch=branch,
-            )
-            duty_option_form = BranchWeeklyDutyOptionStyleForm(request.POST, instance=duty_option)
-            if duty_option_form.is_valid():
-                updated_option = duty_option_form.save()
-                messages.success(request, f"Updated colors for duty option '{updated_option.label}'.")
-                return redirect(f"{reverse('employees:self_service_weekly_schedule')}?week={selected_week_start.isoformat()}")
-            import_form = BranchWeeklyScheduleImportForm()
-            messages.error(request, f"Please review the color settings for '{duty_option.label}'.")
+        if action == "seed_standard_duty_options":
+            created_count, updated_count = seed_branch_standard_duty_options(branch)
+            messages.success(request, f"Loaded the standard duty list. Created {created_count} and refreshed {updated_count} existing duty option(s).")
+            return redirect(redirect_url)
 
-        if action == "update_duty_option_timing":
-            duty_option = get_object_or_404(
-                BranchWeeklyDutyOption,
-                pk=request.POST.get("duty_option_id"),
-                branch=branch,
+        if action == "create_duty_option":
+            duty_option_create_form = BranchWeeklyDutyOptionForm(request.POST)
+            if duty_option_create_form.is_valid():
+                new_option = duty_option_create_form.save(commit=False)
+                new_option.branch = branch
+                if not new_option.display_order:
+                    new_option.display_order = BranchWeeklyDutyOption.objects.filter(branch=branch).count() + 1
+                new_option.save()
+                messages.success(request, f"Created duty option '{new_option.label}'.")
+                return redirect(redirect_url)
+            messages.error(request, "Please review the new duty option details.")
+
+        if action == "update_duty_option_master":
+            duty_option = get_object_or_404(BranchWeeklyDutyOption, pk=request.POST.get("duty_option_id"), branch=branch)
+            master_form = BranchWeeklyDutyOptionForm(request.POST, instance=duty_option)
+            if master_form.is_valid():
+                updated_option = master_form.save()
+                sync_schedule_entries_for_duty_option(updated_option)
+                messages.success(request, f"Updated duty option '{updated_option.label}'.")
+                return redirect(redirect_url)
+            messages.error(request, f"Please review the duty option '{duty_option.label}'.")
+
+        if action == "delete_duty_option":
+            duty_option = get_object_or_404(BranchWeeklyDutyOption, pk=request.POST.get("duty_option_id"), branch=branch)
+            linked_entries = BranchWeeklyScheduleEntry.objects.filter(duty_option=duty_option)
+            linked_entries.update(
+                duty_option=None,
+                duty_type=duty_option.duty_type,
+                shift_label=duty_option.label,
+                start_time=duty_option.default_start_time if duty_option.duty_type == BranchWeeklyScheduleEntry.DUTY_TYPE_SHIFT else None,
+                end_time=duty_option.default_end_time if duty_option.duty_type == BranchWeeklyScheduleEntry.DUTY_TYPE_SHIFT else None,
+                updated_by=get_actor_label(request.user),
             )
-            duty_option_form = BranchWeeklyDutyOptionTimingForm(request.POST, instance=duty_option)
-            if duty_option_form.is_valid():
-                updated_option = duty_option_form.save()
-                BranchWeeklyScheduleEntry.objects.filter(
-                    branch=branch,
-                    duty_option=updated_option,
-                    week_start=selected_week_start,
-                ).update(
-                    start_time=updated_option.default_start_time,
-                    end_time=updated_option.default_end_time,
-                    updated_by=get_actor_label(request.user),
-                )
-                messages.success(request, f"Updated timing for duty option '{updated_option.label}'.")
-                return redirect(f"{reverse('employees:self_service_weekly_schedule')}?week={selected_week_start.isoformat()}")
-            import_form = BranchWeeklyScheduleImportForm()
-            messages.error(request, f"Please review the timing for '{duty_option.label}'.")
+            deleted_label = duty_option.label
+            duty_option.delete()
+            messages.success(request, f"Deleted duty option '{deleted_label}'. Existing schedule rows kept their copied label and timing.")
+            return redirect(redirect_url)
+
+        if action == "reset_duty_option_style":
+            duty_option = get_object_or_404(BranchWeeklyDutyOption, pk=request.POST.get("duty_option_id"), branch=branch)
+            duty_option.background_color = ""
+            duty_option.text_color = ""
+            duty_option.save(update_fields=["background_color", "text_color", "updated_at"])
+            sync_schedule_entries_for_duty_option(duty_option)
+            messages.success(request, f"Reset colors for duty option '{duty_option.label}'.")
+            return redirect(redirect_url)
 
         if action == "update_schedule_theme":
             schedule_theme, _created = BranchWeeklyScheduleTheme.objects.get_or_create(branch=branch)
@@ -3591,16 +3701,98 @@ def self_service_weekly_schedule_page(request):
             if schedule_theme_form.is_valid():
                 schedule_theme_form.save()
                 messages.success(request, "Updated schedule table colors.")
-                return redirect(f"{reverse('employees:self_service_weekly_schedule')}?week={selected_week_start.isoformat()}")
-            import_form = BranchWeeklyScheduleImportForm()
+                return redirect(redirect_url)
             messages.error(request, "Please review the schedule table colors.")
 
+        if action == "reset_schedule_theme":
+            schedule_theme, _created = BranchWeeklyScheduleTheme.objects.get_or_create(branch=branch)
+            schedule_theme.employee_column_bg = "#101828"
+            schedule_theme.employee_column_text = "#f8fafc"
+            schedule_theme.job_title_column_bg = "#111827"
+            schedule_theme.job_title_column_text = "#f8fafc"
+            schedule_theme.pending_off_column_bg = "#172033"
+            schedule_theme.pending_off_column_text = "#f8fafc"
+            schedule_theme.day_header_bg = "#1d293d"
+            schedule_theme.day_header_text = "#f8fafc"
+            schedule_theme.save()
+            messages.success(request, "Reset the schedule table theme.")
+            return redirect(redirect_url)
+
+        if action == "save_manual_schedule_builder":
+            week_days = build_schedule_week_days(selected_week_start)
+            active_options = {
+                str(option.id): option
+                for option in BranchWeeklyDutyOption.objects.filter(branch=branch, is_active=True)
+            }
+            branch_employees = list(Employee.objects.filter(branch=branch, is_active=True).order_by("full_name", "employee_id"))
+            existing_entries = {
+                (entry.employee_id, entry.schedule_date): entry
+                for entry in BranchWeeklyScheduleEntry.objects.filter(branch=branch, week_start=selected_week_start)
+            }
+            saved_count = 0
+            cleared_count = 0
+            pending_updates = 0
+            invalid_pending = []
+
+            for member in branch_employees:
+                pending_field = f"manual_pending_off_{member.id}"
+                pending_raw = (request.POST.get(pending_field) or "").strip()
+                if pending_raw == "":
+                    BranchWeeklyPendingOff.objects.filter(branch=branch, employee=member, week_start=selected_week_start).delete()
+                else:
+                    try:
+                        pending_value = int(pending_raw)
+                        if pending_value < 0:
+                            raise ValueError
+                        BranchWeeklyPendingOff.objects.update_or_create(
+                            branch=branch,
+                            employee=member,
+                            week_start=selected_week_start,
+                            defaults={
+                                "pending_off_count": pending_value,
+                                "created_by": get_actor_label(request.user),
+                                "updated_by": get_actor_label(request.user),
+                            },
+                        )
+                        pending_updates += 1
+                    except ValueError:
+                        invalid_pending.append(member.full_name)
+
+                for current_date in week_days:
+                    field_name = f"manual_duty_{member.id}_{current_date.isoformat()}"
+                    selected_option_id = (request.POST.get(field_name) or "").strip()
+                    existing_entry = existing_entries.get((member.id, current_date))
+                    if not selected_option_id:
+                        if existing_entry:
+                            existing_entry.delete()
+                            cleared_count += 1
+                        continue
+                    duty_option = active_options.get(selected_option_id)
+                    if duty_option is None:
+                        continue
+                    defaults = {
+                        "week_start": selected_week_start,
+                        "duty_option": duty_option,
+                        "title": existing_entry.title if existing_entry else "",
+                        "order_note": existing_entry.order_note if existing_entry else "",
+                        "status": existing_entry.status if existing_entry else BranchWeeklyScheduleEntry.STATUS_PLANNED,
+                        "created_by": existing_entry.created_by if existing_entry and existing_entry.created_by else get_actor_label(request.user),
+                        "updated_by": get_actor_label(request.user),
+                    }
+                    BranchWeeklyScheduleEntry.objects.update_or_create(
+                        branch=branch,
+                        employee=member,
+                        schedule_date=current_date,
+                        defaults=defaults,
+                    )
+                    saved_count += 1
+            if invalid_pending:
+                messages.warning(request, "Some pending off values were ignored because they were invalid numbers: " + ", ".join(invalid_pending[:5]))
+            messages.success(request, f"Saved manual schedule builder changes. Updated {saved_count} cell(s), cleared {cleared_count} cell(s), and refreshed {pending_updates} pending-off value(s).")
+            return redirect(redirect_url)
+
         if action == "update_employee_order":
-            active_employee_ids = [
-                employee_id
-                for employee_id in request.POST.getlist("ordered_employee_ids")
-                if employee_id and employee_id.isdigit()
-            ]
+            active_employee_ids = [employee_id for employee_id in request.POST.getlist("ordered_employee_ids") if employee_id and employee_id.isdigit()]
             seen_ids = set()
             ordered_ids = []
             for employee_id in active_employee_ids:
@@ -3608,36 +3800,22 @@ def self_service_weekly_schedule_page(request):
                     ordered_ids.append(int(employee_id))
                     seen_ids.add(employee_id)
 
-            branch_employees = {
-                member.id: member
-                for member in Employee.objects.filter(branch=branch, is_active=True)
-            }
+            branch_employees = {member.id: member for member in Employee.objects.filter(branch=branch, is_active=True)}
             fallback_ids = [member_id for member_id in branch_employees.keys() if member_id not in ordered_ids]
             final_order_ids = ordered_ids + sorted(
                 fallback_ids,
-                key=lambda member_id: (
-                    branch_employees[member_id].full_name.lower(),
-                    branch_employees[member_id].employee_id.lower(),
-                ),
+                key=lambda member_id: (branch_employees[member_id].full_name.lower(), branch_employees[member_id].employee_id.lower()),
             )
 
             for index, employee_id in enumerate(final_order_ids, start=1):
-                BranchScheduleGridRow.objects.update_or_create(
-                    branch=branch,
-                    row_index=index,
-                    defaults={"employee_id": employee_id},
-                )
+                BranchScheduleGridRow.objects.update_or_create(branch=branch, row_index=index, defaults={"employee_id": employee_id})
             messages.success(request, "Updated employee row order for the schedule table.")
-            return redirect(f"{reverse('employees:self_service_weekly_schedule')}?week={selected_week_start.isoformat()}")
+            return redirect(redirect_url)
 
     previous_week_start = selected_week_start - timedelta(days=7)
     next_week_start = selected_week_start + timedelta(days=7)
 
-    context = build_self_service_page_context(
-        request,
-        employee,
-        current_section="weekly_schedule",
-    )
+    context = build_self_service_page_context(request, employee, current_section="weekly_schedule")
     context.update(build_branch_weekly_schedule_summary(branch, selected_week_start))
     context["branch"] = branch
     context["selected_week_start"] = selected_week_start
@@ -3650,14 +3828,22 @@ def self_service_weekly_schedule_page(request):
     schedule_theme, _created = BranchWeeklyScheduleTheme.objects.get_or_create(branch=branch)
     context["schedule_theme"] = schedule_theme
     context["schedule_theme_form"] = BranchWeeklyScheduleThemeForm(instance=schedule_theme)
+    duty_options_qs = BranchWeeklyDutyOption.objects.filter(branch=branch).order_by("display_order", "label", "id")
+    context["duty_option_create_form"] = BranchWeeklyDutyOptionForm()
+    context["manual_duty_options"] = list(duty_options_qs.filter(is_active=True))
     context["duty_option_style_forms"] = [
         {
             "option": duty_option,
+            "master_form": BranchWeeklyDutyOptionForm(instance=duty_option),
             "style_form": BranchWeeklyDutyOptionStyleForm(instance=duty_option),
             "timing_form": BranchWeeklyDutyOptionTimingForm(instance=duty_option),
         }
-        for duty_option in BranchWeeklyDutyOption.objects.filter(branch=branch, is_active=True).order_by("display_order", "label", "id")
+        for duty_option in duty_options_qs
     ]
+    context["manual_schedule_rows"] = build_manual_schedule_builder_rows(
+        team_schedule_rows=context.get("team_schedule_rows", []),
+        week_days=context.get("week_days", []),
+    )
     context["employee_order_rows"] = [
         {"employee": row["employee"], "position": forloop_index}
         for forloop_index, row in enumerate(context.get("team_schedule_rows", []), start=1)

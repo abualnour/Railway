@@ -376,8 +376,7 @@ h6 {
 }
 
 
-html[data-theme="sunrise"],
-html[data-theme="macos-glass"] {
+html[data-theme="premium-light"] {
     color-scheme: light;
 
     --primary: #1f2937;
@@ -489,4 +488,329 @@ html[data-theme="macos-glass"] {
     --surface-table-row-hover: rgba(255, 255, 255, 0.46);
     --surface-card-shadow: var(--shadow-sm);
     --surface-card-shadow-strong: var(--shadow-md);
+}
+
+
+/* =============================================================
+   Premium dark full-app stabilization pass
+   Keeps premium dark as the main safe theme across cards, tables,
+   forms, grids, empty states, popups, and shells.
+   Also neutralizes any removed premium-light theme selection so it
+   falls back to premium dark tokens instead of a separate style.
+============================================================== */
+html[data-theme="premium-dark"] {
+    color-scheme: dark;
+}
+
+html[data-theme="premium-dark"] body,
+html[data-theme="premium-dark"] .app-shell,
+html[data-theme="premium-dark"] .main-content,
+html[data-theme="premium-dark"] .page-shell,
+html[data-theme="premium-dark"] .content-shell,
+html[data-theme="premium-dark"] body,
+html[data-theme="premium-dark"] .app-shell,
+html[data-theme="premium-dark"] .main-content,
+html[data-theme="premium-dark"] .page-shell,
+html[data-theme="premium-dark"] .content-shell {
+    background: linear-gradient(180deg, var(--color-bg-gradient-start) 0%, var(--color-bg-gradient-end) 100%) !important;
+    color: var(--color-text) !important;
+}
+
+html[data-theme="premium-dark"] .card,
+html[data-theme="premium-dark"] .summary-card,
+html[data-theme="premium-dark"] .metric-card,
+html[data-theme="premium-dark"] .timeline-card,
+html[data-theme="premium-dark"] .filter-card,
+html[data-theme="premium-dark"] .table-card,
+html[data-theme="premium-dark"] .detail-card,
+html[data-theme="premium-dark"] .employee-summary-card,
+html[data-theme="premium-dark"] .modern-soft-card,
+html[data-theme="premium-dark"] .modal-content,
+html[data-theme="premium-dark"] .offcanvas,
+html[data-theme="premium-dark"] .dropdown-menu,
+html[data-theme="premium-dark"] .page-header,
+html[data-theme="premium-dark"] .dashboard-page-header,
+html[data-theme="premium-dark"] .dashboard-core-hero,
+html[data-theme="premium-dark"] .home-hero-panel,
+html[data-theme="premium-dark"] .home-aside-card,
+html[data-theme="premium-dark"] .system-home-hero-main,
+html[data-theme="premium-dark"] .system-home-feature-card,
+html[data-theme="premium-dark"] .backup-summary-card,
+html[data-theme="premium-dark"] .backup-panel,
+html[data-theme="premium-dark"] .platform-panel,
+html[data-theme="premium-dark"] .platform-side-card,
+html[data-theme="premium-dark"] .platform-stat-card,
+html[data-theme="premium-dark"] .platform-feature-card,
+html[data-theme="premium-dark"] .card,
+html[data-theme="premium-dark"] .summary-card,
+html[data-theme="premium-dark"] .metric-card,
+html[data-theme="premium-dark"] .timeline-card,
+html[data-theme="premium-dark"] .filter-card,
+html[data-theme="premium-dark"] .table-card,
+html[data-theme="premium-dark"] .detail-card,
+html[data-theme="premium-dark"] .employee-summary-card,
+html[data-theme="premium-dark"] .modern-soft-card,
+html[data-theme="premium-dark"] .modal-content,
+html[data-theme="premium-dark"] .offcanvas,
+html[data-theme="premium-dark"] .dropdown-menu,
+html[data-theme="premium-dark"] .page-header,
+html[data-theme="premium-dark"] .dashboard-page-header,
+html[data-theme="premium-dark"] .dashboard-core-hero,
+html[data-theme="premium-dark"] .home-hero-panel,
+html[data-theme="premium-dark"] .home-aside-card,
+html[data-theme="premium-dark"] .system-home-hero-main,
+html[data-theme="premium-dark"] .system-home-feature-card,
+html[data-theme="premium-dark"] .backup-summary-card,
+html[data-theme="premium-dark"] .backup-panel,
+html[data-theme="premium-dark"] .platform-panel,
+html[data-theme="premium-dark"] .platform-side-card,
+html[data-theme="premium-dark"] .platform-stat-card,
+html[data-theme="premium-dark"] .platform-feature-card {
+    background: var(--surface-elevated) !important;
+    border: 1px solid var(--surface-soft-border) !important;
+    box-shadow: var(--surface-card-shadow) !important;
+    color: var(--color-text) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="premium-dark"] .card-header,
+html[data-theme="premium-dark"] .modal-header,
+html[data-theme="premium-dark"] .table thead th,
+html[data-theme="premium-dark"] .data-table thead th,
+html[data-theme="premium-dark"] table thead th,
+html[data-theme="premium-dark"] .card-header,
+html[data-theme="premium-dark"] .modal-header,
+html[data-theme="premium-dark"] .table thead th,
+html[data-theme="premium-dark"] .data-table thead th,
+html[data-theme="premium-dark"] table thead th {
+    background: var(--surface-table-head) !important;
+    border-color: var(--surface-soft-border) !important;
+    color: var(--color-text-strong) !important;
+}
+
+html[data-theme="premium-dark"] .table tbody tr,
+html[data-theme="premium-dark"] .data-table tbody tr,
+html[data-theme="premium-dark"] table tbody tr,
+html[data-theme="premium-dark"] .table tbody tr,
+html[data-theme="premium-dark"] .data-table tbody tr,
+html[data-theme="premium-dark"] table tbody tr {
+    background: transparent !important;
+    color: var(--color-text) !important;
+    border-color: var(--surface-soft-border) !important;
+}
+
+html[data-theme="premium-dark"] .table tbody tr:hover,
+html[data-theme="premium-dark"] .data-table tbody tr:hover,
+html[data-theme="premium-dark"] table tbody tr:hover,
+html[data-theme="premium-dark"] .table tbody tr:hover,
+html[data-theme="premium-dark"] .data-table tbody tr:hover,
+html[data-theme="premium-dark"] table tbody tr:hover {
+    background: var(--surface-table-row-hover) !important;
+}
+
+html[data-theme="premium-dark"] input,
+html[data-theme="premium-dark"] select,
+html[data-theme="premium-dark"] textarea,
+html[data-theme="premium-dark"] .form-control,
+html[data-theme="premium-dark"] .form-select,
+html[data-theme="premium-dark"] input,
+html[data-theme="premium-dark"] select,
+html[data-theme="premium-dark"] textarea,
+html[data-theme="premium-dark"] .form-control,
+html[data-theme="premium-dark"] .form-select {
+    background: var(--color-input-bg) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--surface-soft-border) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+}
+
+html[data-theme="premium-dark"] input::placeholder,
+html[data-theme="premium-dark"] textarea::placeholder,
+html[data-theme="premium-dark"] input::placeholder,
+html[data-theme="premium-dark"] textarea::placeholder {
+    color: var(--color-placeholder) !important;
+}
+
+html[data-theme="premium-dark"] input:focus,
+html[data-theme="premium-dark"] select:focus,
+html[data-theme="premium-dark"] textarea:focus,
+html[data-theme="premium-dark"] .form-control:focus,
+html[data-theme="premium-dark"] .form-select:focus,
+html[data-theme="premium-dark"] input:focus,
+html[data-theme="premium-dark"] select:focus,
+html[data-theme="premium-dark"] textarea:focus,
+html[data-theme="premium-dark"] .form-control:focus,
+html[data-theme="premium-dark"] .form-select:focus {
+    background: var(--color-input-bg-focus) !important;
+    border-color: var(--color-hover-border) !important;
+    box-shadow: 0 0 0 3px var(--color-focus-ring) !important;
+    color: var(--color-text) !important;
+}
+
+html[data-theme="premium-dark"] select option,
+html[data-theme="premium-dark"] select option {
+    background: #0b0b0b !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="premium-dark"] .btn-light,
+html[data-theme="premium-dark"] .btn-secondary,
+html[data-theme="premium-dark"] .btn-light,
+html[data-theme="premium-dark"] .btn-secondary {
+    background: var(--surface-interactive-neutral-bg) !important;
+    color: var(--color-text) !important;
+    border-color: var(--surface-interactive-neutral-border) !important;
+}
+
+html[data-theme="premium-dark"] .btn-light:hover,
+html[data-theme="premium-dark"] .btn-secondary:hover,
+html[data-theme="premium-dark"] .btn-light:hover,
+html[data-theme="premium-dark"] .btn-secondary:hover {
+    background: var(--surface-interactive-neutral-bg-hover) !important;
+    border-color: var(--surface-interactive-neutral-border-hover) !important;
+    color: var(--color-text-strong) !important;
+}
+
+html[data-theme="premium-dark"] .empty-state,
+html[data-theme="premium-dark"] .no-data,
+html[data-theme="premium-dark"] .empty-card,
+html[data-theme="premium-dark"] .empty-state,
+html[data-theme="premium-dark"] .no-data,
+html[data-theme="premium-dark"] .empty-card {
+    background: var(--surface-empty) !important;
+    border: 1px solid var(--surface-soft-border) !important;
+    color: var(--color-text-soft) !important;
+}
+
+html[data-theme="premium-dark"] .badge,
+html[data-theme="premium-dark"] .pill,
+html[data-theme="premium-dark"] .badge,
+html[data-theme="premium-dark"] .pill {
+    box-shadow: none !important;
+}
+
+
+/* -------------------------------------------------------------
+   Premium Light: full-app refinement pass
+   Keeps premium dark untouched and makes premium light a real
+   second theme with clean shells, cards, forms, tables, menus,
+   and buttons.
+-------------------------------------------------------------- */
+html[data-theme="premium-light"] body,
+html[data-theme="premium-light"] .app-shell,
+html[data-theme="premium-light"] .main-content,
+html[data-theme="premium-light"] .page-shell,
+html[data-theme="premium-light"] .content-shell {
+    background:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 24%),
+        linear-gradient(180deg, #f6f8fc 0%, #edf2f7 100%) !important;
+    color: #17212b !important;
+}
+html[data-theme="premium-light"] .card,
+html[data-theme="premium-light"] .summary-card,
+html[data-theme="premium-light"] .metric-card,
+html[data-theme="premium-light"] .timeline-card,
+html[data-theme="premium-light"] .filter-card,
+html[data-theme="premium-light"] .table-card,
+html[data-theme="premium-light"] .detail-card,
+html[data-theme="premium-light"] .employee-summary-card,
+html[data-theme="premium-light"] .modern-soft-card,
+html[data-theme="premium-light"] .modal-content,
+html[data-theme="premium-light"] .offcanvas,
+html[data-theme="premium-light"] .dropdown-menu,
+html[data-theme="premium-light"] .page-header,
+html[data-theme="premium-light"] .dashboard-page-header,
+html[data-theme="premium-light"] .dashboard-core-hero,
+html[data-theme="premium-light"] .home-hero-panel,
+html[data-theme="premium-light"] .home-aside-card,
+html[data-theme="premium-light"] .system-home-hero-main,
+html[data-theme="premium-light"] .system-home-feature-card,
+html[data-theme="premium-light"] .backup-summary-card,
+html[data-theme="premium-light"] .backup-panel,
+html[data-theme="premium-light"] .platform-panel,
+html[data-theme="premium-light"] .platform-side-card,
+html[data-theme="premium-light"] .platform-stat-card,
+html[data-theme="premium-light"] .platform-feature-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(246,249,252,0.99) 100%) !important;
+    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255,255,255,0.6) !important;
+    color: #17212b !important;
+}
+html[data-theme="premium-light"] .card-header,
+html[data-theme="premium-light"] .modal-header,
+html[data-theme="premium-light"] .table thead th,
+html[data-theme="premium-light"] .data-table thead th,
+html[data-theme="premium-light"] table thead th {
+    background: linear-gradient(180deg, rgba(250,252,255,0.98) 0%, rgba(242,246,251,0.99) 100%) !important;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
+    color: #334155 !important;
+}
+html[data-theme="premium-light"] .table tbody tr,
+html[data-theme="premium-light"] .data-table tbody tr,
+html[data-theme="premium-light"] table tbody tr {
+    background: rgba(255,255,255,0.88) !important;
+}
+html[data-theme="premium-light"] .table tbody tr:hover,
+html[data-theme="premium-light"] .data-table tbody tr:hover,
+html[data-theme="premium-light"] table tbody tr:hover {
+    background: rgba(248,250,252,0.98) !important;
+}
+html[data-theme="premium-light"] input,
+html[data-theme="premium-light"] select,
+html[data-theme="premium-light"] textarea,
+html[data-theme="premium-light"] .form-control,
+html[data-theme="premium-light"] .form-select {
+    background: #ffffff !important;
+    color: #17212b !important;
+    border: 1px solid rgba(15, 23, 42, 0.12) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.65) !important;
+}
+html[data-theme="premium-light"] input::placeholder,
+html[data-theme="premium-light"] textarea::placeholder {
+    color: #94a3b8 !important;
+}
+html[data-theme="premium-light"] input:focus,
+html[data-theme="premium-light"] select:focus,
+html[data-theme="premium-light"] textarea:focus,
+html[data-theme="premium-light"] .form-control:focus,
+html[data-theme="premium-light"] .form-select:focus {
+    border-color: rgba(37, 99, 235, 0.28) !important;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10) !important;
+}
+html[data-theme="premium-light"] select option {
+    background: #ffffff !important;
+    color: #17212b !important;
+}
+html[data-theme="premium-light"] .btn-light,
+html[data-theme="premium-light"] .btn-secondary {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+    color: #1e293b !important;
+    border: 1px solid rgba(15,23,42,0.10) !important;
+}
+html[data-theme="premium-light"] .btn-light:hover,
+html[data-theme="premium-light"] .btn-secondary:hover {
+    background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%) !important;
+    border-color: rgba(15,23,42,0.16) !important;
+}
+html[data-theme="premium-light"] .btn-primary {
+    background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+    box-shadow: 0 10px 24px rgba(37,99,235,0.16) !important;
+}
+html[data-theme="premium-light"] .btn-primary:hover {
+    filter: brightness(1.02);
+}
+html[data-theme="premium-light"] .empty-state,
+html[data-theme="premium-light"] .no-data,
+html[data-theme="premium-light"] .empty-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(247,250,252,0.99) 100%) !important;
+    border: 1px dashed rgba(15,23,42,0.12) !important;
+}
+html[data-theme="premium-light"] .badge,
+html[data-theme="premium-light"] .pill {
+    background: rgba(15,23,42,0.05) !important;
+    color: #334155 !important;
+    border: 1px solid rgba(15,23,42,0.10) !important;
 }

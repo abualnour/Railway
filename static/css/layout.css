@@ -533,51 +533,37 @@ html[data-theme="dark-accent"] .theme-switcher-btn[data-theme-choice="dark-accen
 }
 
 
-html[data-theme="macos-glass"] .topbar {
-    padding-top: 18px;
+
+
+/* -------------------------------------------------------------
+   Topbar dropdown: solid premium-light menu surface
+   Fix transparent-looking navigation dropdowns in light theme
+-------------------------------------------------------------- */
+html[data-theme="premium-light"] .topbar-group-menu,
+body[data-theme="premium-light"] .topbar-group-menu,
+[data-theme="premium-light"] .topbar-group-menu {
+    background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%) !important;
+    border: 1px solid rgba(15, 23, 42, 0.10) !important;
+    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.14) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
-html[data-theme="macos-glass"] .topbar-inner,
-html[data-theme="macos-glass"] .topbar-brand,
-html[data-theme="macos-glass"] .topbar-theme-switcher,
-html[data-theme="macos-glass"] .topbar-user-card,
-html[data-theme="macos-glass"] .topbar-group-menu {
-    backdrop-filter: blur(22px) saturate(180%);
-    -webkit-backdrop-filter: blur(22px) saturate(180%);
-    border-color: rgba(255, 255, 255, 0.58);
+html[data-theme="premium-light"] .topbar-sub-link,
+body[data-theme="premium-light"] .topbar-sub-link,
+[data-theme="premium-light"] .topbar-sub-link {
+    color: #1f2937 !important;
 }
 
-html[data-theme="macos-glass"] .topbar-inner {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.68) 0%, rgba(244, 247, 251, 0.60) 100%);
+html[data-theme="premium-light"] .topbar-sub-link:hover,
+body[data-theme="premium-light"] .topbar-sub-link:hover,
+[data-theme="premium-light"] .topbar-sub-link:hover {
+    background: rgba(15, 23, 42, 0.05) !important;
 }
 
-html[data-theme="macos-glass"] .topbar-brand,
-html[data-theme="macos-glass"] .topbar-user-card,
-html[data-theme="macos-glass"] .topbar-theme-switcher,
-html[data-theme="macos-glass"] .topbar-group-menu {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(247, 249, 252, 0.54) 100%);
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-}
-
-html[data-theme="macos-glass"] .topbar-link,
-html[data-theme="macos-glass"] .topbar-group-trigger,
-html[data-theme="macos-glass"] .topbar-sub-link,
-html[data-theme="macos-glass"] .topbar-theme-btn {
-    font-weight: 600;
-}
-
-html[data-theme="macos-glass"] .topbar-brand-logo {
-    box-shadow: 0 12px 24px rgba(10, 132, 255, 0.16);
-}
-
-html[data-theme="macos-glass"] .main-content {
-    padding-top: 24px;
-}
-
-html[data-theme="macos-glass"] .page-title {
-    letter-spacing: -0.04em;
-}
-
-html[data-theme="macos-glass"] .page-subtitle {
-    font-size: 14px;
+html[data-theme="premium-light"] .topbar-group.is-open .topbar-group-trigger,
+body[data-theme="premium-light"] .topbar-group.is-open .topbar-group-trigger,
+[data-theme="premium-light"] .topbar-group.is-open .topbar-group-trigger {
+    background: rgba(15, 23, 42, 0.05) !important;
+    border-color: rgba(15, 23, 42, 0.12) !important;
 }

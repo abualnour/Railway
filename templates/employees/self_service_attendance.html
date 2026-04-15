@@ -46,11 +46,25 @@
                 </div>
                 <div class="card-body">
                     <div class="detail-grid self-service-summary-grid" style="margin-bottom: 18px;">
-                        <div class="detail-item"><span class="detail-label">Shift</span><span class="detail-value">{{ attendance_event_today.get_shift_display|default:"Not selected" }}</span></div>
+                        <div class="detail-item"><span class="detail-label">Attendance Shift</span><span class="detail-value">{{ attendance_event_today.get_shift_display|default:"Not selected" }}</span></div>
+                        <div class="detail-item"><span class="detail-label">Today's Assigned Duty</span><span class="detail-value">{{ attendance_today_schedule_label|default:"No branch duty assigned" }}</span></div>
+                        <div class="detail-item"><span class="detail-label">Scheduled Timing</span><span class="detail-value">{{ attendance_today_schedule_time|default:"—" }}</span></div>
+                        <div class="detail-item"><span class="detail-label">Worked Hours</span><span class="detail-value">{{ attendance_event_today.worked_hours_display|default:"0.00" }}</span></div>
                         <div class="detail-item"><span class="detail-label">Check In</span><span class="detail-value">{% if attendance_event_today.check_in_at %}{{ attendance_event_today.check_in_at|date:"g:i A" }}{% else %}&mdash;{% endif %}</span></div>
                         <div class="detail-item"><span class="detail-label">Check Out</span><span class="detail-value">{% if attendance_event_today.check_out_at %}{{ attendance_event_today.check_out_at|date:"g:i A" }}{% else %}&mdash;{% endif %}</span></div>
-                        <div class="detail-item"><span class="detail-label">Worked Hours</span><span class="detail-value">{{ attendance_event_today.worked_hours_display|default:"0.00" }}</span></div>
                     </div>
+
+                    {% if attendance_today_schedule_entry %}
+                        <div class="status-sync-note" style="margin-bottom: 18px;">
+                            {% if attendance_blocked_for_today %}
+                                Today's branch duty is <strong>{{ attendance_today_schedule_label }}</strong>. This is treated as a non-working schedule label, so attendance check-in is blocked for today.
+                            {% elif attendance_shift_locked %}
+                                Today's branch duty is <strong>{{ attendance_today_schedule_label }}</strong>{% if attendance_today_schedule_time %} ({{ attendance_today_schedule_time }}){% endif %}. The attendance shift is now controlled from the weekly schedule duty setup.
+                            {% else %}
+                                No shift-timing duty was assigned from the weekly schedule today, so you can still choose the attendance shift manually.
+                            {% endif %}
+                        </div>
+                    {% endif %}
 
                     <form method="post" class="employee-sidebar-form self-service-attendance-form" id="self-service-attendance-form">
                         {% csrf_token %}
@@ -118,6 +132,9 @@
                             <div class="form-group">
                                 <label for="{{ attendance_self_service_form.shift.id_for_label }}">{{ attendance_self_service_form.shift.label }}</label>
                                 {{ attendance_self_service_form.shift }}
+                                {% if attendance_self_service_form.shift.help_text %}
+                                    <small class="form-help">{{ attendance_self_service_form.shift.help_text }}</small>
+                                {% endif %}
                                 {% for error in attendance_self_service_form.shift.errors %}
                                     <div class="form-error">{{ error }}</div>
                                 {% endfor %}
@@ -133,8 +150,8 @@
                         </div>
 
                         <div class="page-actions">
-                            <button class="btn btn-primary" type="submit" name="attendance_action" value="check_in" {% if attendance_event_today and attendance_event_today.check_in_at %}disabled{% endif %}>Check In</button>
-                            <button class="btn btn-secondary" type="submit" name="attendance_action" value="check_out" {% if not attendance_event_today or not attendance_event_today.check_in_at or attendance_event_today.check_out_at %}disabled{% endif %}>Check Out</button>
+                            <button class="btn btn-primary" type="submit" name="attendance_action" value="check_in" {% if attendance_blocked_for_today or attendance_event_today and attendance_event_today.check_in_at %}disabled{% endif %}>Check In</button>
+                            <button class="btn btn-secondary" type="submit" name="attendance_action" value="check_out" {% if attendance_blocked_for_today or not attendance_event_today or not attendance_event_today.check_in_at or attendance_event_today.check_out_at %}disabled{% endif %}>Check Out</button>
                         </div>
                     </form>
                 </div>

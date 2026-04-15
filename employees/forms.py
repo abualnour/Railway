@@ -1024,7 +1024,13 @@ class EmployeeSelfServiceAttendanceForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
+        shift_choices = kwargs.pop("shift_choices", None)
+        shift_locked = kwargs.pop("shift_locked", False)
         super().__init__(*args, **kwargs)
+        if shift_choices:
+            self.fields["shift"].choices = shift_choices
+        if shift_locked:
+            self.fields["shift"].help_text = "This attendance shift is controlled by today's assigned duty."
         for field_name, field in self.fields.items():
             widget = field.widget
             existing = widget.attrs.get("class", "")

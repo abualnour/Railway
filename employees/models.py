@@ -2102,31 +2102,23 @@ class BranchWeeklyDutyOption(models.Model):
 
     @property
     def resolved_background_color(self):
-        if self.background_color:
-            return self.background_color
+        """Return only the saved custom color.
 
-        lowered = (self.label or "").strip().lower()
-        if lowered in {"off", "day off", "extra off", "extra_off"}:
-            return "#facc15"
-        if lowered == "9 am to 5 pm":
-            return "#ef4444"
-        if lowered == "2 pm to 10 pm":
-            return "#2563eb"
-        if lowered == "3 pm to 11 pm":
-            return "#7c3aed"
-        return ""
+        Safe live fix:
+        - stop injecting hard-coded default colors based on label text
+        - let the UI fall back naturally when no custom color is saved
+        """
+        return (self.background_color or "").strip()
 
     @property
     def resolved_text_color(self):
-        if self.text_color:
-            return self.text_color
+        """Return only the saved custom text color.
 
-        lowered = (self.label or "").strip().lower()
-        if lowered in {"off", "day off", "extra off", "extra_off"}:
-            return "#111827"
-        if lowered in {"9 am to 5 pm", "2 pm to 10 pm", "3 pm to 11 pm"}:
-            return "#f8fafc"
-        return ""
+        Safe live fix:
+        - stop injecting hard-coded default text colors based on label text
+        - let the UI fall back naturally when no custom color is saved
+        """
+        return (self.text_color or "").strip()
 
     @property
     def inline_color_style(self):

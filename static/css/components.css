@@ -526,21 +526,17 @@ textarea::placeholder {
    Fixes repeated native Edge/WebKit calendar painting
 -------------------------------------------------------------- */
 
-input[type="date"],
-.form-control[type="date"],
 .profile-modal-form input[type="date"],
 .employee-profile-page .profile-modal-form input[type="date"] {
     -webkit-appearance: none;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232f6f57' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cfd4dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
     background-position: right 14px center !important;
     background-size: 18px 18px !important;
     padding-right: 44px !important;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator,
-.form-control[type="date"]::-webkit-calendar-picker-indicator,
 .profile-modal-form input[type="date"]::-webkit-calendar-picker-indicator,
 .employee-profile-page .profile-modal-form input[type="date"]::-webkit-calendar-picker-indicator {
     -webkit-appearance: none !important;
@@ -552,18 +548,18 @@ input[type="date"]::-webkit-calendar-picker-indicator,
     box-shadow: none !important;
 }
 
-input[type="date"]::-webkit-datetime-edit,
-input[type="date"]::-webkit-datetime-edit-fields-wrapper,
-input[type="date"]::-webkit-datetime-edit-text,
-input[type="date"]::-webkit-datetime-edit-month-field,
-input[type="date"]::-webkit-datetime-edit-day-field,
-input[type="date"]::-webkit-datetime-edit-year-field,
 .profile-modal-form input[type="date"]::-webkit-datetime-edit,
 .profile-modal-form input[type="date"]::-webkit-datetime-edit-fields-wrapper,
 .profile-modal-form input[type="date"]::-webkit-datetime-edit-text,
 .profile-modal-form input[type="date"]::-webkit-datetime-edit-month-field,
 .profile-modal-form input[type="date"]::-webkit-datetime-edit-day-field,
-.profile-modal-form input[type="date"]::-webkit-datetime-edit-year-field {
+.profile-modal-form input[type="date"]::-webkit-datetime-edit-year-field,
+.employee-profile-page .profile-modal-form input[type="date"]::-webkit-datetime-edit,
+.employee-profile-page .profile-modal-form input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+.employee-profile-page .profile-modal-form input[type="date"]::-webkit-datetime-edit-text,
+.employee-profile-page .profile-modal-form input[type="date"]::-webkit-datetime-edit-month-field,
+.employee-profile-page .profile-modal-form input[type="date"]::-webkit-datetime-edit-day-field,
+.employee-profile-page .profile-modal-form input[type="date"]::-webkit-datetime-edit-year-field {
     color: inherit !important;
 }
 
@@ -574,76 +570,42 @@ input[type="date"]::-webkit-datetime-edit-year-field,
 }
 
 
-html[data-theme="macos-glass"] .card,
-html[data-theme="macos-glass"] .summary-card,
-html[data-theme="macos-glass"] .metric-card,
-html[data-theme="macos-glass"] .timeline-card,
-html[data-theme="macos-glass"] .filter-card,
-html[data-theme="macos-glass"] .table-card,
-html[data-theme="macos-glass"] .employee-summary-card,
-html[data-theme="macos-glass"] .detail-card,
-html[data-theme="macos-glass"] .modern-soft-card {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.74) 0%, rgba(245, 248, 252, 0.66) 100%);
-    border-color: rgba(255, 255, 255, 0.60);
-    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
-    backdrop-filter: blur(18px) saturate(170%);
-    -webkit-backdrop-filter: blur(18px) saturate(170%);
+
+
+/* Premium dark date input icon alignment */
+html[data-theme="premium-dark"] .profile-modal-form input[type="date"],
+html[data-theme="premium-dark"] .employee-profile-page .profile-modal-form input[type="date"],
+html[data-theme="premium-dark"] .profile-modal-form input[type="date"],
+html[data-theme="premium-dark"] .employee-profile-page .profile-modal-form input[type="date"],
+html[data-theme="premium-dark"] .profile-modal-form input[type="date"],
+html[data-theme="premium-dark"] .employee-profile-page .profile-modal-form input[type="date"],
+html[data-theme="premium-dark"] .profile-modal-form input[type="date"],
+html[data-theme="premium-dark"] .employee-profile-page .profile-modal-form input[type="date"] {
+    color-scheme: dark;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cfd4dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") !important;
 }
 
-html[data-theme="macos-glass"] .card-header {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.46) 0%, rgba(247, 249, 252, 0.38) 100%);
-    border-bottom-color: rgba(15, 23, 42, 0.08);
+html[data-theme="premium-light"] .profile-modal-form input[type="date"],
+html[data-theme="premium-light"] .employee-profile-page .profile-modal-form input[type="date"],
+html[data-theme="premium-light"] .profile-modal-form input[type="date"],
+html[data-theme="premium-light"] .employee-profile-page .profile-modal-form input[type="date"] {
+    color-scheme: light;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b6472' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") !important;
 }
 
-html[data-theme="macos-glass"] .btn {
-    min-height: 40px;
-    border-radius: 14px;
-    font-weight: 700;
+
+/* Final native date-input reset for normal system pages */
+input[type="date"]:not(.profile-modal-form input[type="date"]),
+.form-control[type="date"]:not(.profile-modal-form input[type="date"]) {
+    -webkit-appearance: auto !important;
+    appearance: auto !important;
+    background-image: none !important;
+    padding-right: 14px !important;
 }
 
-html[data-theme="macos-glass"] .btn-primary {
-    box-shadow: 0 10px 24px rgba(10, 132, 255, 0.20);
-}
-
-html[data-theme="macos-glass"] .btn-secondary,
-html[data-theme="macos-glass"] .btn-light {
-    background: rgba(255, 255, 255, 0.68);
-    backdrop-filter: blur(14px) saturate(160%);
-    -webkit-backdrop-filter: blur(14px) saturate(160%);
-}
-
-html[data-theme="macos-glass"] input,
-html[data-theme="macos-glass"] select,
-html[data-theme="macos-glass"] textarea,
-html[data-theme="macos-glass"] .form-control {
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(255, 255, 255, 0.62);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(14px) saturate(160%);
-    -webkit-backdrop-filter: blur(14px) saturate(160%);
-}
-
-html[data-theme="macos-glass"] input:focus,
-html[data-theme="macos-glass"] select:focus,
-html[data-theme="macos-glass"] textarea:focus,
-html[data-theme="macos-glass"] .form-control:focus {
-    border-color: rgba(10, 132, 255, 0.30);
-    box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.12);
-}
-
-html[data-theme="macos-glass"] .badge {
-    backdrop-filter: blur(14px) saturate(160%);
-    -webkit-backdrop-filter: blur(14px) saturate(160%);
-}
-
-html[data-theme="macos-glass"] .table thead th,
-html[data-theme="macos-glass"] .data-table thead th,
-html[data-theme="macos-glass"] table thead th {
-    background: rgba(255, 255, 255, 0.54);
-}
-
-html[data-theme="macos-glass"] .table tbody tr:hover,
-html[data-theme="macos-glass"] .data-table tbody tr:hover,
-html[data-theme="macos-glass"] table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.38);
+input[type="date"]:not(.profile-modal-form input[type="date"])::-webkit-calendar-picker-indicator,
+.form-control[type="date"]:not(.profile-modal-form input[type="date"])::-webkit-calendar-picker-indicator {
+    opacity: 1 !important;
+    color: inherit !important;
+    background: transparent !important;
 }
