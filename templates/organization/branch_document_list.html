@@ -5,7 +5,7 @@
 {% block organization_shell_header %}{% endblock %}
 
 {% block organization_content %}
-<div class="organization-shell branch-documents-page-shell">
+<div class="organization-shell org-page-shell branch-documents-page-shell">
     <div class="branch-documents-header-centered branch-documents-hero-clean">
         {% if is_branch_scoped_supervisor and scoped_branch %}
             <h1 class="page-title">My Branch Documents</h1>
@@ -51,7 +51,7 @@
         </div>
     </div>
 
-    <div class="card branch-documents-centered-card branch-documents-picker-card">
+    <div class="card branch-documents-centered-card branch-documents-picker-card branch-documents-section-card">
         <div class="card-header">
             <h2>{% if is_branch_scoped_supervisor %}My Branch{% else %}Quick Branch Picker{% endif %}</h2>
             <p class="page-subtitle">
@@ -156,7 +156,7 @@
     </div>
 
     {% if branch_workspace_is_selected %}
-        <div class="card branch-documents-centered-card branch-documents-workspace-order-card">
+        <div class="card branch-documents-centered-card branch-documents-workspace-order-card branch-documents-section-card">
             <div class="card-header">
                 <h2>Branch Workspace Order</h2>
                 <p class="page-subtitle">Manage the selected branch in one clean flow from top to bottom.</p>
@@ -194,7 +194,7 @@
             </div>
         </div>
 
-        <div class="card branch-documents-top-card branch-documents-centered-card">
+        <div class="card branch-documents-top-card branch-documents-centered-card branch-documents-section-card">
             <div class="card-header branch-documents-top-card-header-clean">
                 <h2>{% if is_branch_scoped_supervisor %}Submit Branch Document{% else %}Upload Branch Document{% endif %}</h2>
                 <p class="page-subtitle">
@@ -281,7 +281,7 @@
         </div>
 
         {% if can_manage_organization %}
-            <div class="card branch-documents-centered-card">
+            <div class="card branch-documents-centered-card branch-documents-section-card">
                 <div class="card-header">
                     <h2>Branch Requirement Checklist</h2>
                     <p class="page-subtitle">
@@ -339,7 +339,7 @@
             </div>
         {% endif %}
 
-        <div class="card branch-documents-centered-card">
+        <div class="card branch-documents-centered-card branch-documents-section-card">
             <div class="card-header">
                 <h2>Required Checklist Status</h2>
                 <p class="page-subtitle">
@@ -352,8 +352,8 @@
             </div>
             <div class="card-body">
                 {% if requirement_rows %}
-                    <div class="table-responsive">
-                        <table class="table">
+                    <div class="table-responsive branch-documents-status-table-wrap">
+                        <table class="table branch-documents-status-table">
                             <thead>
                                 <tr>
                                     <th>Required Item</th>
@@ -435,7 +435,7 @@
                 {% endif %}
             </div>
         </div>
-        <div class="card table-card branch-documents-centered-card">
+        <div class="card table-card branch-documents-centered-card branch-documents-section-card">
             <div class="card-header">
                 <h2>Documents Registry</h2>
                 <p class="page-subtitle">
@@ -482,8 +482,8 @@
                 </form>
 
                 {% if document_rows %}
-                    <div class="table-responsive">
-                        <table class="table">
+                    <div class="table-responsive branch-documents-registry-table-wrap">
+                        <table class="table branch-documents-registry-table">
                             <thead>
                                 <tr>
                                     <th>Branch</th>
@@ -534,7 +534,7 @@
                                         </td>
                                         <td>{{ row.uploaded_by|default:"—" }}</td>
                                         <td>
-                                            <div class="page-actions document-actions-row">
+                                            <div class="page-actions document-actions-row branch-documents-registry-actions">
                                                 {% if row.has_file %}
                                                     <a href="{{ row.view_url }}" target="_blank" rel="noopener" class="btn btn-light btn-sm">View</a>
                                                     <a href="{{ row.download_url }}" class="btn btn-secondary btn-sm">Download</a>
@@ -579,7 +579,7 @@
             </div>
         </div>
     {% else %}
-        <div class="card branch-documents-centered-card">
+        <div class="card branch-documents-centered-card branch-documents-section-card">
             <div class="card-body">
                 <div class="empty-state compact-empty-state">
                     <h3>Select a branch first</h3>

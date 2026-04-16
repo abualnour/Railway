@@ -9,33 +9,76 @@
 
 {% block page_header %}
 <div class="page-header dashboard-page-header dashboard-page-header-minimal">
-    <div>
+    <div class="dashboard-page-header-main">
         {% if is_employee_self_service_dashboard %}
-            <h1 class="page-title">My Workspace</h1>
-            <p class="page-subtitle">Daily self-service access for your branch, requests, attendance, and personal work pages.</p>
+            <h1 class="page-title">My Work Hub</h1>
+            <p class="page-subtitle">A cleaner self-service dashboard for daily requests, attendance, branch access, and personal work details.</p>
         {% elif is_executive_dashboard %}
             <h1 class="page-title">Executive Control Center</h1>
-            <p class="page-subtitle">Top-level command page for HR, payroll, operations, compliance, and organizational system pressure.</p>
+            <p class="page-subtitle">A sharper command view across HR, payroll, operations, compliance, and whole-system workforce pressure.</p>
         {% elif is_branch_scoped_supervisor and scoped_branch %}
-            <h1 class="page-title">{{ scoped_branch.name }} Dashboard</h1>
-            <p class="page-subtitle">Branch-focused overview with staffing movement, activity, and quick control sections.</p>
+            <h1 class="page-title">{{ scoped_branch.name }} Control Dashboard</h1>
+            <p class="page-subtitle">Branch-focused visibility for staffing activity, attendance pressure, and quick operational follow-up.</p>
         {% else %}
-            <h1 class="page-title">System Dashboard</h1>
-            <p class="page-subtitle">A cleaner workforce command center with stronger sections, faster reading, and better visual hierarchy.</p>
+            <h1 class="page-title">Workforce Command Dashboard</h1>
+            <p class="page-subtitle">A refined command surface with stronger sections, faster reading, and cleaner workforce oversight.</p>
+        {% endif %}
+    </div>
+    <div class="dashboard-page-header-tools">
+        <div class="dashboard-header-meta">
+            {% if is_employee_self_service_dashboard %}
+                <span class="dashboard-header-chip">Mode: Self Service</span>
+                <span class="dashboard-header-chip">Branch: {{ employee.branch|default:"Not Assigned" }}</span>
+            {% elif is_executive_dashboard %}
+                <span class="dashboard-header-chip">Mode: Executive</span>
+                <span class="dashboard-header-chip">Network: {{ metrics.total_branches }} Branches</span>
+            {% elif is_branch_scoped_supervisor and scoped_branch %}
+                <span class="dashboard-header-chip">Mode: Operations</span>
+                <span class="dashboard-header-chip">Scope: {{ scoped_branch.name }}</span>
+            {% else %}
+                <span class="dashboard-header-chip">Mode: Operations</span>
+                <span class="dashboard-header-chip">Scope: All Branches</span>
+            {% endif %}
+        </div>
+        {% if is_employee_self_service_dashboard and self_service_quick_links %}
+            <div class="dashboard-header-actions">
+                {% for item in self_service_quick_links %}
+                    {% if forloop.counter <= 2 %}
+                        <a href="{{ item.url }}" class="btn btn-light btn-sm dashboard-header-btn">{{ item.label }}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% elif is_executive_dashboard and executive_quick_links %}
+            <div class="dashboard-header-actions">
+                {% for item in executive_quick_links %}
+                    {% if forloop.counter <= 2 %}
+                        <a href="{{ item.url }}" class="btn btn-light btn-sm dashboard-header-btn">{{ item.label }}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% elif operations_quick_links %}
+            <div class="dashboard-header-actions">
+                {% for item in operations_quick_links %}
+                    {% if forloop.counter <= 2 %}
+                        <a href="{{ item.url }}" class="btn btn-light btn-sm dashboard-header-btn">{{ item.label }}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
         {% endif %}
     </div>
 </div>
 {% endblock %}
 
 {% block content %}
+<div class="dashboard-shell {% if is_employee_self_service_dashboard %}dashboard-shell-self{% elif is_executive_dashboard %}dashboard-shell-executive{% else %}dashboard-shell-operations{% endif %}">
 {% if is_employee_self_service_dashboard %}
-    <section class="home-hero-panel">
+    <section class="home-hero-panel home-hero-panel-self">
         <div class="home-hero-copy">
-            <span class="dashboard-kicker">Employee Self-Service</span>
+            <span class="dashboard-kicker">Personal Workspace</span>
             <h2>{{ employee.full_name }}</h2>
             <p>
-                Keep your daily work in one place with direct access to requests, attendance, branch pages,
-                and the latest status from your workflow.
+                Start the day from one polished workspace with direct access to requests, attendance, branch pages,
+                and the latest movement in your workflow.
             </p>
             <div class="home-hero-actions">
                 {% for item in self_service_quick_links %}
@@ -47,28 +90,28 @@
         <div class="home-hero-aside">
             <div class="home-aside-card">
                 <span class="home-aside-label">Current Branch</span>
-                <strong>{{ employee.branch|default:"—" }}</strong>
-                <small>{{ employee.department|default:"No department" }}</small>
+                <strong>{{ employee.branch|default:"-" }}</strong>
+                <small>{{ employee.department|default:"Department not assigned" }}</small>
             </div>
             <div class="home-aside-card">
-                <span class="home-aside-label">Today Status</span>
+                <span class="home-aside-label">Today Attendance</span>
                 <strong>
                     {% if attendance_event_today and attendance_event_today.check_out_at %}
                         Completed
                     {% elif attendance_event_today and attendance_event_today.check_in_at %}
-                        In Duty
+                        Active Shift
                     {% else %}
-                        Open
+                        Not Started
                     {% endif %}
                 </strong>
-                <small>Attendance session</small>
+                <small>Live attendance state</small>
             </div>
         </div>
     </section>
 
-    <section class="home-stat-ribbon">
+    <section class="home-stat-ribbon home-stat-ribbon-self">
         <article class="home-stat-pill">
-            <span>Pending</span>
+            <span>Open Requests</span>
             <strong>{{ pending_request_count }}</strong>
         </article>
         <article class="home-stat-pill home-stat-pill-success">
@@ -76,37 +119,38 @@
             <strong>{{ approved_request_count }}</strong>
         </article>
         <article class="home-stat-pill home-stat-pill-danger">
-            <span>Rejected / Cancelled</span>
+            <span>Closed Items</span>
             <strong>{{ rejected_request_count|add:cancelled_request_count }}</strong>
         </article>
         <article class="home-stat-pill">
-            <span>Section</span>
-            <strong>{{ employee.section|default:"—" }}</strong>
+            <span>Current Section</span>
+            <strong>{{ employee.section|default:"-" }}</strong>
         </article>
     </section>
 
-    <section class="home-content-grid">
+    <section class="home-content-grid home-content-grid-self">
         <article class="home-panel home-panel-identity">
             <div class="home-panel-head">
                 <span class="dashboard-kicker">Profile Snapshot</span>
-                <h3>Work Details</h3>
+                <h3>Work Placement Overview</h3>
+                <p>Your current company, department, branch, and section at a glance.</p>
             </div>
             <div class="home-detail-cloud">
                 <div class="home-detail-chip">
                     <label>Company</label>
-                    <strong>{{ employee.company|default:"—" }}</strong>
+                    <strong>{{ employee.company|default:"-" }}</strong>
                 </div>
                 <div class="home-detail-chip">
                     <label>Department</label>
-                    <strong>{{ employee.department|default:"—" }}</strong>
+                    <strong>{{ employee.department|default:"-" }}</strong>
                 </div>
                 <div class="home-detail-chip">
                     <label>Branch</label>
-                    <strong>{{ employee.branch|default:"—" }}</strong>
+                    <strong>{{ employee.branch|default:"-" }}</strong>
                 </div>
                 <div class="home-detail-chip">
                     <label>Section</label>
-                    <strong>{{ employee.section|default:"—" }}</strong>
+                    <strong>{{ employee.section|default:"-" }}</strong>
                 </div>
             </div>
         </article>
@@ -114,7 +158,8 @@
         <article class="home-panel">
             <div class="home-panel-head">
                 <span class="dashboard-kicker">Request Flow</span>
-                <h3>Latest Workflow States</h3>
+                <h3>Latest Request Updates</h3>
+                <p>Track the newest workflow outcomes from your recent request activity.</p>
             </div>
             {% if request_state_records %}
                 <div class="home-flow-list">
@@ -132,8 +177,8 @@
                 </div>
             {% else %}
                 <div class="empty-state">
-                    <h3>No request states available</h3>
-                    <p>Your submitted request states will appear here once you create a request.</p>
+                    <h3>No request updates yet</h3>
+                    <p>Your request decisions and workflow states will appear here after submission.</p>
                 </div>
             {% endif %}
         </article>
@@ -141,19 +186,19 @@
 {% elif supervisor_scope_missing %}
     <section class="home-hero-panel home-hero-panel-single">
         <div class="home-hero-copy">
-            <span class="dashboard-kicker">Supervisor Setup Needed</span>
-            <h2>Link this supervisor account to a branch employee profile</h2>
-            <p>This supervisor login is active, but it is not yet linked to an employee profile with an assigned branch.</p>
+            <span class="dashboard-kicker">Setup Needed</span>
+            <h2>Link this supervisor login to a branch employee profile</h2>
+            <p>This supervisor account is active, but it still needs a linked employee profile with an assigned branch before the dashboard can load the correct scope.</p>
         </div>
     </section>
 {% elif is_executive_dashboard %}
     <section class="home-hero-panel home-hero-panel-executive">
         <div class="home-hero-copy">
-            <span class="dashboard-kicker">Executive Control Center</span>
-            <h2>Leadership visibility across people, payroll, operations, and compliance</h2>
+            <span class="dashboard-kicker">Executive Command View</span>
+            <h2>Leadership visibility across workforce, payroll, operations, and compliance</h2>
             <p>
-                Review the whole system from one command page with fast access to workforce pressure, payroll risk,
-                request queues, branch compliance, and strategic action links.
+                Review the full system from one high-level command page with faster access to payroll risk, request queues,
+                branch compliance, and strategic workforce movement.
             </p>
             <div class="home-hero-actions">
                 {% for item in executive_quick_links %}
@@ -164,14 +209,14 @@
 
         <div class="home-hero-aside">
             <div class="home-aside-card">
-                <span class="home-aside-label">Branches In Monitor</span>
+                <span class="home-aside-label">Branches In Scope</span>
                 <strong>{{ metrics.total_branches }}</strong>
                 <small>Active branches in the system</small>
             </div>
             <div class="home-aside-card">
-                <span class="home-aside-label">Organization Scope</span>
+                <span class="home-aside-label">Company Scope</span>
                 <strong>{{ metrics.total_companies }}</strong>
-                <small>Companies under this control view</small>
+                <small>Companies visible from this view</small>
             </div>
         </div>
     </section>
@@ -189,7 +234,8 @@
         <article class="home-panel home-panel-wide">
             <div class="home-panel-head">
                 <span class="dashboard-kicker">System Pressure</span>
-                <h3>Pending Leave And Submission Queues</h3>
+                <h3>Pending Leave and Submission Queues</h3>
+                <p>See the most urgent people workflow items waiting on review or action.</p>
             </div>
             {% if pending_leave_queue or pending_submission_queue %}
                 <div class="home-stat-list home-stat-list-columns">
@@ -208,16 +254,17 @@
                 </div>
             {% else %}
                 <div class="empty-state">
-                    <h3>No active leave or submission queues</h3>
-                    <p>The current executive queue is clear right now.</p>
+                    <h3>No active queues right now</h3>
+                    <p>The current executive workflow queue is clear.</p>
                 </div>
             {% endif %}
         </article>
 
         <article class="home-panel">
             <div class="home-panel-head">
-                <span class="dashboard-kicker">Payroll</span>
+                <span class="dashboard-kicker">Payroll Watch</span>
                 <h3>Live Payroll Cycles</h3>
+                <p>Monitor visible payroll periods and their current state.</p>
             </div>
             {% if executive_payroll_periods %}
                 <div class="home-stat-list">
@@ -230,16 +277,17 @@
                 </div>
             {% else %}
                 <div class="empty-state">
-                    <h3>No payroll periods</h3>
-                    <p>Payroll cycles will appear here once they begin to move through the system.</p>
+                    <h3>No payroll periods yet</h3>
+                    <p>Payroll cycles will appear here once they enter the workflow.</p>
                 </div>
             {% endif %}
         </article>
 
         <article class="home-panel">
             <div class="home-panel-head">
-                <span class="dashboard-kicker">Payroll</span>
-                <h3>Active Obligations</h3>
+                <span class="dashboard-kicker">Obligations</span>
+                <h3>Active Payroll Obligations</h3>
+                <p>Current employee obligations still affecting payroll processing.</p>
             </div>
             {% if executive_active_obligations %}
                 <div class="home-stat-list">
@@ -253,15 +301,16 @@
             {% else %}
                 <div class="empty-state">
                     <h3>No active obligations</h3>
-                    <p>Loans and advances still running will appear here.</p>
+                    <p>Loans and advances still in progress will appear here.</p>
                 </div>
             {% endif %}
         </article>
 
         <article class="home-panel home-panel-wide">
             <div class="home-panel-head">
-                <span class="dashboard-kicker">Compliance</span>
-                <h3>Branch Compliance Watch</h3>
+                <span class="dashboard-kicker">Compliance Watch</span>
+                <h3>Branch Compliance Signals</h3>
+                <p>Track critical and upcoming branch compliance pressure across the visible network.</p>
             </div>
             {% if branch_compliance_dashboard and branch_compliance_dashboard.critical_rows %}
                 <div class="home-stat-list home-stat-list-columns">
@@ -290,15 +339,16 @@
             {% else %}
                 <div class="empty-state">
                     <h3>No compliance overview</h3>
-                    <p>Compliance signals will appear here once organization setup access is available.</p>
+                    <p>Compliance signals will appear here once setup access is available.</p>
                 </div>
             {% endif %}
         </article>
 
         <article class="home-panel">
             <div class="home-panel-head">
-                <span class="dashboard-kicker">Communication</span>
-                <h3>Announcements</h3>
+                <span class="dashboard-kicker">Announcements</span>
+                <h3>Internal Updates</h3>
+                <p>Recent communication items visible from the executive layer.</p>
             </div>
             {% if executive_announcements %}
                 <div class="home-stat-list">
@@ -312,15 +362,16 @@
             {% else %}
                 <div class="empty-state">
                     <h3>No announcements</h3>
-                    <p>Internal announcements will appear here.</p>
+                    <p>Internal announcements will appear here when published.</p>
                 </div>
             {% endif %}
         </article>
 
         <article class="home-panel">
             <div class="home-panel-head">
-                <span class="dashboard-kicker">Policies</span>
-                <h3>Policy Watch</h3>
+                <span class="dashboard-kicker">Policy Watch</span>
+                <h3>Effective Policy Items</h3>
+                <p>Keep an eye on visible policy updates and effective dates.</p>
             </div>
             {% if executive_policies %}
                 <div class="home-stat-list">
@@ -341,8 +392,9 @@
 
         <article class="home-panel home-panel-wide">
             <div class="home-panel-head">
-                <span class="dashboard-kicker">Organization</span>
+                <span class="dashboard-kicker">Organization Shape</span>
                 <h3>Workforce Distribution</h3>
+                <p>Read company and branch volume from one combined overview.</p>
             </div>
             <div class="home-stat-list home-stat-list-columns">
                 {% for item in employees_by_company %}
@@ -362,8 +414,9 @@
 
         <article class="home-panel home-panel-wide">
             <div class="home-panel-head">
-                <span class="dashboard-kicker">Recent Actions</span>
+                <span class="dashboard-kicker">Recent Workforce Actions</span>
                 <h3>Latest Workforce Movement</h3>
+                <p>See the newest visible movement records linked to employee timelines.</p>
             </div>
             {% if executive_recent_actions %}
                 <div class="home-hire-list">
@@ -386,12 +439,12 @@
         </article>
     </section>
 {% else %}
-    <section class="home-hero-panel">
+    <section class="home-hero-panel home-hero-panel-operations">
         <div class="home-hero-copy">
-            <span class="dashboard-kicker">{% if is_branch_scoped_supervisor and scoped_branch %}Operations Control Center{% else %}Operations Overview{% endif %}</span>
-            <h2>{% if is_branch_scoped_supervisor and scoped_branch %}{{ scoped_branch.name }} Operations Control Center{% else %}Operations Control Center{% endif %}</h2>
+            <span class="dashboard-kicker">{% if is_branch_scoped_supervisor and scoped_branch %}Operations Command View{% else %}Operations Command View{% endif %}</span>
+            <h2>{% if is_branch_scoped_supervisor and scoped_branch %}{{ scoped_branch.name }} Operations Control Room{% else %}Operations Control Center{% endif %}</h2>
             <p>
-                Track attendance pressure, branch execution, request queues, and workforce movement from one operations command page designed for daily action.
+                Track attendance pressure, branch execution, request queues, and workforce movement from a dashboard designed for faster daily decisions.
             </p>
             <div class="home-hero-actions">
                 {% for item in operations_quick_links %}
@@ -407,14 +460,14 @@
                 <small>Employees still checked in</small>
             </div>
             <div class="home-aside-card">
-                <span class="home-aside-label">View Scope</span>
+                <span class="home-aside-label">Current Scope</span>
                 <strong>{% if is_branch_scoped_supervisor and scoped_branch %}{{ scoped_branch.name }}{% else %}All Branches{% endif %}</strong>
-                <small>Current dashboard scope</small>
+                <small>Dashboard visibility range</small>
             </div>
         </div>
     </section>
 
-    <section class="home-stat-ribbon">
+    <section class="home-stat-ribbon home-stat-ribbon-operations">
         {% for item in operational_status_cards %}
             <article class="home-stat-pill{% if item.tone == 'warning' %} home-stat-pill-danger{% elif item.tone == 'primary' %} home-stat-pill-success{% endif %}">
                 <span>{{ item.label }}</span>
@@ -428,6 +481,7 @@
             <div class="home-panel-head">
                 <span class="dashboard-kicker">Execution Queue</span>
                 <h3>Attendance Sessions Still Open</h3>
+                <p>Active attendance sessions that still need completion or follow-up.</p>
             </div>
             {% if open_attendance_sessions %}
                 <div class="home-hire-list">
@@ -440,14 +494,14 @@
                                     {% if event.employee.job_title %} | {{ event.employee.job_title.name }}{% endif %}
                                 </small>
                             </div>
-                            <span class="badge badge-light">{% if event.employee.branch %}{{ event.employee.branch.name }}{% else %}—{% endif %}</span>
+                            <span class="badge badge-light">{% if event.employee.branch %}{{ event.employee.branch.name }}{% else %}-{% endif %}</span>
                         </a>
                     {% endfor %}
                 </div>
             {% else %}
                 <div class="empty-state">
                     <h3>No open attendance sessions</h3>
-                    <p>Everyone currently checked in has already completed the attendance session.</p>
+                    <p>Everyone currently checked in has already completed the session.</p>
                 </div>
             {% endif %}
         </article>
@@ -456,6 +510,7 @@
             <div class="home-panel-head">
                 <span class="dashboard-kicker">Today</span>
                 <h3>Attendance Exceptions</h3>
+                <p>Absence and unpaid-leave exceptions that need review.</p>
             </div>
             {% if attendance_exceptions %}
                 <div class="home-stat-list">
@@ -469,7 +524,7 @@
             {% else %}
                 <div class="empty-state">
                     <h3>No attendance exceptions</h3>
-                    <p>Absence and unpaid leave alerts will appear here when they need attention.</p>
+                    <p>Attendance issues will appear here when they need attention.</p>
                 </div>
             {% endif %}
         </article>
@@ -478,6 +533,7 @@
             <div class="home-panel-head">
                 <span class="dashboard-kicker">Requests</span>
                 <h3>Pending Leave Queue</h3>
+                <p>Visible leave requests still waiting on action.</p>
             </div>
             {% if pending_leave_queue %}
                 <div class="home-stat-list">
@@ -498,8 +554,9 @@
 
         <article class="home-panel home-panel-wide">
             <div class="home-panel-head">
-                <span class="dashboard-kicker">Requests</span>
+                <span class="dashboard-kicker">Document Workflow</span>
                 <h3>Document Requests Waiting</h3>
+                <p>Track visible employee document requests still in progress.</p>
             </div>
             {% if open_document_request_queue %}
                 <div class="home-stat-list home-stat-list-columns">
@@ -520,15 +577,16 @@
 
         <article class="home-panel">
             <div class="home-panel-head">
-                <span class="dashboard-kicker">Movement</span>
+                <span class="dashboard-kicker">Hiring Movement</span>
                 <h3>Recent Hires</h3>
+                <p>Newest hires visible from the current operational scope.</p>
             </div>
             {% if recent_hires %}
                 <div class="home-stat-list">
                     {% for item in recent_hires %}
                         <div class="home-stat-row">
                             <strong>{{ item.full_name }}</strong>
-                            <span>{% if item.hire_date %}{{ item.hire_date|date:"M j" }}{% else %}—{% endif %}</span>
+                            <span>{% if item.hire_date %}{{ item.hire_date|date:"M j" }}{% else %}-{% endif %}</span>
                         </div>
                     {% endfor %}
                 </div>
@@ -542,8 +600,9 @@
 
         <article class="home-panel">
             <div class="home-panel-head">
-                <span class="dashboard-kicker">Branches</span>
-                <h3>Workforce By Branch</h3>
+                <span class="dashboard-kicker">Branch Footprint</span>
+                <h3>Workforce by Branch</h3>
+                <p>Visible branch-level headcount from the current dashboard scope.</p>
             </div>
             {% if employees_by_branch %}
                 <div class="home-stat-list">
@@ -564,8 +623,9 @@
 
         <article class="home-panel">
             <div class="home-panel-head">
-                <span class="dashboard-kicker">Companies</span>
-                <h3>Workforce By Company</h3>
+                <span class="dashboard-kicker">Company Footprint</span>
+                <h3>Workforce by Company</h3>
+                <p>Visible company-level headcount from the current dashboard scope.</p>
             </div>
             {% if employees_by_company %}
                 <div class="home-stat-list">
@@ -586,8 +646,9 @@
 
         <article class="home-panel">
             <div class="home-panel-head">
-                <span class="dashboard-kicker">Departments</span>
-                <h3>Workforce By Department</h3>
+                <span class="dashboard-kicker">Department Footprint</span>
+                <h3>Workforce by Department</h3>
+                <p>Visible departmental headcount from the current dashboard scope.</p>
             </div>
             {% if employees_by_department %}
                 <div class="home-stat-list">
@@ -607,4 +668,5 @@
         </article>
     </section>
 {% endif %}
+</div>
 {% endblock %}

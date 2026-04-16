@@ -1,21 +1,33 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Transfer Employee | HR System{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/employees.css' %}">
+{% endblock %}
+
 {% block content %}
+<div class="employee-admin-page employee-transfer-page">
 <div class="page-header">
-    <div>
-        <h1>Transfer Employee</h1>
+    <div class="employee-admin-header-main">
+        <h1 class="page-title">Transfer Employee</h1>
         <p class="page-subtitle">
             Update the employee placement and role assignment safely without changing unrelated profile records.
         </p>
     </div>
-    <div class="page-actions">
-        <a class="btn btn-light" href="{% url 'employees:employee_detail' employee.pk %}">Back to Employee Detail</a>
+    <div class="employee-admin-header-tools">
+        <div class="employee-admin-header-meta">
+            <span class="employee-admin-header-chip">Employee: {{ employee.full_name }}</span>
+            <span class="employee-admin-header-chip">ID: {{ employee.employee_id|default:"Not Assigned" }}</span>
+        </div>
+        <div class="page-actions employee-admin-header-actions">
+            <a class="btn btn-light" href="{% url 'employees:employee_detail' employee.pk %}">Back to Employee Detail</a>
+        </div>
     </div>
 </div>
 
-<div class="detail-grid two-col" style="align-items: start;">
+<div class="detail-grid two-col employee-transfer-grid">
     <div class="card detail-card modern-soft-card">
         <div class="card-header">
             <div>
@@ -73,7 +85,7 @@
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}
-                    <div class="form-error" style="margin-bottom: 14px;">
+                    <div class="form-error employee-transfer-form-error">
                         {% for error in form.non_field_errors %}
                             <div>{{ error }}</div>
                         {% endfor %}
@@ -95,13 +107,14 @@
                     {% endfor %}
                 </div>
 
-                <div class="page-actions" style="margin-top: 18px;">
+                <div class="page-actions employee-transfer-actions">
                     <button class="btn btn-primary" type="submit">Save Transfer</button>
                     <a class="btn btn-light" href="{% url 'employees:employee_detail' employee.pk %}">Cancel</a>
                 </div>
             </form>
         </div>
     </div>
+</div>
 </div>
 
 <script>

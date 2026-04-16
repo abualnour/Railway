@@ -10,14 +10,25 @@
 {% block content %}
 <div class="employee-requests-page">
     <div class="page-header">
-        <div>
+        <div class="employee-requests-header-main">
             <h1 class="page-title">Employee Requests</h1>
             <p class="page-subtitle">
                 Review all employee submitted requests and related supporting files in one management-only page without changing the employee profile detail flow.
             </p>
             {% if is_branch_scoped_supervisor and scoped_branch %}
-                <p class="page-subtitle" style="margin-top: 8px;">Supervisor scope is limited to <strong>{{ scoped_branch.name }}</strong> branch requests. You can review your team requests and supporting files from this page.</p>
+                <p class="page-subtitle employee-requests-scope-note">Supervisor scope is limited to <strong>{{ scoped_branch.name }}</strong> branch requests. You can review your team requests and supporting files from this page.</p>
             {% endif %}
+        </div>
+        <div class="employee-requests-header-tools">
+            <div class="employee-requests-header-meta">
+                <span class="employee-requests-header-chip">Total: {{ request_total }}</span>
+                <span class="employee-requests-header-chip">Pending: {{ pending_total }}</span>
+                {% if is_branch_scoped_supervisor and scoped_branch %}
+                    <span class="employee-requests-header-chip">Scope: {{ scoped_branch.name }}</span>
+                {% else %}
+                    <span class="employee-requests-header-chip">Scope: Management View</span>
+                {% endif %}
+            </div>
         </div>
     </div>
 

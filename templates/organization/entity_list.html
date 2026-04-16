@@ -156,10 +156,10 @@
         <div class="card-header org-related-header org-list-header-band">
             <div>
                 <h2 class="card-title">{{ page_title }}</h2>
-                <p class="card-subtitle">Browse records, open details, and keep organization setup clean and structured.</p>
+                <p class="card-subtitle">{{ organization_list_meta.directory_subtitle|default:"Browse records, open details, and keep organization setup clean and structured." }}</p>
             </div>
             <div class="page-actions org-list-header-badges">
-                <span class="badge badge-light">{{ objects|length }} Record{{ objects|length|pluralize }}</span>
+                <span class="badge badge-light">{{ objects|length }} {{ organization_list_meta.record_label|default:"Record"|title }}</span>
             </div>
         </div>
 
@@ -167,24 +167,24 @@
             <table class="table org-standard-list-table">
                 <thead>
                     <tr>
-                        <th>Name</th>
+                        <th>Record</th>
                         <th class="branch-overview-status-col">Status</th>
                         <th class="table-actions-col branch-overview-actions-col">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for object in objects %}
+                    {% for row in organization_directory_rows %}
                         <tr>
                             <td>
                                 <div class="org-name-cell org-name-cell-premium org-name-cell-with-media">
                                     <div class="org-list-avatar-shell">
-                                        {% if object.logo %}
-                                            <img src="{{ object.logo.url }}" alt="{{ object }}" class="org-list-avatar">
-                                        {% elif object.image %}
-                                            <img src="{{ object.image.url }}" alt="{{ object }}" class="org-list-avatar">
+                                        {% if row.object.logo %}
+                                            <img src="{{ row.object.logo.url }}" alt="{{ row.object }}" class="org-list-avatar">
+                                        {% elif row.object.image %}
+                                            <img src="{{ row.object.image.url }}" alt="{{ row.object }}" class="org-list-avatar">
                                         {% else %}
                                             <div class="org-list-avatar org-list-avatar-fallback">
-                                                {{ object|stringformat:'s'|first|upper }}
+                                                {{ row.object|stringformat:'s'|first|upper }}
                                             </div>
                                         {% endif %}
                                     </div>
@@ -192,19 +192,19 @@
                                     <div class="org-name-copy">
                                         <div class="org-name-title">
                                             {% if detail_url_name %}
-                                                <a href="{% url detail_url_name object.pk %}" class="org-name-link">
-                                                    {{ object }}
+                                                <a href="{% url detail_url_name row.object.pk %}" class="org-name-link">
+                                                    {{ row.object }}
                                                 </a>
                                             {% elif update_url_name %}
-                                                <a href="{% url update_url_name object.pk %}" class="org-name-link">
-                                                    {{ object }}
+                                                <a href="{% url update_url_name row.object.pk %}" class="org-name-link">
+                                                    {{ row.object }}
                                                 </a>
                                             {% else %}
-                                                {{ object }}
+                                                {{ row.object }}
                                             {% endif %}
                                         </div>
                                         <div class="org-name-subtitle">
-                                            Open this record to review full details and linked team data.
+                                            {{ row.summary }}
                                         </div>
                                     </div>
                                 </div>
@@ -212,7 +212,7 @@
 
                             <td>
                                 <div class="org-status-cell">
-                                    {% if object.is_active %}
+                                    {% if row.object.is_active %}
                                         <span class="badge badge-success">Active</span>
                                     {% else %}
                                         <span class="badge badge-danger">Inactive</span>
@@ -223,13 +223,13 @@
                             <td class="table-actions-cell">
                                 <div class="table-action-buttons table-action-buttons-premium table-action-buttons-row table-action-buttons-compact">
                                     {% if detail_url_name %}
-                                        <a href="{% url detail_url_name object.pk %}" class="btn btn-sm btn-light">View</a>
+                                        <a href="{% url detail_url_name row.object.pk %}" class="btn btn-sm btn-light">View</a>
                                     {% endif %}
                                     {% if update_url_name %}
-                                        <a href="{% url update_url_name object.pk %}" class="btn btn-sm btn-outline">Edit</a>
+                                        <a href="{% url update_url_name row.object.pk %}" class="btn btn-sm btn-outline">Edit</a>
                                     {% endif %}
                                     {% if delete_url_name %}
-                                        <a href="{% url delete_url_name object.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                                        <a href="{% url delete_url_name row.object.pk %}" class="btn btn-sm btn-danger">Delete</a>
                                     {% endif %}
                                 </div>
                             </td>
@@ -238,10 +238,10 @@
                         <tr>
                             <td colspan="3">
                                 <div class="empty-state">
-                                    <h3>No records found</h3>
+                                    <h3>{{ organization_list_meta.empty_title|default:"No records found" }}</h3>
                                     <p>There are no {{ page_title|lower }} to display right now.</p>
                                     {% if create_url %}
-                                        <a href="{{ create_url }}" class="btn btn-primary">Add First Record</a>
+                                        <a href="{{ create_url }}" class="btn btn-primary">{{ organization_list_meta.empty_action_label|default:"Add First Record" }}</a>
                                     {% endif %}
                                 </div>
                             </td>

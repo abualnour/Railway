@@ -11,13 +11,19 @@
 {% block content %}
 <div class="employee-profile-page self-service-hub-page branch-schedule-page">
     <div class="page-header employee-profile-header">
-        <div>
+        <div class="employee-page-header-main">
             <h1 class="page-title">{{ employee_display_branch|default:"Branch" }} Schedule Board</h1>
             <p class="page-subtitle">Official branch schedule view with Google Sheets and Excel import/export support, while keeping the app database as the source of truth.</p>
         </div>
-        <div class="page-actions">
-            <a class="btn btn-light" href="{{ self_service_branch_url }}">My Branch</a>
-            <a class="btn btn-light" href="{{ self_service_my_schedule_url }}">My Schedule</a>
+        <div class="employee-page-header-tools">
+            <div class="employee-header-meta">
+                <span class="employee-header-chip">Scope: Weekly Board</span>
+                <span class="employee-header-chip">Branch: {{ employee_display_branch|default:"Not Assigned" }}</span>
+            </div>
+            <div class="page-actions employee-header-actions">
+                <a class="btn btn-light" href="{{ self_service_branch_url }}">My Branch</a>
+                <a class="btn btn-light" href="{{ self_service_my_schedule_url }}">My Schedule</a>
+            </div>
         </div>
     </div>
 

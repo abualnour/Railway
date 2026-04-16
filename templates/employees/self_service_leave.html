@@ -10,13 +10,19 @@
 {% block content %}
 <div class="employee-profile-page self-service-hub-page">
     <div class="page-header employee-profile-header">
-        <div>
+        <div class="employee-page-header-main">
             <h1 class="page-title">{{ self_service_home_label }} Leave</h1>
             <p class="page-subtitle">Submit leave requests, review your workflow history, and keep the mobile layout clean for quick self-service access.</p>
         </div>
-        <div class="page-actions">
-            <a href="{{ self_service_profile_url }}" class="btn btn-light">Profile</a>
-            <a href="{{ self_service_documents_url }}" class="btn btn-secondary">Documents</a>
+        <div class="employee-page-header-tools">
+            <div class="employee-header-meta">
+                <span class="employee-header-chip">Employee: {{ employee.full_name|default:"Not Assigned" }}</span>
+                <span class="employee-header-chip">Branch: {{ employee_display_branch|default:"Not Assigned" }}</span>
+            </div>
+            <div class="page-actions employee-header-actions">
+                <a href="{{ self_service_profile_url }}" class="btn btn-light">Profile</a>
+                <a href="{{ self_service_documents_url }}" class="btn btn-secondary">Documents</a>
+            </div>
         </div>
     </div>
 

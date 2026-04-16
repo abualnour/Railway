@@ -1,57 +1,195 @@
 .system-home-shell,
 .auth-modern-shell {
     display: grid;
-    gap: 22px;
+    gap: 26px;
 }
 
-.system-home-hero {
-    min-height: 0;
+.system-home-shell {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding-bottom: 18px;
 }
 
-.auth-modern-stage {
-    min-height: calc(100vh - 150px);
+.system-home-shell-landing {
+    gap: 30px;
 }
-.system-home-hero {
+
+.system-home-surface {
+    position: relative;
+}
+
+.system-home-intro-band {
     display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
+    gap: 18px;
+    align-items: stretch;
 }
 
+.system-home-intro-copy,
+.system-home-intro-stat,
 .system-home-hero-main,
 .auth-modern-intro,
 .auth-modern-card {
     position: relative;
     overflow: hidden;
     border: 1px solid var(--border);
-    background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--color-bg-radial) 92%, transparent), transparent 28%),
-        var(--surface-hero-gradient);
     box-shadow: var(--shadow-md);
 }
 
+.system-home-intro-copy,
+.system-home-intro-stat {
+    background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--color-bg-radial) 62%, transparent), transparent 38%),
+        linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 94%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 96%, transparent) 100%);
+}
+
+.system-home-intro-copy {
+    display: grid;
+    gap: 10px;
+    padding: 24px 28px;
+    border-radius: 24px;
+}
+
+.system-home-intro-copy h2 {
+    margin: 0;
+    font-size: clamp(1.8rem, 3vw, 2.55rem);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+}
+
+.system-home-intro-copy p {
+    margin: 0;
+    max-width: 760px;
+    color: var(--color-text-soft);
+    line-height: 1.7;
+}
+
+.system-home-section-label {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: var(--surface-pill-neutral-bg);
+    border: 1px solid var(--surface-pill-neutral-border);
+    color: var(--surface-pill-neutral-text);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.system-home-intro-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.system-home-intro-stat {
+    display: grid;
+    gap: 8px;
+    padding: 22px;
+    border-radius: 24px;
+}
+
+.system-home-intro-stat-strong {
+    background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--status-info-bg) 20%, transparent), transparent 42%),
+        linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 94%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 96%, transparent) 100%);
+}
+
+.system-home-intro-stat-soft {
+    background:
+        radial-gradient(circle at bottom left, color-mix(in srgb, var(--surface-pill-neutral-bg) 55%, transparent), transparent 44%),
+        linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 94%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 96%, transparent) 100%);
+}
+
+.system-home-intro-stat span,
+.system-home-spotlight-label,
+.system-home-mini-card span,
+.system-home-feature-kicker {
+    color: var(--color-text-muted);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.system-home-intro-stat strong {
+    font-size: clamp(1.4rem, 2vw, 2rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+}
+
+.system-home-intro-stat small {
+    color: var(--color-text-soft);
+    line-height: 1.55;
+}
+
+.system-home-hero {
+    min-height: 0;
+    display: grid;
+}
+
+.auth-modern-stage {
+    min-height: calc(100vh - 150px);
+}
+
+.system-home-hero-main,
+.auth-modern-intro,
+.auth-modern-card {
+    background:
+        radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--color-bg-radial) 94%, transparent), transparent 30%),
+        radial-gradient(circle at 0% 100%, color-mix(in srgb, var(--status-info-bg) 72%, transparent), transparent 34%),
+        var(--surface-hero-gradient);
+}
+
 .system-home-hero-main {
-    padding: 34px;
-    border-radius: 30px;
+    padding: 36px;
+    border-radius: 32px;
+}
+
+.system-home-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.82fr);
+    gap: 24px;
+    align-items: stretch;
+}
+
+.system-home-hero-copy {
+    min-width: 0;
+    display: grid;
+    align-content: center;
+    gap: 0;
+}
+
+.system-home-hero-side {
+    display: grid;
+    gap: 14px;
+    align-content: stretch;
 }
 
 .system-home-brand,
 .auth-modern-brand {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 16px;
+    gap: 18px;
     align-items: center;
 }
 
 .system-home-logo,
 .auth-logo {
-    width: 68px;
-    height: 68px;
+    width: 72px;
+    height: 72px;
     object-fit: cover;
-    border-radius: 18px;
-    box-shadow: 0 18px 48px rgba(56, 189, 248, 0.22);
+    border-radius: 20px;
+    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
 }
 
 .system-home-kicker {
     display: inline-flex;
     align-items: center;
+    width: fit-content;
     padding: 7px 12px;
     border-radius: 999px;
     background: var(--surface-pill-neutral-bg);
@@ -67,18 +205,19 @@
 .auth-title {
     margin: 14px 0 0;
     color: var(--color-text);
-    font-size: clamp(2rem, 4vw, 3.4rem);
-    line-height: 0.98;
-    font-weight: 800;
-    letter-spacing: -0.05em;
+    font-size: clamp(2.3rem, 5vw, 4.4rem);
+    line-height: 0.95;
+    font-weight: 850;
+    letter-spacing: -0.065em;
+    max-width: 920px;
 }
 
 .system-home-lead,
 .auth-modern-lead {
     margin: 22px 0 0;
     color: var(--color-text-soft);
-    font-size: 15px;
-    line-height: 1.8;
+    font-size: 16px;
+    line-height: 1.85;
     max-width: 760px;
 }
 
@@ -87,74 +226,143 @@
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
-    margin-top: 26px;
+    margin-top: 28px;
+}
+
+.system-home-actions .btn {
+    min-height: 48px;
+    padding-inline: 18px;
+    border-radius: 14px;
 }
 
 .system-home-badges {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    margin-top: 24px;
+    margin-top: 26px;
 }
 
 .system-home-pill {
     display: inline-flex;
     align-items: center;
-    min-height: 36px;
+    min-height: 38px;
     padding: 0 14px;
     border-radius: 999px;
     border: 1px solid var(--border);
-    background: color-mix(in srgb, var(--color-surface-2) 84%, transparent);
+    background: color-mix(in srgb, var(--color-surface-2) 86%, transparent);
     color: var(--color-text);
     font-size: 12px;
     font-weight: 800;
     letter-spacing: 0.04em;
 }
 
-.system-home-feature-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 18px;
-}
-
-.system-home-feature-card {
-    padding: 22px;
-    border-radius: 24px;
+.system-home-spotlight-card,
+.system-home-mini-card {
     border: 1px solid var(--border);
-    background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--color-bg-radial) 48%, transparent), transparent 36%),
-        var(--surface-elevated);
+    background: color-mix(in srgb, var(--color-surface-2) 90%, transparent);
     box-shadow: var(--shadow-sm);
 }
 
+.system-home-spotlight-card {
+    display: grid;
+    gap: 12px;
+    padding: 26px;
+    border-radius: 26px;
+    min-height: 100%;
+}
+
+.system-home-spotlight-card h2 {
+    margin: 0;
+    font-size: clamp(1.55rem, 2.5vw, 2.45rem);
+    letter-spacing: -0.05em;
+    line-height: 1.02;
+}
+
+.system-home-spotlight-card p {
+    margin: 0;
+    color: var(--color-text-soft);
+    line-height: 1.72;
+}
+
+.system-home-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.system-home-mini-card {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border-radius: 20px;
+}
+
+.system-home-mini-card strong {
+    font-size: 22px;
+    line-height: 1.08;
+    letter-spacing: -0.04em;
+}
+
+.system-home-mini-card small {
+    color: var(--color-text-soft);
+    line-height: 1.6;
+}
+
+.system-home-feature-grid {
+    display: grid;
+    gap: 18px;
+}
+
+.system-home-feature-grid-top {
+    grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
+}
+
+.system-home-feature-grid-bottom {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.system-home-feature-card {
+    padding: 24px;
+    border-radius: 26px;
+    border: 1px solid var(--border);
+    background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--color-bg-radial) 46%, transparent), transparent 36%),
+        linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 94%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 98%, transparent) 100%);
+    box-shadow: var(--shadow-sm);
+}
+
+.system-home-feature-card-compact {
+    min-height: 100%;
+}
+
 .system-home-feature-card-large {
-    grid-column: span 3;
     padding: 28px;
+}
+
+.system-home-feature-card-anchor {
+    min-height: 100%;
+    display: grid;
+    align-content: center;
 }
 
 .system-home-feature-kicker {
     display: inline-flex;
     align-items: center;
     margin-bottom: 12px;
-    color: var(--color-text-muted);
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
 }
 
 .system-home-feature-card h2 {
     margin: 0 0 10px;
     color: var(--color-text);
-    font-size: clamp(1.5rem, 2.2vw, 2.2rem);
-    letter-spacing: -0.04em;
-    line-height: 1.05;
+    font-size: clamp(1.52rem, 2.35vw, 2.55rem);
+    letter-spacing: -0.05em;
+    line-height: 1.03;
 }
 
 .system-home-feature-card p {
     margin: 0;
     color: var(--color-text-soft);
-    line-height: 1.75;
+    line-height: 1.78;
 }
 
 .auth-modern-stage {
@@ -249,23 +457,32 @@
     min-width: 140px;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1180px) {
+    .system-home-intro-band,
     .auth-modern-stage,
-    .system-home-feature-grid {
+    .system-home-hero-grid,
+    .system-home-feature-grid-top,
+    .system-home-feature-grid-bottom {
         grid-template-columns: 1fr;
     }
 
-    .system-home-feature-card-large {
-        grid-column: auto;
+    .system-home-intro-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
 @media (max-width: 900px) {
+    .system-home-intro-copy,
+    .system-home-intro-stat,
     .system-home-hero-main,
     .auth-modern-intro,
     .auth-modern-card {
         padding: 22px 18px;
         border-radius: 22px;
+    }
+
+    .system-home-shell-landing {
+        gap: 22px;
     }
 
     .system-home-brand,
@@ -277,6 +494,11 @@
     .auth-logo {
         width: 56px;
         height: 56px;
+    }
+
+    .system-home-title,
+    .auth-title {
+        font-size: clamp(2rem, 9vw, 3rem);
     }
 }
 
@@ -290,6 +512,9 @@
     .auth-modern-actions .btn {
         width: 100%;
     }
+
+    .system-home-intro-stats,
+    .system-home-mini-grid {
+        grid-template-columns: 1fr;
+    }
 }
-
-

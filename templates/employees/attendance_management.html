@@ -10,12 +10,22 @@
 {% block content %}
 <div class="attendance-management-page">
 <div class="page-header">
-    <div>
+    <div class="attendance-management-header-main">
         <h1 class="page-title">{{ attendance_history_page_title|default:"Attendance Management" }}</h1>
         <p class="page-subtitle">{{ attendance_history_page_subtitle }}</p>
     </div>
-    <div class="page-actions">
-        <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">{{ attendance_history_back_button_label|default:"Back to Directory" }}</a>
+    <div class="attendance-management-header-tools">
+        <div class="attendance-management-header-meta">
+            <span class="attendance-management-header-chip">Snapshot: {{ attendance_snapshot_date|date:"M j, Y" }}</span>
+            {% if attendance_snapshot_is_single_day %}
+                <span class="attendance-management-header-chip">Mode: Single Day</span>
+            {% else %}
+                <span class="attendance-management-header-chip">Mode: Range View</span>
+            {% endif %}
+        </div>
+        <div class="page-actions attendance-management-header-actions">
+            <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">{{ attendance_history_back_button_label|default:"Back to Directory" }}</a>
+        </div>
     </div>
 </div>
 
@@ -256,6 +266,9 @@
             {% if attendance_filter_applied %}
                 <span class="badge badge-primary">Filtered View</span>
             {% endif %}
+            {% if attendance_live_open_count %}
+                <span class="badge badge-warning">Live Open {{ attendance_live_open_count }}</span>
+            {% endif %}
             <span class="badge badge-light">Collapsed by Default</span>
         </div>
     </summary>
@@ -271,7 +284,10 @@
                                     <span class="attendance-history-summary-meta">{{ record.attendance_date|date:"D, M j, Y" }} • {{ record.employee.employee_id }}</span>
                                 </div>
                                 <div class="attendance-history-summary-side">
-                                    <span class="badge {{ record.day_status_badge_class }}">{{ record.get_day_status_display }}</span>
+                                    <div class="attendance-progress-inline">
+                                        <span class="badge {{ record.check_in_status_badge_class }}">In {{ record.check_in_status_label }}</span>
+                                        <span class="badge {{ record.check_out_status_badge_class }}">Out {{ record.check_out_status_label }}</span>
+                                    </div>
                                     <span class="attendance-history-summary-meta">
                                         {{ record.worked_hours }} hrs
                                         {% if record.clock_in_time %} • In {{ record.clock_in_time|time:"H:i" }}{% endif %}
@@ -294,8 +310,20 @@
                                         <span class="detail-value">{{ record.worked_hours }}</span>
                                     </div>
                                     <div class="detail-item">
+                                        <span class="detail-label">Day Status</span>
+                                        <span class="detail-value"><span class="badge {{ record.day_status_badge_class }}">{{ record.get_day_status_display }}</span></span>
+                                    </div>
+                                    <div class="detail-item">
                                         <span class="detail-label">Scheduled Hours</span>
                                         <span class="detail-value">{{ record.scheduled_hours }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Check-In Status</span>
+                                        <span class="detail-value"><span class="badge {{ record.check_in_status_badge_class }}">{{ record.check_in_status_label }}</span></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Check-Out Status</span>
+                                        <span class="detail-value"><span class="badge {{ record.check_out_status_badge_class }}">{{ record.check_out_status_label }}</span></span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Late Minutes</span>
@@ -347,7 +375,8 @@
                             <th>Date</th>
                             <th>Employee</th>
                             <th>Placement</th>
-                            <th>Status</th>
+                            <th>Check-In Status</th>
+                            <th>Check-Out Status</th>
                             <th>Hours</th>
                             <th>Punctuality</th>
                             <th>Source</th>
@@ -380,9 +409,28 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="status-cell-stack">
-                                        <span class="badge {{ record.day_status_badge_class }}">{{ record.get_day_status_display }}</span>
-                                        <small>{% if record.is_paid_day %}Paid day{% else %}Unpaid day{% endif %}</small>
+                                    <div class="attendance-progress-cell">
+                                        <span class="badge {{ record.check_in_status_badge_class }}">{{ record.check_in_status_label }}</span>
+                                        {% if record.clock_in_time %}
+                                            <small>At {{ record.clock_in_time|time:"H:i" }}</small>
+                                        {% else %}
+                                            <small>{% if record.day_status == 'present' %}No check-in yet{% else %}{{ record.get_day_status_display }}{% endif %}</small>
+                                        {% endif %}
+                                        {% if not record.clock_in_time and not record.clock_out_time and record.day_status == 'present' %}
+                                            <small>No clock activity recorded</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="attendance-progress-cell">
+                                        <span class="badge {{ record.check_out_status_badge_class }}">{{ record.check_out_status_label }}</span>
+                                        {% if record.clock_out_time %}
+                                            <small>At {{ record.clock_out_time|time:"H:i" }}</small>
+                                        {% elif record.clock_in_time %}
+                                            <small>Waiting for check-out</small>
+                                        {% else %}
+                                            <small>{% if record.day_status == 'present' %}No check-out yet{% else %}{{ record.get_day_status_display }}{% endif %}</small>
+                                        {% endif %}
                                     </div>
                                 </td>
                                 <td>
@@ -431,7 +479,11 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <a class="btn btn-secondary btn-sm" href="{% url 'employees:attendance_management' %}?{% if attendance_management_querystring %}{{ attendance_management_querystring }}&{% endif %}correct={{ record.pk }}">Request Correction</a>
+                                    {% if record.is_correction_available %}
+                                        <a class="btn btn-secondary btn-sm" href="{% url 'employees:attendance_management' %}?{% if attendance_management_querystring %}{{ attendance_management_querystring }}&{% endif %}correct={{ record.pk }}">Request Correction</a>
+                                    {% else %}
+                                        <span class="muted-text">Available after check-out sync</span>
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% endfor %}

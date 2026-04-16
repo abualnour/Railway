@@ -1,21 +1,37 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ page_title }}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/employees.css' %}">
+{% endblock %}
+
 {% block content %}
+<div class="employee-admin-page">
 <div class="page-header">
-    <div>
+    <div class="employee-admin-header-main">
         <h1 class="page-title">{{ page_title }}</h1>
         <p class="page-subtitle">
             Manage employee identity, organization placement, employment details, and HR operational status.
         </p>
     </div>
 
-    <div class="page-actions">
-        <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">Back to Directory</a>
-        {% if form.instance.pk %}
-            <a href="{% url 'employees:employee_detail' form.instance.pk %}" class="btn btn-light">View Profile</a>
-        {% endif %}
+    <div class="employee-admin-header-tools">
+        <div class="employee-admin-header-meta">
+            <span class="employee-admin-header-chip">Form: Employee Record</span>
+            {% if form.instance.pk %}
+                <span class="employee-admin-header-chip">Mode: Update</span>
+            {% else %}
+                <span class="employee-admin-header-chip">Mode: Create</span>
+            {% endif %}
+        </div>
+        <div class="page-actions employee-admin-header-actions">
+            <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">Back to Directory</a>
+            {% if form.instance.pk %}
+                <a href="{% url 'employees:employee_detail' form.instance.pk %}" class="btn btn-light">View Profile</a>
+            {% endif %}
+        </div>
     </div>
 </div>
 
@@ -420,4 +436,5 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 </script>
+</div>
 {% endblock %}

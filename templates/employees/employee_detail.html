@@ -12,12 +12,18 @@
 
 {% if is_self_service_view or is_supervisor_own_profile_view or is_operations_own_profile_view %}
 <div class="page-header employee-profile-header">
-    
-    <div>
+    <div class="employee-page-header-main">
         <h1 class="page-title">{% if is_operations_own_profile_view %}My Operations Profile{% elif is_supervisor_own_profile_view %}My Supervisor Profile{% else %}My Profile{% endif %}</h1>
         <p class="page-subtitle">
             {% if is_operations_own_profile_view %}View your own operations profile, personal placement details, branch context, and personal request workflow without mixing it with management actions.{% elif is_supervisor_own_profile_view %}View your own supervisor profile, personal placement details, branch team structure, and self-service requests without mixing them with team management actions.{% else %}View your personal profile, professional placement, branch team structure, and your request workflow safely.{% endif %}
         </p>
+    </div>
+    <div class="employee-page-header-tools">
+        <div class="employee-header-meta">
+            <span class="employee-header-chip">ID: {{ employee.employee_id|default:"Not Assigned" }}</span>
+            <span class="employee-header-chip">Branch: {{ employee_display_branch|default:"Not Assigned" }}</span>
+            <span class="employee-header-chip">View: {% if is_operations_own_profile_view %}Operations{% elif is_supervisor_own_profile_view %}Supervisor{% else %}Self Service{% endif %}</span>
+        </div>
     </div>
 </div>
 
@@ -836,30 +842,39 @@
 </div>
 {% else %}
 <div class="page-header employee-profile-header">
-    <div>
+    <div class="employee-page-header-main">
         <h1 class="page-title">Employee Profile</h1>
         <p class="page-subtitle">
             Review employee identity, placement, working time, compliance visibility, and the complete HR timeline.
         </p>
         {% if is_branch_scoped_supervisor_view %}
-            <p class="page-subtitle" style="margin-top: 8px;">Read-only branch scope: you are viewing this employee because they belong to your branch.</p>
+            <p class="page-subtitle employee-profile-scope-note">Read-only branch scope: you are viewing this employee because they belong to your branch.</p>
         {% endif %}
     </div>
 
-    <div class="page-actions">
-        {% if can_view_directory %}
-            <a class="btn btn-secondary" href="{% url 'employees:employee_list' %}">Back to Directory</a>
-        {% endif %}
+    <div class="employee-page-header-tools">
+        <div class="employee-header-meta">
+            <span class="employee-header-chip">ID: {{ employee.employee_id|default:"Not Assigned" }}</span>
+            <span class="employee-header-chip">Branch: {{ employee_display_branch|default:"Not Assigned" }}</span>
+            <span class="employee-header-chip">Status: {% if employee.is_active %}Active{% else %}Inactive{% endif %}</span>
+            {% if is_branch_scoped_supervisor_view %}
+                <span class="employee-header-chip">Scope: Branch Read Only</span>
+            {% endif %}
+        </div>
 
+        <div class="page-actions employee-header-actions">
+            {% if can_view_directory %}
+                <a class="btn btn-secondary" href="{% url 'employees:employee_list' %}">Back to Directory</a>
+            {% endif %}
 
+            {% if can_edit_employee %}
+                <a class="btn btn-primary" href="{% url 'employees:employee_update' employee.pk %}">Edit Employee</a>
+            {% endif %}
 
-        {% if can_edit_employee %}
-            <a class="btn btn-primary" href="{% url 'employees:employee_update' employee.pk %}">Edit Employee</a>
-        {% endif %}
-
-        {% if can_delete_employee %}
-            <a class="btn btn-danger" href="{% url 'employees:employee_delete' employee.pk %}">Delete</a>
-        {% endif %}
+            {% if can_delete_employee %}
+                <a class="btn btn-danger" href="{% url 'employees:employee_delete' employee.pk %}">Delete</a>
+            {% endif %}
+        </div>
     </div>
 </div>
 

@@ -112,6 +112,220 @@ def format_text(value, fallback="—"):
     return str(value)
 
 
+def get_organization_form_meta(model):
+    model_name = getattr(getattr(model, "_meta", None), "model_name", "")
+
+    form_meta_map = {
+        "company": {
+            "subtitle": "Set up the company profile information that appears on the company detail record.",
+            "title": "Company record setup",
+            "description": "Keep the public-facing company details complete so the organization directory stays consistent between create, edit, and detail views.",
+            "highlights": [
+                {
+                    "label": "Display Name",
+                    "value": "Used as the primary company name across navigation, lists, and linked records.",
+                },
+                {
+                    "label": "Legal + Contact",
+                    "value": "Legal name, email, phone, and address feed the company summary shown later.",
+                },
+                {
+                    "label": "Logo + Notes",
+                    "value": "Optional visual branding and internal notes remain available on the detail page.",
+                },
+            ],
+        },
+        "branch": {
+            "subtitle": "Create a branch record with company placement, visible contact data, and optional attendance location settings.",
+            "title": "Branch setup",
+            "description": "Branch details, compliance work, and branch-specific attendance checks all depend on this record staying complete and accurate.",
+            "highlights": [
+                {
+                    "label": "Company Placement",
+                    "value": "Every branch is tied to one company and appears under that company detail view.",
+                },
+                {
+                    "label": "Attendance Point",
+                    "value": "Latitude, longitude, and radius should be filled together only when live attendance location control is needed.",
+                },
+                {
+                    "label": "Branch Identity",
+                    "value": "City, email, image, and notes show up in branch-facing summaries and admin review pages.",
+                },
+            ],
+        },
+        "department": {
+            "subtitle": "Set up a department under the correct company with the labels used across employee and organization pages.",
+            "title": "Department setup",
+            "description": "Departments drive section structure, job-title grouping, and employee organization without changing the existing hierarchy.",
+            "highlights": [
+                {
+                    "label": "Company Link",
+                    "value": "The selected company controls where this department appears in the organization structure.",
+                },
+                {
+                    "label": "Code + Manager",
+                    "value": "Optional code and manager name are shown later on the department detail record.",
+                },
+                {
+                    "label": "Legacy Safety",
+                    "value": "Older branch-linked department records are still preserved safely even though that field is not part of the normal form.",
+                },
+            ],
+        },
+        "section": {
+            "subtitle": "Create a section under the right department and keep the team-supervision details clear.",
+            "title": "Section setup",
+            "description": "Sections define where job titles and employees sit inside each department, so a clean department link matters here.",
+            "highlights": [
+                {
+                    "label": "Department Link",
+                    "value": "The selected department automatically determines the section's company placement.",
+                },
+                {
+                    "label": "Supervisor",
+                    "value": "Supervisor name appears in section details and related organization summaries.",
+                },
+                {
+                    "label": "Notes",
+                    "value": "Use internal notes for HR or operations context without changing employee access scope.",
+                },
+            ],
+        },
+        "jobtitle": {
+            "subtitle": "Create the role under the correct section so employees and structure pages remain aligned.",
+            "title": "Job title setup",
+            "description": "Job titles are section-based in the active design, and the department is derived automatically from the section you choose.",
+            "highlights": [
+                {
+                    "label": "Section Required",
+                    "value": "Selecting a section is required because the role's placement is section-first in the current hierarchy.",
+                },
+                {
+                    "label": "Department Auto-Link",
+                    "value": "The system keeps department alignment automatically based on the chosen section.",
+                },
+                {
+                    "label": "Clean Directory Data",
+                    "value": "Code and notes remain optional, but they are available for clearer reporting and record detail pages.",
+                },
+            ],
+        },
+    }
+
+    return form_meta_map.get(model_name, {})
+
+
+def get_organization_list_meta(model):
+    model_name = getattr(getattr(model, "_meta", None), "model_name", "")
+
+    list_meta_map = {
+        "company": {
+            "directory_subtitle": "Review company records, open the full profile, and keep legal and contact details aligned.",
+            "empty_title": "No companies found",
+            "empty_action_label": "Add First Company",
+            "record_label": "Company records",
+        },
+        "branch": {
+            "directory_subtitle": "Review branch records, company placement, and branch-level operations context from one workspace.",
+            "empty_title": "No branches found",
+            "empty_action_label": "Add First Branch",
+            "record_label": "Branch records",
+        },
+        "department": {
+            "directory_subtitle": "Browse departments, their company placement, and the team structure connected to each record.",
+            "empty_title": "No departments found",
+            "empty_action_label": "Add First Department",
+            "record_label": "Department records",
+        },
+        "section": {
+            "directory_subtitle": "Browse sections, keep supervision details clear, and open the linked organization structure.",
+            "empty_title": "No sections found",
+            "empty_action_label": "Add First Section",
+            "record_label": "Section records",
+        },
+        "jobtitle": {
+            "directory_subtitle": "Browse role records, section placement, and employee assignment context without leaving the directory.",
+            "empty_title": "No job titles found",
+            "empty_action_label": "Add First Job Title",
+            "record_label": "Job title records",
+        },
+    }
+
+    return list_meta_map.get(model_name, {})
+
+
+def get_organization_detail_meta(model):
+    model_name = getattr(getattr(model, "_meta", None), "model_name", "")
+
+    detail_meta_map = {
+        "company": {"summary_label": "Company Summary"},
+        "branch": {"summary_label": "Branch Summary"},
+        "department": {"summary_label": "Department Summary"},
+        "section": {"summary_label": "Section Summary"},
+        "jobtitle": {"summary_label": "Job Title Summary"},
+    }
+
+    return detail_meta_map.get(model_name, {"summary_label": "Record Summary"})
+
+
+def summarize_organization_object(obj):
+    model_name = getattr(getattr(obj, "_meta", None), "model_name", "")
+
+    if model_name == "company":
+        legal_name = (getattr(obj, "legal_name", "") or "").strip()
+        if legal_name:
+            return f"Legal name: {legal_name}"
+        return "Open this company to review branches, departments, and assigned employees."
+
+    if model_name == "branch":
+        company_name = getattr(getattr(obj, "company", None), "name", "")
+        city = (getattr(obj, "city", "") or "").strip()
+        if company_name and city:
+            return f"{company_name} · {city}"
+        if company_name:
+            return f"Company: {company_name}"
+        if city:
+            return f"City: {city}"
+        return "Open this branch to review employees, compliance, and branch documents."
+
+    if model_name == "department":
+        company_name = getattr(getattr(obj, "company", None), "name", "")
+        manager_name = (getattr(obj, "manager_name", "") or "").strip()
+        if company_name and manager_name:
+            return f"{company_name} · Manager: {manager_name}"
+        if company_name:
+            return f"Company: {company_name}"
+        if manager_name:
+            return f"Manager: {manager_name}"
+        return "Open this department to review sections, job titles, and assigned employees."
+
+    if model_name == "section":
+        department = getattr(obj, "department", None)
+        department_name = getattr(department, "name", "")
+        company_name = getattr(getattr(department, "company", None), "name", "")
+        if department_name and company_name:
+            return f"{company_name} · {department_name}"
+        if department_name:
+            return f"Department: {department_name}"
+        return "Open this section to review linked roles and assigned employees."
+
+    if model_name == "jobtitle":
+        section = getattr(obj, "section", None)
+        department = getattr(obj, "department", None)
+        section_name = getattr(section, "name", "")
+        department_name = getattr(department, "name", "")
+        if section_name and department_name:
+            return f"{department_name} · {section_name}"
+        if section_name:
+            return f"Section: {section_name}"
+        if department_name:
+            return f"Department: {department_name}"
+        return "Open this job title to review role placement and assigned employees."
+
+    return "Open this record to review full details and linked team data."
+
+
 PREVIEWABLE_FILE_EXTENSIONS = {"pdf", "png", "jpg", "jpeg", "webp", "gif", "bmp", "txt"}
 
 
@@ -637,6 +851,7 @@ class OrganizationBaseListView(OrganizationAccessMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         can_manage = can_manage_organization_setup(self.request.user)
+        list_meta = get_organization_list_meta(self.model)
         context["page_title"] = self.page_title
         context["page_subtitle"] = (
             self.page_subtitle or f"Manage {self.page_title.lower()} in your HR system."
@@ -646,6 +861,14 @@ class OrganizationBaseListView(OrganizationAccessMixin, ListView):
         context["update_url_name"] = self.update_url_name if can_manage else ""
         context["delete_url_name"] = self.delete_url_name if can_manage else ""
         context["can_manage_organization"] = can_manage
+        context["organization_list_meta"] = list_meta
+        context["organization_directory_rows"] = [
+            {
+                "object": current_object,
+                "summary": summarize_organization_object(current_object),
+            }
+            for current_object in context.get("objects", [])
+        ]
         return context
 
 
@@ -667,6 +890,7 @@ class OrganizationBaseCreateView(OrganizationManageAccessMixin, CreateView):
         context["page_title"] = self.page_title
         context["submit_label"] = self.submit_label
         context["cancel_url"] = self.cancel_url or self.success_url
+        context["organization_form_meta"] = get_organization_form_meta(self.model)
         return context
 
 
@@ -688,6 +912,7 @@ class OrganizationBaseUpdateView(OrganizationManageAccessMixin, UpdateView):
         context["page_title"] = self.page_title
         context["submit_label"] = self.submit_label
         context["cancel_url"] = self.cancel_url or self.success_url
+        context["organization_form_meta"] = get_organization_form_meta(self.model)
         return context
 
 
@@ -720,6 +945,7 @@ class OrganizationBaseDetailView(OrganizationAccessMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         can_manage = can_manage_organization_setup(self.request.user)
+        detail_meta = get_organization_detail_meta(self.model)
         context["page_title"] = self.page_title
         context["page_subtitle"] = self.page_subtitle
         context["back_url"] = reverse(self.list_url_name) if self.list_url_name else ""
@@ -738,6 +964,7 @@ class OrganizationBaseDetailView(OrganizationAccessMixin, DetailView):
         context["object_status_badge_class"] = status_badge_class(
             getattr(self.object, "is_active", False)
         )
+        context["organization_detail_meta"] = detail_meta
         return context
 
 

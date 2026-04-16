@@ -693,6 +693,25 @@
     margin-bottom: 18px;
 }
 
+.org-detail-label {
+    margin: 0 0 8px;
+    color: var(--text-soft);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.org-detail-title {
+    margin: 0;
+    font-size: clamp(30px, 3.2vw, 44px);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    color: var(--text);
+}
+
 .org-status-badge-large {
     padding: 8px 14px;
     border-radius: 999px;
@@ -745,6 +764,18 @@
     min-width: 0;
 }
 
+.org-directory-card .card-header,
+.org-related-card .card-header,
+.org-form-shell-card .card-header {
+    min-width: 0;
+}
+
+.org-directory-card .card-subtitle,
+.org-related-card .card-subtitle {
+    max-width: 900px;
+    line-height: 1.65;
+}
+
 .org-related-card .empty-state,
 .org-directory-card .empty-state {
     padding: 28px 22px;
@@ -761,6 +792,282 @@
 .org-directory-card .empty-state p {
     margin: 0;
     line-height: 1.7;
+}
+
+.org-form-page-shell {
+    gap: 18px;
+}
+
+.org-form-guide-card,
+.org-form-shell-card {
+    overflow: hidden;
+}
+
+.org-form-guide-body {
+    display: grid;
+    gap: 18px;
+    padding: 24px;
+}
+
+.org-form-guide-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.org-form-guide-title {
+    margin: 0 0 10px;
+    font-size: clamp(28px, 3vw, 38px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    color: var(--text);
+}
+
+.org-form-guide-description {
+    margin: 0;
+    max-width: 920px;
+    color: var(--text-soft);
+    line-height: 1.7;
+}
+
+.org-form-guide-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.org-form-guide-item {
+    min-width: 0;
+    padding: 16px 18px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--surface-gradient-3);
+}
+
+.org-form-guide-item strong {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.org-form-guide-item span {
+    display: block;
+    color: var(--text-soft);
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.org-form-shell-card .card-body {
+    padding: 24px;
+}
+
+.org-form-shell-card .employee-form-pro {
+    display: grid;
+    gap: 24px;
+}
+
+.org-form-shell-card .form-section {
+    min-width: 0;
+}
+
+.org-form-section-header {
+    margin-bottom: 20px;
+}
+
+.org-form-section-header h2 {
+    margin: 0 0 8px;
+}
+
+.org-form-section-header p {
+    margin: 0;
+    color: var(--text-soft);
+    line-height: 1.65;
+}
+
+.org-form-grid {
+    align-items: start;
+}
+
+.org-form-field {
+    min-width: 0;
+}
+
+.org-form-field .form-control {
+    min-height: 52px;
+}
+
+.org-form-field textarea.form-control {
+    min-height: 132px;
+    resize: vertical;
+}
+
+.org-form-field .form-help {
+    display: block;
+    margin-top: 8px;
+    color: var(--text-soft);
+    line-height: 1.55;
+}
+
+.org-form-field-active .checkbox-wrap {
+    min-height: 62px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    background: var(--surface-gradient-3);
+}
+
+.org-form-field-active .checkbox-wrap input[type="checkbox"] {
+    margin-top: 2px;
+}
+
+.org-form-field-active .checkbox-wrap span {
+    color: var(--text);
+    line-height: 1.6;
+}
+
+.org-form-shell-card .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.org-directory-table .org-name-copy {
+    gap: 6px;
+}
+
+.org-directory-table .org-name-subtitle {
+    max-width: 680px;
+    line-height: 1.6;
+}
+
+.org-status-cell .badge {
+    min-width: 88px;
+    justify-content: center;
+}
+
+.branch-detail-documents-card .card-body {
+    display: grid;
+    gap: 20px;
+}
+
+.branch-detail-upload-card {
+    margin-bottom: 0;
+    border-radius: 18px;
+    background: var(--surface-inner);
+    border: 1px solid var(--surface-soft-border);
+    box-shadow: none;
+}
+
+.branch-detail-upload-card-header {
+    padding-bottom: 16px;
+}
+
+.branch-detail-upload-card-body {
+    display: grid;
+    gap: 18px;
+}
+
+.branch-detail-upload-grid {
+    align-items: start;
+}
+
+.branch-detail-upload-actions {
+    margin-top: 2px;
+}
+
+.branch-detail-documents-table-wrap,
+.branch-documents-status-table-wrap,
+.branch-documents-registry-table-wrap {
+    border-radius: 18px;
+}
+
+.branch-detail-documents-table thead th,
+.branch-documents-status-table thead th,
+.branch-documents-registry-table thead th {
+    white-space: nowrap;
+}
+
+.branch-detail-documents-table tbody td,
+.branch-documents-status-table tbody td,
+.branch-documents-registry-table tbody td {
+    vertical-align: top;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.branch-detail-documents-empty-state h3 {
+    margin: 0 0 8px;
+}
+
+.branch-documents-section-card .card-header {
+    min-width: 0;
+}
+
+.branch-documents-section-card .page-subtitle {
+    max-width: 920px;
+    line-height: 1.65;
+}
+
+.branch-documents-status-table .table-stack,
+.branch-documents-registry-table .table-stack,
+.branch-detail-documents-table .org-name-cell {
+    min-width: 0;
+}
+
+.branch-documents-status-table .table-stack small,
+.branch-documents-registry-table .table-stack small,
+.branch-documents-status-table .status-cell-stack small,
+.branch-documents-registry-table .status-cell-stack small {
+    line-height: 1.55;
+}
+
+.branch-documents-registry-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.branch-documents-registry-actions form {
+    margin: 0;
+}
+
+.branch-documents-section-card {
+    overflow: hidden;
+}
+
+.branch-documents-status-table-wrap,
+.branch-documents-registry-table-wrap,
+.branch-detail-documents-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.branch-documents-status-table,
+.branch-documents-registry-table,
+.branch-detail-documents-table {
+    min-width: 860px;
+}
+
+.branch-documents-status-table td:last-child form,
+.branch-documents-registry-table td:last-child form,
+.branch-detail-documents-table td:last-child form {
+    margin: 0;
+}
+
+.branch-documents-status-table td:last-child .btn,
+.branch-documents-registry-table td:last-child .btn,
+.branch-detail-documents-table td:last-child .btn {
+    white-space: nowrap;
 }
 
 @media (max-width: 1200px) {
@@ -852,6 +1159,39 @@
         align-items: stretch;
     }
 
+    .org-form-guide-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .org-form-shell-card .form-actions {
+        padding-top: 18px;
+    }
+
+    .branch-documents-registry-actions .btn,
+    .branch-documents-registry-actions form,
+    .branch-documents-registry-actions form .btn {
+        width: 100%;
+    }
+
+    .branch-documents-status-table,
+    .branch-documents-registry-table,
+    .branch-detail-documents-table {
+        min-width: 760px;
+    }
+
+    .branch-documents-inline-note {
+        width: 100%;
+    }
+
+    .branch-documents-centered-upload-form,
+    .branch-detail-upload-card-body {
+        gap: 18px;
+    }
+
+    .branch-documents-workspace-order-grid {
+        grid-template-columns: 1fr;
+    }
+
     .org-page-actions-top {
         justify-content: flex-start;
     }
@@ -873,6 +1213,36 @@
     .table-action-buttons-premium,
     .table-action-buttons-row {
         justify-content: flex-start;
+    }
+
+    .branch-documents-header-actions,
+    .branch-documents-header-actions-centered {
+        width: 100%;
+    }
+
+    .branch-documents-header-actions .btn,
+    .branch-documents-header-actions-centered .btn {
+        flex: 1 1 180px;
+    }
+
+    .branch-documents-status-table,
+    .branch-documents-registry-table,
+    .branch-detail-documents-table {
+        min-width: 680px;
+    }
+
+    .branch-detail-upload-actions,
+    .branch-documents-action-row,
+    .branch-documents-action-row-centered {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .branch-detail-upload-actions .btn,
+    .branch-documents-action-row .btn,
+    .branch-documents-action-row-centered .btn {
+        width: 100%;
     }
 }
 /* -------------------------------------------------------------

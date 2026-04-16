@@ -1,83 +1,117 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ page_title }}{% endblock %}
 
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/branches.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1 class="page-title">{{ page_title }}</h1>
-        <p class="page-subtitle">Fill in the required information below.</p>
+<div class="org-page-shell org-form-page-shell">
+    <div class="page-header org-page-header org-page-header-spacious">
+        <div>
+            <div class="detail-page-kicker">Organization</div>
+            <h1 class="page-title">{{ page_title }}</h1>
+            <p class="page-subtitle org-page-subtitle-wide">
+                {{ organization_form_meta.subtitle|default:"Fill in the required information below." }}
+            </p>
+        </div>
     </div>
-</div>
 
-<div class="card form-shell-card">
-    <div class="card-body">
-        <form method="post" enctype="multipart/form-data" novalidate>
-            {% csrf_token %}
-
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger">
-                    {{ form.non_field_errors }}
-                </div>
-            {% endif %}
-
-            <div class="employee-form-pro">
-                <div class="form-section">
-                    <div class="form-section-header">
-                        <h2>{{ page_title }}</h2>
-                        <p>Complete the form details and save your changes.</p>
-                    </div>
-
-                    <div class="form-grid two-col">
-                        {% for field in form %}
-                            {% if field.name == "is_active" %}
-                                <div class="form-group checkbox-group form-group-full">
-                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-
-                                    <label class="checkbox-wrap" for="{{ field.id_for_label }}">
-                                        {{ field }}
-                                        <span>Keep this record active and available in the system.</span>
-                                    </label>
-
-                                    {% if field.help_text %}
-                                        <small class="form-help">{{ field.help_text }}</small>
-                                    {% endif %}
-
-                                    {% if field.errors %}
-                                        <div class="form-error">
-                                            {{ field.errors }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            {% else %}
-                                <div class="form-group {% if field.name == 'notes' or field.name == 'logo' or field.name == 'image' %}form-group-full{% endif %}">
-                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-
-                                    {{ field }}
-
-                                    {% if field.help_text %}
-                                        <small class="form-help">{{ field.help_text }}</small>
-                                    {% endif %}
-
-                                    {% if field.errors %}
-                                        <div class="form-error">
-                                            {{ field.errors }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">
-                        {{ submit_label|default:"Save" }}
-                    </button>
-                    <a href="{{ cancel_url }}" class="btn btn-outline">Cancel</a>
+    {% if organization_form_meta %}
+    <div class="card org-form-guide-card org-related-card-premium">
+        <div class="card-body org-form-guide-body">
+            <div class="org-form-guide-head">
+                <div>
+                    <p class="org-detail-label">{{ organization_form_meta.title }}</p>
+                    <h2 class="org-form-guide-title">{{ page_title }}</h2>
+                    <p class="org-form-guide-description">{{ organization_form_meta.description }}</p>
                 </div>
             </div>
-        </form>
+
+            <div class="org-form-guide-grid">
+                {% for item in organization_form_meta.highlights %}
+                    <div class="org-form-guide-item">
+                        <strong>{{ item.label }}</strong>
+                        <span>{{ item.value }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card form-shell-card org-form-shell-card org-detail-hero-card-premium">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="employee-form-pro">
+                    <div class="form-section">
+                        <div class="form-section-header org-form-section-header">
+                            <h2>{{ page_title }}</h2>
+                            <p>Complete the form details and save your changes.</p>
+                        </div>
+
+                        <div class="form-grid two-col org-form-grid">
+                            {% for field in form %}
+                                {% if field.name == "is_active" %}
+                                    <div class="form-group checkbox-group form-group-full org-form-field org-form-field-active">
+                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+                                        <label class="checkbox-wrap" for="{{ field.id_for_label }}">
+                                            {{ field }}
+                                            <span>Keep this record active and available in the system.</span>
+                                        </label>
+
+                                        {% if field.help_text %}
+                                            <small class="form-help">{{ field.help_text }}</small>
+                                        {% endif %}
+
+                                        {% if field.errors %}
+                                            <div class="form-error">
+                                                {{ field.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="form-group org-form-field {% if field.name == 'notes' or field.name == 'address' or field.name == 'logo' or field.name == 'image' %}form-group-full{% endif %}">
+                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+                                        {{ field }}
+
+                                        {% if field.help_text %}
+                                            <small class="form-help">{{ field.help_text }}</small>
+                                        {% endif %}
+
+                                        {% if field.errors %}
+                                            <div class="form-error">
+                                                {{ field.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            {{ submit_label|default:"Save" }}
+                        </button>
+                        <a href="{{ cancel_url }}" class="btn btn-outline">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

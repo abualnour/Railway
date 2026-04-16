@@ -16,13 +16,19 @@
 {% block content %}
 <div class="employee-profile-page self-service-hub-page">
     <div class="page-header employee-profile-header">
-        <div>
+        <div class="employee-page-header-main">
             <h1 class="page-title">Daily Attendance</h1>
             <p class="page-subtitle">Check in and check out with live device geolocation, validate every attendance action against your branch fixed location, and keep a clean attendance trail synced into payroll-ready history.</p>
         </div>
-        <div class="page-actions">
-            <a class="btn btn-light" href="{{ self_service_profile_url }}">Profile</a>
-            <a class="btn btn-secondary" href="{{ self_service_working_time_url }}">Working Time</a>
+        <div class="employee-page-header-tools">
+            <div class="employee-header-meta">
+                <span class="employee-header-chip">Branch: {{ employee_display_branch|default:"Not Assigned" }}</span>
+                <span class="employee-header-chip">Today: {{ attendance_event_today.attendance_date|default:today|date:"M j, Y" }}</span>
+            </div>
+            <div class="page-actions employee-header-actions">
+                <a class="btn btn-light" href="{{ self_service_profile_url }}">Profile</a>
+                <a class="btn btn-secondary" href="{{ self_service_working_time_url }}">Working Time</a>
+            </div>
         </div>
     </div>
 

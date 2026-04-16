@@ -13,7 +13,7 @@
         <div>
             <h1 class="page-title">Organization Management</h1>
             <p class="page-subtitle">
-                Manage companies, branches, branch documents, departments, sections, and job titles from one place.
+                Manage companies, departments, branches, sections, job titles, and branch documents from one place.
             </p>
         </div>
     </div>
@@ -22,11 +22,11 @@
         <div class="card-body">
             <div class="page-actions">
                 <a href="{% url 'organization:company_list' %}" class="btn btn-light">Companies</a>
-                <a href="{% url 'organization:branch_list' %}" class="btn btn-light">Branches</a>
-                <a href="{% url 'organization:branch_document_list' %}" class="btn btn-light">Branch Documents</a>
                 <a href="{% url 'organization:department_list' %}" class="btn btn-light">Departments</a>
+                <a href="{% url 'organization:branch_list' %}" class="btn btn-light">Branches</a>
                 <a href="{% url 'organization:section_list' %}" class="btn btn-light">Sections</a>
                 <a href="{% url 'organization:jobtitle_list' %}" class="btn btn-light">Job Titles</a>
+                <a href="{% url 'organization:branch_document_list' %}" class="btn btn-light">Branch Documents</a>
             </div>
         </div>
     </div>

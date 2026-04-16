@@ -11,14 +11,20 @@
 {% block content %}
 <div class="employee-profile-page self-service-hub-page my-schedule-page">
     <div class="page-header employee-profile-header">
-        <div>
+        <div class="employee-page-header-main">
             <h1 class="page-title">My Schedule</h1>
             <p class="page-subtitle">Your personal branch schedule from the official weekly branch plan, including today, this week, and next week.</p>
         </div>
-        <div class="page-actions">
-            <a class="btn btn-light" href="{{ self_service_profile_url }}">Profile</a>
-            <a class="btn btn-light" href="{{ self_service_branch_url }}">My Branch</a>
-            <a class="btn btn-secondary" href="{{ self_service_weekly_schedule_url }}">Weekly Schedule</a>
+        <div class="employee-page-header-tools">
+            <div class="employee-header-meta">
+                <span class="employee-header-chip">Scope: Personal Schedule</span>
+                <span class="employee-header-chip">Branch: {{ employee_display_branch|default:"Not Assigned" }}</span>
+            </div>
+            <div class="page-actions employee-header-actions">
+                <a class="btn btn-light" href="{{ self_service_profile_url }}">Profile</a>
+                <a class="btn btn-light" href="{{ self_service_branch_url }}">My Branch</a>
+                <a class="btn btn-secondary" href="{{ self_service_weekly_schedule_url }}">Weekly Schedule</a>
+            </div>
         </div>
     </div>
 

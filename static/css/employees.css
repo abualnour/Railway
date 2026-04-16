@@ -219,6 +219,76 @@ employee-directory-page .page-header {
     justify-content: flex-start;
 }
 
+.employee-admin-page {
+    display: grid;
+    gap: 18px;
+}
+
+.employee-admin-page .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 22px 24px;
+    margin-bottom: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface-gradient-1);
+}
+
+.employee-admin-page .employee-admin-header-main {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    flex: 1 1 620px;
+}
+
+.employee-admin-page .employee-admin-header-tools {
+    display: grid;
+    gap: 12px;
+    justify-items: end;
+    min-width: min(100%, 380px);
+}
+
+.employee-admin-page .employee-admin-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.employee-admin-page .employee-admin-header-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--color-surface-2) 88%, transparent);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.employee-admin-page .employee-admin-header-actions {
+    justify-content: flex-end;
+}
+
+.employee-transfer-page .employee-transfer-grid {
+    align-items: start;
+}
+
+.employee-transfer-page .employee-transfer-form-error {
+    margin-bottom: 14px;
+}
+
+.employee-transfer-page .employee-transfer-actions {
+    margin-top: 18px;
+}
+
 .employee-directory-page .employee-directory-pagination {
     display: flex;
     align-items: center;
@@ -324,6 +394,48 @@ employee-directory-page .page-header {
 .employee-requests-page .page-subtitle {
     max-width: 920px;
     margin-bottom: 0;
+}
+
+.employee-requests-page .employee-requests-header-main {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    flex: 1 1 620px;
+}
+
+.employee-requests-page .employee-requests-header-tools {
+    display: grid;
+    gap: 12px;
+    justify-items: end;
+    min-width: min(100%, 360px);
+}
+
+.employee-requests-page .employee-requests-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.employee-requests-page .employee-requests-header-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--color-surface-2) 88%, transparent);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.employee-requests-page .employee-requests-scope-note {
+    margin-top: 8px;
+    max-width: 760px;
 }
 
 .employee-requests-page .summary-grid {
@@ -757,6 +869,47 @@ employee-directory-page .page-header {
     margin-bottom: 0;
 }
 
+.attendance-management-page .attendance-management-header-main {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    flex: 1 1 620px;
+}
+
+.attendance-management-page .attendance-management-header-tools {
+    display: grid;
+    gap: 12px;
+    justify-items: end;
+    min-width: min(100%, 360px);
+}
+
+.attendance-management-page .attendance-management-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.attendance-management-page .attendance-management-header-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--color-surface-2) 88%, transparent);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.attendance-management-page .attendance-management-header-actions {
+    justify-content: flex-end;
+}
+
 .attendance-management-page .filter-card,
 .attendance-management-page .table-card {
     margin-bottom: 0;
@@ -860,6 +1013,33 @@ employee-directory-page .page-header {
     align-items: center;
 }
 
+.attendance-management-page .attendance-progress-inline,
+.attendance-management-page .attendance-progress-cell {
+    display: grid;
+    gap: 6px;
+}
+
+.attendance-management-page .attendance-progress-inline {
+    grid-auto-flow: row;
+    justify-items: end;
+}
+
+.attendance-management-page .attendance-progress-cell {
+    min-width: 132px;
+}
+
+.attendance-management-page .attendance-progress-cell .badge,
+.attendance-management-page .attendance-progress-inline .badge {
+    width: fit-content;
+    max-width: 100%;
+}
+
+.attendance-management-page .attendance-progress-cell small,
+.attendance-management-page .attendance-progress-inline small {
+    color: var(--muted);
+    line-height: 1.35;
+}
+
 .attendance-management-page .attendance-snapshot-card {
     margin-bottom: 0;
 }
@@ -958,6 +1138,10 @@ employee-directory-page .page-header {
 
     .attendance-management-page .filter-search-group {
         grid-column: span 1;
+    }
+
+    .attendance-management-page .attendance-progress-inline {
+        justify-items: start;
     }
 }
 
@@ -3547,6 +3731,52 @@ body.profile-modal-open {
     border: 1px solid var(--status-danger-border) !important;
 }
 
+.employee-profile-page .employee-page-header-main {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    flex: 1 1 620px;
+}
+
+.employee-profile-page .employee-page-header-tools {
+    display: grid;
+    gap: 12px;
+    justify-items: end;
+    min-width: min(100%, 420px);
+}
+
+.employee-profile-page .employee-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.employee-profile-page .employee-header-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--surface-soft-border);
+    background: color-mix(in srgb, var(--color-surface-2) 90%, transparent);
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.employee-profile-page .employee-header-actions {
+    justify-content: flex-end;
+}
+
+.employee-profile-page .employee-profile-scope-note {
+    margin-top: 8px;
+    max-width: 760px;
+}
+
 .employee-profile-page .attendance-ledger-table thead th {
     background: var(--surface-table-head) !important;
     color: var(--color-text) !important;
@@ -4299,6 +4529,24 @@ html[data-theme="sunrise"] .profile-modal-form input[type="date"] {
 }
 
 @media (max-width: 900px) {
+    .employee-requests-page .employee-requests-header-tools,
+    .employee-requests-page .employee-requests-header-meta,
+    .attendance-management-page .attendance-management-header-tools,
+    .attendance-management-page .attendance-management-header-meta,
+    .attendance-management-page .attendance-management-header-actions {
+        width: 100%;
+        justify-items: stretch;
+        justify-content: flex-start;
+    }
+
+    .employee-admin-page .employee-admin-header-tools,
+    .employee-admin-page .employee-admin-header-meta,
+    .employee-admin-page .employee-admin-header-actions {
+        width: 100%;
+        justify-items: stretch;
+        justify-content: flex-start;
+    }
+
     .employee-profile-page .summary-list-item,
     .employee-profile-page .document-card-item,
     .employee-profile-page .detail-card,
@@ -4328,6 +4576,14 @@ html[data-theme="sunrise"] .profile-modal-form input[type="date"] {
     .employee-profile-page .document-actions-row form .btn,
     .employee-profile-page .page-actions form .btn {
         width: 100%;
+    }
+
+    .employee-profile-page .employee-page-header-tools,
+    .employee-profile-page .employee-header-meta,
+    .employee-profile-page .employee-header-actions {
+        width: 100%;
+        justify-items: stretch;
+        justify-content: flex-start;
     }
 
     .profile-modal-shell {

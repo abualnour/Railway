@@ -10,14 +10,24 @@
 {% block content %}
 <div class="action-center-page">
     <div class="page-header">
-        <div>
+        <div class="action-center-header-main">
             <h1 class="page-title">Employee Action Center</h1>
             <p class="page-subtitle">
                 Search for one employee first, then manage the selected employee from one focused action workspace instead of jumping between profile pages.
             </p>
         </div>
-        <div class="page-actions">
-            <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">Back to Directory</a>
+        <div class="action-center-header-tools">
+            <div class="action-center-header-meta">
+                <span class="action-center-header-chip">Workspace: Admin Actions</span>
+                {% if selected_employee %}
+                    <span class="action-center-header-chip">Selected: {{ selected_employee.full_name }}</span>
+                {% else %}
+                    <span class="action-center-header-chip">Selected: None</span>
+                {% endif %}
+            </div>
+            <div class="page-actions action-center-header-actions">
+                <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">Back to Directory</a>
+            </div>
         </div>
     </div>
 

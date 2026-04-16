@@ -5625,6 +5625,55 @@ def build_attendance_history_management_context(request, *, supervisor_history_o
     attendance_queryset = attendance_queryset.order_by("-attendance_date", "employee__full_name", "-id")
     attendance_entries = list(attendance_queryset)
     attendance_summary = build_attendance_summary(attendance_entries)
+    pending_event_queryset = EmployeeAttendanceEvent.objects.select_related(
+        "employee",
+        "employee__company",
+        "employee__branch",
+        "employee__department",
+        "employee__section",
+        "employee__job_title",
+    ).filter(
+        employee__in=scoped_employee_queryset,
+        synced_ledger__isnull=True,
+    )
+
+    if filter_state["search_value"]:
+        search_value = filter_state["search_value"]
+        pending_event_queryset = pending_event_queryset.filter(
+            Q(employee__full_name__icontains=search_value)
+            | Q(employee__employee_id__icontains=search_value)
+            | Q(employee__email__icontains=search_value)
+            | Q(notes__icontains=search_value)
+        )
+
+    if filter_state["employee"]:
+        pending_event_queryset = pending_event_queryset.filter(employee=filter_state["employee"])
+    if filter_state["company"]:
+        pending_event_queryset = pending_event_queryset.filter(employee__company=filter_state["company"])
+    if filter_state["branch"]:
+        pending_event_queryset = pending_event_queryset.filter(employee__branch=filter_state["branch"])
+    if filter_state["department"]:
+        pending_event_queryset = pending_event_queryset.filter(employee__department=filter_state["department"])
+    if filter_state["section"]:
+        pending_event_queryset = pending_event_queryset.filter(employee__section=filter_state["section"])
+    if filter_state["day_status"] and filter_state["day_status"] != EmployeeAttendanceLedger.DAY_STATUS_PRESENT:
+        pending_event_queryset = pending_event_queryset.none()
+    if filter_state["start_date"]:
+        pending_event_queryset = pending_event_queryset.filter(attendance_date__gte=filter_state["start_date"])
+    if filter_state["end_date"]:
+        pending_event_queryset = pending_event_queryset.filter(attendance_date__lte=filter_state["end_date"])
+
+    pending_event_entries = list(
+        pending_event_queryset.order_by("-attendance_date", "employee__full_name", "-id")
+    )
+    attendance_display_records = sorted(
+        [*attendance_entries, *pending_event_entries],
+        key=lambda entry: (
+            -(entry.attendance_date.toordinal() if entry.attendance_date else 0),
+            (entry.employee.full_name or "").lower(),
+            -(entry.pk or 0),
+        ),
+    )
 
     snapshot_date = filter_state["end_date"] or filter_state["start_date"] or timezone.localdate()
     snapshot_is_single_day = bool(
@@ -5691,6 +5740,14 @@ def build_attendance_history_management_context(request, *, supervisor_history_o
         snapshot_recorded_queryset.order_by("employee__full_name", "employee__employee_id", "-id")
     )
     snapshot_recorded_employee_ids = {entry.employee_id for entry in snapshot_recorded_entries}
+    snapshot_pending_event_employee_ids = set(
+        EmployeeAttendanceEvent.objects.filter(
+            employee_id__in=snapshot_scope_employee_ids,
+            attendance_date=snapshot_date,
+            synced_ledger__isnull=True,
+        ).values_list("employee_id", flat=True)
+    )
+    snapshot_recorded_employee_ids.update(snapshot_pending_event_employee_ids)
 
     snapshot_unrecorded_employees = [
         employee for employee in snapshot_scope_employees if employee.pk not in snapshot_recorded_employee_ids
@@ -5723,7 +5780,7 @@ def build_attendance_history_management_context(request, *, supervisor_history_o
         if employee.pk in policy_weekly_off_ids and employee.pk not in approved_leave_ids
     ]
 
-    paginator = Paginator(attendance_queryset, 25)
+    paginator = Paginator(attendance_display_records, 25)
     page_obj = paginator.get_page(request.GET.get("page"))
     pagination_items = build_attendance_history_pagination(page_obj)
 
@@ -5834,7 +5891,12 @@ def build_attendance_history_management_context(request, *, supervisor_history_o
         "attendance_management_querystring": attendance_management_querystring,
         "attendance_management_base_querystring": attendance_management_base_querystring,
         "attendance_management_base_url": attendance_management_base_url,
-        "attendance_employee_count": attendance_queryset.values("employee_id").distinct().count(),
+        "attendance_employee_count": len(
+            {
+                *[entry.employee_id for entry in attendance_entries],
+                *[entry.employee_id for entry in pending_event_entries],
+            }
+        ),
         "attendance_day_status_choices": EmployeeAttendanceLedger.DAY_STATUS_CHOICES,
         "selected_attendance_record": selected_attendance_record,
         "attendance_correction_form": correction_form,
@@ -5845,13 +5907,14 @@ def build_attendance_history_management_context(request, *, supervisor_history_o
         "attendance_snapshot_date": snapshot_date,
         "attendance_snapshot_note": attendance_snapshot_note,
         "attendance_snapshot_scope_count": len(snapshot_scope_employees),
-        "attendance_snapshot_recorded_count": len(snapshot_recorded_entries),
+        "attendance_snapshot_recorded_count": len(snapshot_recorded_employee_ids),
         "attendance_snapshot_missing_count": len(attendance_snapshot_missing_employees),
         "attendance_snapshot_leave_covered_count": len(attendance_snapshot_leave_covered_employees),
         "attendance_snapshot_weekly_off_count": len(attendance_snapshot_weekly_off_employees),
         "attendance_snapshot_missing_employees": attendance_snapshot_missing_employees[:12],
         "attendance_snapshot_missing_more_count": max(len(attendance_snapshot_missing_employees) - 12, 0),
         "attendance_snapshot_is_single_day": snapshot_is_single_day,
+        "attendance_live_open_count": len(pending_event_entries),
         "half_day_attendance_count": sum(1 for entry in attendance_entries if entry.day_status == EmployeeAttendanceLedger.DAY_STATUS_PRESENT and entry.worked_hours and entry.worked_hours < entry.scheduled_hours),
         "early_exit_flag_count": sum(1 for entry in attendance_entries if (entry.early_departure_minutes or 0) > 0),
         "overtime_ready_count": sum(1 for entry in attendance_entries if (entry.overtime_minutes or 0) > 0),

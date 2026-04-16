@@ -48,7 +48,7 @@
                         </div>
 
                         <div>
-                            <p class="org-detail-label">Record Summary</p>
+                            <p class="org-detail-label">{{ organization_detail_meta.summary_label|default:"Record Summary" }}</p>
                             <h2 class="org-detail-title">{{ record_name }}</h2>
                         </div>
                     </div>
@@ -166,7 +166,7 @@
     {% endif %}
 
     {% if branch_documents or branch_detail_has_document_workspace %}
-    <div class="card org-related-card">
+    <div class="card org-related-card branch-detail-documents-card">
         <div class="card-header org-related-header">
             <div>
                 <h2 class="card-title">Branch Store Documents</h2>
@@ -186,15 +186,15 @@
 
         <div class="card-body">
             {% if can_manage_branch_documents %}
-                <div class="card" style="margin-bottom: 20px;">
-                    <div class="card-header">
+                <div class="card branch-detail-upload-card">
+                    <div class="card-header branch-detail-upload-card-header">
                         <h3 class="card-title">Upload Branch Document</h3>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body branch-detail-upload-card-body">
                         <form method="post" enctype="multipart/form-data" action="{% url 'organization:branch_document_create' object.pk %}">
                             {% csrf_token %}
                             <input type="hidden" name="next" value="{{ request.path }}">
-                            <div class="detail-grid two-col">
+                            <div class="detail-grid two-col branch-detail-upload-grid">
                                 {% for field in branch_document_form %}
                                     <div class="form-group {% if field.name == 'description' or field.name == 'file' %}full-width{% endif %}">
                                         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -208,7 +208,7 @@
                                     </div>
                                 {% endfor %}
                             </div>
-                            <div class="page-actions" style="margin-top: 16px;">
+                            <div class="page-actions branch-detail-upload-actions">
                                 <button type="submit" class="btn btn-primary">Upload Branch File</button>
                             </div>
                         </form>
@@ -216,8 +216,8 @@
                 </div>
             {% endif %}
 
-            <div class="table-responsive">
-                <table class="table">
+            <div class="table-responsive branch-detail-documents-table-wrap">
+                <table class="table branch-detail-documents-table">
                     <thead>
                         <tr>
                             <th>Document</th>
@@ -261,7 +261,8 @@
                         {% empty %}
                             <tr>
                                 <td colspan="7">
-                                    <div class="empty-state">
+                                    <div class="empty-state branch-detail-documents-empty-state">
+                                        <h3>No branch documents yet</h3>
                                         <p>No branch store documents uploaded yet.</p>
                                     </div>
                                 </td>

@@ -1159,6 +1159,133 @@ class EmployeeAttendanceLedger(models.Model):
             return "badge"
         return "badge-light"
 
+    @classmethod
+    def get_split_status_badge_class(cls, status_label):
+        mapping = {
+            "On Time": "badge-success",
+            "Checked In": "badge-success",
+            "Checked Out": "badge-success",
+            "Late": "badge-warning",
+            "Early Check-Out": "badge-warning",
+            "Pending Check-Out": "badge-light",
+            "Missing": "badge-danger",
+            "Not Checked Out": "badge-danger",
+            "Not Required": "badge",
+            "Overtime": "badge-primary",
+        }
+        return mapping.get(status_label, "badge")
+
+    @classmethod
+    def resolve_check_in_status(cls, *, day_status, attendance_date, shift, clock_in_time):
+        non_working_statuses = {
+            cls.DAY_STATUS_WEEKLY_OFF,
+            cls.DAY_STATUS_PAID_LEAVE,
+            cls.DAY_STATUS_UNPAID_LEAVE,
+            cls.DAY_STATUS_SICK_LEAVE,
+            cls.DAY_STATUS_HOLIDAY,
+        }
+
+        if day_status in non_working_statuses:
+            return "Not Required"
+
+        if day_status == cls.DAY_STATUS_ABSENT:
+            return "Missing"
+
+        if not clock_in_time:
+            return "Missing"
+
+        temp_entry = cls(attendance_date=attendance_date, shift=shift)
+        shift_start_dt, _shift_end_dt = temp_entry.get_shift_window()
+        clock_in_dt = combine_date_and_time(attendance_date, clock_in_time)
+
+        if shift_start_dt and clock_in_dt:
+            if clock_in_dt <= shift_start_dt:
+                return "On Time"
+            return "Late"
+
+        return "Checked In"
+
+    @classmethod
+    def resolve_check_out_status(
+        cls,
+        *,
+        day_status,
+        attendance_date,
+        shift,
+        clock_in_time,
+        clock_out_time,
+        early_departure_minutes=0,
+        overtime_minutes=0,
+    ):
+        non_working_statuses = {
+            cls.DAY_STATUS_WEEKLY_OFF,
+            cls.DAY_STATUS_PAID_LEAVE,
+            cls.DAY_STATUS_UNPAID_LEAVE,
+            cls.DAY_STATUS_SICK_LEAVE,
+            cls.DAY_STATUS_HOLIDAY,
+        }
+
+        if day_status in non_working_statuses:
+            return "Not Required"
+
+        if not clock_out_time:
+            if day_status == cls.DAY_STATUS_ABSENT:
+                return "Not Checked Out"
+            if clock_in_time:
+                return "Pending Check-Out"
+            return "Not Checked Out"
+
+        if early_departure_minutes:
+            return "Early Check-Out"
+
+        if overtime_minutes:
+            return "Overtime"
+
+        temp_entry = cls(attendance_date=attendance_date, shift=shift)
+        _shift_start_dt, shift_end_dt = temp_entry.get_shift_window()
+        clock_out_dt = combine_date_and_time(attendance_date, clock_out_time)
+
+        if shift_end_dt and clock_out_dt:
+            if shift_end_dt.date() > attendance_date and clock_out_dt <= shift_end_dt - timedelta(days=1):
+                clock_out_dt += timedelta(days=1)
+            if clock_out_dt < shift_end_dt:
+                return "Early Check-Out"
+
+        return "Checked Out"
+
+    @property
+    def check_in_status_label(self):
+        return self.resolve_check_in_status(
+            day_status=self.day_status,
+            attendance_date=self.attendance_date,
+            shift=self.shift,
+            clock_in_time=self.clock_in_time,
+        )
+
+    @property
+    def check_in_status_badge_class(self):
+        return self.get_split_status_badge_class(self.check_in_status_label)
+
+    @property
+    def check_out_status_label(self):
+        return self.resolve_check_out_status(
+            day_status=self.day_status,
+            attendance_date=self.attendance_date,
+            shift=self.shift,
+            clock_in_time=self.clock_in_time,
+            clock_out_time=self.clock_out_time,
+            early_departure_minutes=self.early_departure_minutes,
+            overtime_minutes=self.overtime_minutes,
+        )
+
+    @property
+    def check_out_status_badge_class(self):
+        return self.get_split_status_badge_class(self.check_out_status_label)
+
+    @property
+    def is_correction_available(self):
+        return True
+
 
 class EmployeeAttendanceCorrection(models.Model):
     STATUS_PENDING = "pending"
@@ -1433,6 +1560,150 @@ class EmployeeAttendanceEvent(models.Model):
         if self.branch_latitude_used is None or self.branch_longitude_used is None:
             return ""
         return f"{self.branch_latitude_used}, {self.branch_longitude_used}"
+
+    @property
+    def day_status(self):
+        return EmployeeAttendanceLedger.DAY_STATUS_PRESENT
+
+    def get_day_status_display(self):
+        return "Present"
+
+    @property
+    def day_status_badge_class(self):
+        return "badge-success"
+
+    @property
+    def source_badge_class(self):
+        return "badge-primary"
+
+    def get_source_display(self):
+        return "Self-Service Live"
+
+    @property
+    def attendance_rule_label(self):
+        return "Working Day"
+
+    @property
+    def attendance_rule_badge_class(self):
+        return "badge-success"
+
+    @property
+    def clock_in_time(self):
+        if not self.check_in_at:
+            return None
+        return timezone.localtime(self.check_in_at).time().replace(microsecond=0)
+
+    @property
+    def clock_out_time(self):
+        if not self.check_out_at:
+            return None
+        return timezone.localtime(self.check_out_at).time().replace(microsecond=0)
+
+    @property
+    def scheduled_hours(self):
+        return WORKING_HOURS_PER_DAY
+
+    @property
+    def worked_hours(self):
+        return self.worked_hours_display
+
+    @property
+    def late_minutes(self):
+        if self.check_in_status_label != "Late":
+            return 0
+
+        temp_entry = EmployeeAttendanceLedger(
+            attendance_date=self.attendance_date,
+            shift=self.shift,
+        )
+        shift_start_dt, _shift_end_dt = temp_entry.get_shift_window()
+        clock_in_dt = combine_date_and_time(self.attendance_date, self.clock_in_time)
+        if not shift_start_dt or not clock_in_dt:
+            return 0
+        return int((clock_in_dt - shift_start_dt).total_seconds() // 60)
+
+    def _calculate_progressive_check_out_delta(self):
+        if not self.clock_out_time:
+            return None, None
+
+        temp_entry = EmployeeAttendanceLedger(
+            attendance_date=self.attendance_date,
+            shift=self.shift,
+        )
+        _shift_start_dt, shift_end_dt = temp_entry.get_shift_window()
+        clock_out_dt = combine_date_and_time(self.attendance_date, self.clock_out_time)
+        if not shift_end_dt or not clock_out_dt:
+            return None, None
+        if shift_end_dt.date() > self.attendance_date and clock_out_dt <= shift_end_dt - timedelta(days=1):
+            clock_out_dt += timedelta(days=1)
+        return clock_out_dt, shift_end_dt
+
+    @property
+    def early_departure_minutes(self):
+        clock_out_dt, shift_end_dt = self._calculate_progressive_check_out_delta()
+        if not shift_end_dt or not clock_out_dt:
+            return 0
+        if clock_out_dt >= shift_end_dt:
+            return 0
+        return int((shift_end_dt - clock_out_dt).total_seconds() // 60)
+
+    @property
+    def overtime_minutes(self):
+        clock_out_dt, shift_end_dt = self._calculate_progressive_check_out_delta()
+        if not shift_end_dt or not clock_out_dt:
+            return 0
+        if clock_out_dt <= shift_end_dt:
+            return 0
+        return int((clock_out_dt - shift_end_dt).total_seconds() // 60)
+
+    @property
+    def check_in_status_label(self):
+        return EmployeeAttendanceLedger.resolve_check_in_status(
+            day_status=EmployeeAttendanceLedger.DAY_STATUS_PRESENT,
+            attendance_date=self.attendance_date,
+            shift=self.shift,
+            clock_in_time=self.clock_in_time,
+        )
+
+    @property
+    def check_in_status_badge_class(self):
+        return EmployeeAttendanceLedger.get_split_status_badge_class(self.check_in_status_label)
+
+    @property
+    def check_out_status_label(self):
+        return EmployeeAttendanceLedger.resolve_check_out_status(
+            day_status=EmployeeAttendanceLedger.DAY_STATUS_PRESENT,
+            attendance_date=self.attendance_date,
+            shift=self.shift,
+            clock_in_time=self.clock_in_time,
+            clock_out_time=self.clock_out_time,
+            early_departure_minutes=self.early_departure_minutes,
+            overtime_minutes=self.overtime_minutes,
+        )
+
+    @property
+    def check_out_status_badge_class(self):
+        return EmployeeAttendanceLedger.get_split_status_badge_class(self.check_out_status_label)
+
+    @property
+    def is_paid_day(self):
+        return True
+
+    @property
+    def linked_leave(self):
+        return None
+
+    @property
+    def linked_action_record(self):
+        return None
+
+    @property
+    def created_by(self):
+        return ""
+
+    @property
+    def is_correction_available(self):
+        return False
 
 
 class EmployeeHistory(models.Model):

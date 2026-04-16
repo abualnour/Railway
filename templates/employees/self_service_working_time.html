@@ -10,13 +10,19 @@
 {% block content %}
 <div class="employee-profile-page self-service-hub-page">
     <div class="page-header employee-profile-header">
-        <div>
+        <div class="employee-page-header-main">
             <h1 class="page-title">Working Time Summary</h1>
             <p class="page-subtitle">Your service duration, leave balance, and working totals in a dedicated page.</p>
         </div>
-        <div class="page-actions">
-            <a class="btn btn-light" href="{{ self_service_profile_url }}">Profile</a>
-            <a class="btn btn-secondary" href="{{ self_service_attendance_url }}">Attendance</a>
+        <div class="employee-page-header-tools">
+            <div class="employee-header-meta">
+                <span class="employee-header-chip">Employee: {{ employee.full_name|default:"Not Assigned" }}</span>
+                <span class="employee-header-chip">Branch: {{ employee_display_branch|default:"Not Assigned" }}</span>
+            </div>
+            <div class="page-actions employee-header-actions">
+                <a class="btn btn-light" href="{{ self_service_profile_url }}">Profile</a>
+                <a class="btn btn-secondary" href="{{ self_service_attendance_url }}">Attendance</a>
+            </div>
         </div>
     </div>
 
