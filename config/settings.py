@@ -11,10 +11,8 @@ SECRET_KEY = os.environ.get(
     os.environ.get("SECRET_KEY", "django-insecure-change-this-in-production"),
 )
 
-render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "").strip()
 railway_host = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "").strip()
-default_debug = "False" if os.environ.get("RENDER") else "True"
-DEBUG = os.environ.get("DJANGO_DEBUG", default_debug).lower() in {"1", "true", "yes", "on"}
+DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in {"1", "true", "yes", "on"}
 
 def _split_env_list(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
@@ -35,14 +33,13 @@ def _normalize_origin(value: str) -> str:
 explicit_public_url = os.environ.get("DJANGO_PUBLIC_BASE_URL", "").strip()
 
 allowed_hosts = set(_split_env_list(os.environ.get("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost")))
-for derived_host in (render_host, railway_host, _extract_host_from_url(explicit_public_url)):
+for derived_host in (railway_host, _extract_host_from_url(explicit_public_url)):
     if derived_host:
         allowed_hosts.add(derived_host)
 ALLOWED_HOSTS = sorted(allowed_hosts)
 
 csrf_trusted_origins = set(_split_env_list(os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "")))
 for derived_origin in (
-    f"https://{render_host}" if render_host else "",
     f"https://{railway_host}" if railway_host else "",
     _normalize_origin(explicit_public_url),
 ):
@@ -162,8 +159,6 @@ if os.environ.get("DJANGO_MEDIA_ROOT"):
     MEDIA_ROOT = Path(os.environ["DJANGO_MEDIA_ROOT"])
 elif os.environ.get("RAILWAY_VOLUME_MOUNT_PATH"):
     MEDIA_ROOT = Path(os.environ["RAILWAY_VOLUME_MOUNT_PATH"]) / "media"
-elif os.environ.get("RENDER_DISK_MOUNT_PATH"):
-    MEDIA_ROOT = Path(os.environ["RENDER_DISK_MOUNT_PATH"]) / "media"
 else:
     MEDIA_ROOT = BASE_DIR / "media"
 
@@ -205,8 +200,6 @@ if os.environ.get("HR_BACKUP_ROOT"):
     HR_BACKUP_ROOT = Path(os.environ["HR_BACKUP_ROOT"])
 elif os.environ.get("RAILWAY_VOLUME_MOUNT_PATH"):
     HR_BACKUP_ROOT = Path(os.environ["RAILWAY_VOLUME_MOUNT_PATH"]) / "backups"
-elif os.environ.get("RENDER_DISK_MOUNT_PATH"):
-    HR_BACKUP_ROOT = Path(os.environ["RENDER_DISK_MOUNT_PATH"]) / "backups"
 else:
     HR_BACKUP_ROOT = Path.home() / "Desktop" / "NourAxis_Backups"
 

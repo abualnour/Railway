@@ -1,6 +1,6 @@
 # Railway Deployment Guide
 
-This project is now prepared to run on Railway with the same Django codebase used on Render.
+This project is prepared to run on Railway as the active deployment platform.
 
 ## What Was Prepared
 
@@ -13,8 +13,6 @@ This project is now prepared to run on Railway with the same Django codebase use
   - `DJANGO_ALLOWED_HOSTS`
   - `DJANGO_CSRF_TRUSTED_ORIGINS`
 - Railway volume-aware media and backup paths
-- Render startup also updated to use the same Gunicorn configuration
-
 ## Railway Service Setup
 
 Create these services in Railway:
