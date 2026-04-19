@@ -47,6 +47,11 @@ for derived_origin in (
         csrf_trusted_origins.add(derived_origin)
 CSRF_TRUSTED_ORIGINS = sorted(csrf_trusted_origins)
 
+print("RAILWAY_PUBLIC_DOMAIN =", repr(railway_host))
+print("DJANGO_PUBLIC_BASE_URL =", repr(explicit_public_url))
+print("ALLOWED_HOSTS =", ALLOWED_HOSTS)
+print("CSRF_TRUSTED_ORIGINS =", CSRF_TRUSTED_ORIGINS)
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
