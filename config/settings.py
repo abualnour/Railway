@@ -109,6 +109,7 @@ def _build_local_postgres_url() -> str | None:
 
     return f"postgresql://{user}:{password}@{host}:{port}/{name}"
 
+
 database_url = (
     os.environ.get("DATABASE_URL", "").strip()
     or os.environ.get("LOCAL_DATABASE_URL", "").strip()
@@ -121,7 +122,6 @@ DATABASES = {
         conn_max_age=600,
     )
 }
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
