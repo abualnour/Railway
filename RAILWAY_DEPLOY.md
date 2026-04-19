@@ -54,6 +54,12 @@ Build command:
 bash build.sh
 ```
 
+Pre-deploy command:
+
+```bash
+python manage.py migrate --no-input
+```
+
 Start command:
 
 ```bash
@@ -84,7 +90,6 @@ DJANGO_PUBLIC_BASE_URL=https://hr.yourdomain.com
 Run or verify:
 
 ```bash
-python manage.py migrate --no-input
 python manage.py collectstatic --no-input
 python manage.py createsuperuser
 ```
