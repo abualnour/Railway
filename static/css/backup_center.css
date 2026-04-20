@@ -374,14 +374,92 @@
 }
 
 @media (max-width: 640px) {
+    .backup-center-shell {
+        gap: 14px;
+    }
+
     .backup-center-header {
         padding: 18px 16px;
+        gap: 10px;
+        min-height: 0;
+    }
+
+    .backup-center-header-main {
+        flex: 1 1 auto;
+        gap: 8px;
+    }
+
+    .backup-center-header .page-title {
+        margin: 0;
+        font-size: clamp(1.8rem, 8vw, 2.2rem);
+        line-height: 1.04;
+        letter-spacing: -0.04em;
+    }
+
+    .backup-center-subtitle,
+    .backup-center-header .page-subtitle {
+        margin: 0;
+        max-width: none;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .backup-center-header-tools {
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .backup-center-header-meta {
+        gap: 8px;
+    }
+
+    .backup-center-header-chip {
+        min-height: 34px;
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+
+    .backup-summary-card {
+        padding: 16px;
+        border-radius: 18px;
+        gap: 6px;
+    }
+
+    .backup-summary-value {
+        font-size: 24px;
+    }
+
+    .backup-summary-help {
+        font-size: 13px;
+        line-height: 1.45;
     }
 
     .backup-panel .card-header,
     .backup-panel .card-body {
         padding-left: 16px;
         padding-right: 16px;
+    }
+
+    .backup-panel .card-header,
+    .backup-panel .card-body,
+    .backup-callout,
+    .backup-destination-card,
+    .backup-path-note {
+        padding-top: 16px;
+        padding-bottom: 16px;
+    }
+
+    .backup-panel-header h2 {
+        font-size: 24px;
+        line-height: 1.08;
+    }
+
+    .backup-panel-subtitle,
+    .backup-destination-help,
+    .backup-callout,
+    .backup-path-note strong {
+        font-size: 14px;
+        line-height: 1.55;
     }
 
     .backup-center-header-actions,

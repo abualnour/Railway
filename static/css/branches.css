@@ -1773,6 +1773,10 @@
 }
 
 @media (max-width: 640px) {
+    .org-page-shell {
+        gap: 14px;
+    }
+
     .branches-summary-grid {
         grid-template-columns: 1fr;
     }
@@ -1782,6 +1786,95 @@
     .org-page-header.org-page-header-spacious {
         padding: 18px 16px;
         border-radius: 22px;
+    }
+
+    .org-page-header.org-page-header-spacious {
+        min-height: 0;
+        gap: 10px;
+    }
+
+    .org-page-header.org-page-header-spacious > div:first-child {
+        flex: 1 1 auto;
+        grid-auto-rows: max-content;
+        align-content: start;
+        justify-items: start;
+        gap: 8px;
+    }
+
+    .org-page-header.org-page-header-spacious .page-title {
+        margin: 0;
+        font-size: clamp(1.85rem, 8vw, 2.3rem);
+        line-height: 1.04;
+        letter-spacing: -0.04em;
+    }
+
+    .org-page-header.org-page-header-spacious .page-subtitle,
+    .org-page-subtitle-wide {
+        margin: 0;
+        max-width: none;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .org-form-guide-body,
+    .org-form-shell-card .card-body {
+        padding: 18px 16px;
+    }
+
+    .org-form-guide-body {
+        gap: 14px;
+    }
+
+    .org-form-guide-head {
+        gap: 10px;
+    }
+
+    .org-form-guide-title {
+        margin: 0 0 8px;
+        font-size: clamp(1.65rem, 7vw, 2.15rem);
+        line-height: 1.08;
+    }
+
+    .org-form-guide-description {
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .org-form-guide-item {
+        padding: 14px 16px;
+        border-radius: 16px;
+    }
+
+    .org-form-guide-item strong,
+    .org-form-guide-item span {
+        font-size: 13px;
+        line-height: 1.55;
+    }
+
+    .org-form-shell-card .employee-form-pro {
+        gap: 18px;
+    }
+
+    .org-form-section-header {
+        margin-bottom: 14px;
+    }
+
+    .org-form-section-header h2 {
+        font-size: 24px;
+        line-height: 1.08;
+    }
+
+    .org-form-section-header p {
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .org-form-field .form-control {
+        min-height: 48px;
+    }
+
+    .org-form-field textarea.form-control {
+        min-height: 112px;
     }
 
     .branch-documents-status-table,
