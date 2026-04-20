@@ -342,6 +342,13 @@
         border-radius: 22px;
     }
 
+    .backup-center-header-main,
+    .backup-center-header-tools {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: 100%;
+    }
+
     .backup-center-header-chip {
         white-space: normal;
         min-height: 0;
