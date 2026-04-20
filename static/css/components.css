@@ -12,21 +12,27 @@
 }
 
 .alert-success {
+    background: var(--status-success-bg);
     background: color-mix(in srgb, var(--status-success-bg) 78%, transparent);
     color: var(--status-success-text);
+    border-color: var(--status-success-border);
     border-color: color-mix(in srgb, var(--status-success-border) 82%, transparent);
 }
 
 .alert-error,
 .alert-danger {
+    background: var(--status-danger-bg);
     background: color-mix(in srgb, var(--status-danger-bg) 78%, transparent);
     color: var(--status-danger-text);
+    border-color: var(--status-danger-border);
     border-color: color-mix(in srgb, var(--status-danger-border) 82%, transparent);
 }
 
 .alert-warning {
+    background: var(--status-warning-bg);
     background: color-mix(in srgb, var(--status-warning-bg) 78%, transparent);
     color: var(--status-warning-text);
+    border-color: var(--status-warning-border);
     border-color: color-mix(in srgb, var(--status-warning-border) 82%, transparent);
 }
 
@@ -61,8 +67,10 @@
     height: 10px;
     flex: 0 0 10px;
     border-radius: 999px;
+    background: var(--action-accent, var(--color-text-muted));
     background: var(--action-accent, color-mix(in srgb, var(--color-text-muted) 72%, transparent));
     box-shadow:
+        0 0 0 3px rgba(100, 116, 139, 0.14),
         0 0 0 3px color-mix(in srgb, var(--action-accent, var(--color-text-muted)) 14%, transparent),
         inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
@@ -232,6 +240,7 @@
 }
 
 .collapse-toggle-header:hover {
+    background: var(--color-hover-surface);
     background: color-mix(in srgb, var(--color-hover-surface) 64%, transparent);
 }
 
@@ -250,6 +259,7 @@
     margin-left: auto;
     border-radius: 999px;
     border: 1px solid var(--border);
+    background: var(--surface-gradient-3);
     background: color-mix(in srgb, var(--surface-gradient-3) 84%, transparent);
     color: var(--color-text-soft);
     pointer-events: none;
@@ -354,8 +364,10 @@
 }
 
 .badge-primary {
+    background: var(--status-info-bg);
     background: color-mix(in srgb, var(--status-info-bg) 60%, transparent);
     color: var(--color-text);
+    border: 1px solid var(--status-info-border);
     border: 1px solid color-mix(in srgb, var(--status-info-border) 72%, transparent);
 }
 
