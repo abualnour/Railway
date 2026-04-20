@@ -104,6 +104,60 @@ class PayrollObligation(models.Model):
         return self.status == self.STATUS_ACTIVE and self.remaining_installments > 0
 
 
+class PayrollBonus(models.Model):
+    TYPE_PERFORMANCE = "performance"
+    TYPE_COMMISSION = "commission"
+    TYPE_SEASONAL = "seasonal"
+    TYPE_MANUAL = "manual"
+
+    STATUS_ACTIVE = "active"
+    STATUS_COMPLETED = "completed"
+    STATUS_HOLD = "hold"
+
+    TYPE_CHOICES = [
+        (TYPE_PERFORMANCE, "Performance"),
+        (TYPE_COMMISSION, "Commission"),
+        (TYPE_SEASONAL, "Seasonal"),
+        (TYPE_MANUAL, "Manual"),
+    ]
+    STATUS_CHOICES = [
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_COMPLETED, "Completed"),
+        (STATUS_HOLD, "On Hold"),
+    ]
+
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="payroll_bonuses")
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="payroll_bonuses")
+    title = models.CharField(max_length=150)
+    bonus_type = models.CharField(max_length=30, choices=TYPE_CHOICES, default=TYPE_MANUAL)
+    awarded_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.00"))])
+    paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    award_date = models.DateField(default=timezone.localdate)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
+    notes = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["employee__full_name", "-award_date", "-id"]
+        verbose_name = "Payroll Bonus"
+        verbose_name_plural = "Payroll Bonuses"
+
+    def __str__(self):
+        return f"{self.employee.full_name} - {self.title}"
+
+    @property
+    def remaining_balance(self):
+        return max(
+            (self.awarded_amount or Decimal("0.00")) - (self.paid_amount or Decimal("0.00")),
+            Decimal("0.00"),
+        )
+
+    @property
+    def can_apply_balance(self):
+        return self.status == self.STATUS_ACTIVE and self.remaining_balance > Decimal("0.00")
+
+
 class PayrollPeriod(models.Model):
     STATUS_DRAFT = "draft"
     STATUS_REVIEW = "review"
@@ -223,6 +277,7 @@ class PayrollAdjustment(models.Model):
 
     payroll_line = models.ForeignKey(PayrollLine, on_delete=models.CASCADE, related_name="adjustments")
     payroll_obligation = models.ForeignKey("PayrollObligation", on_delete=models.SET_NULL, related_name="generated_adjustments", null=True, blank=True)
+    payroll_bonus = models.ForeignKey("PayrollBonus", on_delete=models.SET_NULL, related_name="generated_adjustments", null=True, blank=True)
     title = models.CharField(max_length=120)
     adjustment_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.00"))])

@@ -7,12 +7,14 @@ from .managers import UserManager
 
 class User(AbstractUser):
     ROLE_HR = "hr"
+    ROLE_FINANCE_MANAGER = "finance_manager"
     ROLE_SUPERVISOR = "supervisor"
     ROLE_OPERATIONS_MANAGER = "operations_manager"
     ROLE_EMPLOYEE = "employee"
 
     ROLE_CHOICES = [
         (ROLE_HR, "HR"),
+        (ROLE_FINANCE_MANAGER, "Finance Manager"),
         (ROLE_SUPERVISOR, "Supervisor"),
         (ROLE_OPERATIONS_MANAGER, "Operations Manager"),
         (ROLE_EMPLOYEE, "Employee"),
@@ -55,6 +57,10 @@ class User(AbstractUser):
         return self.is_superuser or self.role == self.ROLE_SUPERVISOR
 
     @property
+    def is_finance_manager(self):
+        return self.is_superuser or self.role == self.ROLE_FINANCE_MANAGER
+
+    @property
     def is_operations_manager(self):
         return self.is_superuser or self.role == self.ROLE_OPERATIONS_MANAGER
 
@@ -66,6 +72,7 @@ class User(AbstractUser):
     def is_management_role(self):
         return self.is_superuser or self.role in {
             self.ROLE_HR,
+            self.ROLE_FINANCE_MANAGER,
             self.ROLE_SUPERVISOR,
             self.ROLE_OPERATIONS_MANAGER,
         }

@@ -1,8 +1,9 @@
 from django import forms
+from decimal import Decimal
 
 from organization.models import Company
 
-from .models import PayrollAdjustment, PayrollLine, PayrollObligation, PayrollPeriod, PayrollProfile
+from .models import PayrollAdjustment, PayrollBonus, PayrollLine, PayrollObligation, PayrollPeriod, PayrollProfile
 
 
 class PayrollProfileForm(forms.ModelForm):
@@ -112,6 +113,76 @@ class PayrollAdjustmentForm(forms.ModelForm):
             widget = field.widget
             existing = widget.attrs.get("class", "")
             widget.attrs["class"] = f"{existing} form-control".strip()
+
+
+class PayrollBonusForm(forms.ModelForm):
+    class Meta:
+        model = PayrollBonus
+        fields = [
+            "employee",
+            "company",
+            "title",
+            "bonus_type",
+            "awarded_amount",
+            "award_date",
+            "status",
+            "notes",
+        ]
+        widgets = {
+            "award_date": forms.DateInput(attrs={"type": "date"}),
+            "notes": forms.TextInput(attrs={"placeholder": "Optional bonus note"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            widget = field.widget
+            existing = widget.attrs.get("class", "")
+            widget.attrs["class"] = f"{existing} form-control".strip()
+
+
+class PayrollBonusApplyForm(forms.Form):
+    payroll_bonus = forms.ModelChoiceField(
+        queryset=PayrollBonus.objects.none(),
+        label="Bonus balance",
+    )
+    amount = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=Decimal("0.01"),
+        label="Apply amount",
+    )
+    notes = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Optional payslip note"}),
+        label="Notes",
+    )
+
+    def __init__(self, *args, employee=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            widget = field.widget
+            existing = widget.attrs.get("class", "")
+            widget.attrs["class"] = f"{existing} form-control".strip()
+
+        queryset = PayrollBonus.objects.filter(status=PayrollBonus.STATUS_ACTIVE).select_related("employee", "company")
+        if employee is not None:
+            queryset = queryset.filter(employee=employee)
+        self.fields["payroll_bonus"].queryset = queryset.order_by("-award_date", "-id")
+        self.employee = employee
+
+    def clean(self):
+        cleaned_data = super().clean()
+        payroll_bonus = cleaned_data.get("payroll_bonus")
+        amount = cleaned_data.get("amount")
+
+        if payroll_bonus and self.employee and payroll_bonus.employee_id != self.employee.pk:
+            self.add_error("payroll_bonus", "Selected bonus does not belong to this employee.")
+
+        if payroll_bonus and amount and amount > payroll_bonus.remaining_balance:
+            self.add_error("amount", "Applied amount cannot exceed the remaining bonus balance.")
+
+        return cleaned_data
 
 
 class PayrollObligationForm(forms.ModelForm):

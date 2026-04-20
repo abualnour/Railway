@@ -36,6 +36,12 @@
         var(--surface-hero-gradient);
 }
 
+.dashboard-platform-hero-finance {
+    background:
+        radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 28%),
+        var(--surface-hero-gradient);
+}
+
 .dashboard-platform-hero-operations {
     background:
         radial-gradient(circle at top right, rgba(34, 197, 94, 0.10), transparent 30%),
@@ -51,6 +57,7 @@
 }
 
 .dashboard-shell-self,
+.dashboard-shell-finance,
 .dashboard-shell-executive,
 .dashboard-shell-operations,
 .dashboard-shell-management,
@@ -308,6 +315,7 @@
 }
 
 .home-stat-ribbon-self,
+.home-stat-ribbon-finance,
 .home-stat-ribbon-management,
 .home-stat-ribbon-operations,
 .home-stat-ribbon-executive {
@@ -687,6 +695,7 @@
 
     .dashboard-shell,
     .dashboard-shell-self,
+    .dashboard-shell-finance,
     .dashboard-shell-executive,
     .dashboard-shell-operations,
     .dashboard-shell-management,

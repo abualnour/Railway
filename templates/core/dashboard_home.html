@@ -11,7 +11,7 @@
 {% block page_header %}{% endblock %}
 
 {% block content %}
-<div class="dashboard-shell {% if is_employee_self_service_dashboard %}dashboard-shell-self{% elif is_executive_dashboard %}dashboard-shell-executive{% else %}dashboard-shell-operations{% endif %}">
+<div class="dashboard-shell {% if is_employee_self_service_dashboard %}dashboard-shell-self{% elif is_finance_dashboard %}dashboard-shell-finance{% elif is_executive_dashboard %}dashboard-shell-executive{% else %}dashboard-shell-operations{% endif %}">
 {% if is_employee_self_service_dashboard %}
     <section class="platform-hero dashboard-platform-hero dashboard-platform-hero-self">
         <div class="platform-hero-copy">
@@ -137,6 +137,229 @@
                 <div class="empty-state">
                     <h3>No request updates yet</h3>
                     <p>Your request decisions and workflow states will appear here after submission.</p>
+                </div>
+            {% endif %}
+        </article>
+    </section>
+{% elif is_finance_dashboard %}
+    <section class="platform-hero dashboard-platform-hero dashboard-platform-hero-finance">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Finance Workspace</span>
+            <h1>One finance command page for payroll review, payslips, obligations, bonuses, and payment control</h1>
+            <p>
+                Review every payroll cycle from one focused workspace, follow bonus and obligation balances,
+                open employee payslips quickly, and control what is approved versus what is already paid.
+            </p>
+            <div class="platform-hero-meta">
+                <span class="platform-hero-chip">Mode: Finance</span>
+                <span class="platform-hero-chip">Profiles: {{ finance_profile_total }}</span>
+                <span class="platform-hero-chip">Approval Queue: {{ finance_status_cards.0.value }}</span>
+                <span class="platform-hero-chip">Ready For Payment: {{ finance_status_cards.1.value }}</span>
+            </div>
+        </div>
+
+        <div class="platform-hero-side">
+            <div class="platform-side-card">
+                <span>Outstanding Obligations</span>
+                <strong>{{ finance_outstanding_obligation_balance }}</strong>
+                <small>{{ finance_active_obligation_total }} active payroll obligations still running</small>
+            </div>
+            <div class="platform-side-card">
+                <span>Outstanding Bonus Balance</span>
+                <strong>{{ finance_outstanding_bonus_balance }}</strong>
+                <small>{{ finance_active_bonus_total }} active bonus balances still available</small>
+            </div>
+            {% if finance_quick_links %}
+                <div class="platform-inline-actions platform-hero-actions dashboard-platform-actions">
+                    {% for item in finance_quick_links %}
+                        <a href="{{ item.url }}" class="btn btn-light btn-sm">{{ item.label }}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="platform-stats-grid home-stat-ribbon home-stat-ribbon-finance">
+        {% for item in finance_status_cards %}
+            <article class="platform-stat-card home-stat-pill{% if item.tone == 'warning' %} home-stat-pill-danger{% elif item.tone == 'primary' %} home-stat-pill-success{% endif %}">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+            </article>
+        {% endfor %}
+        <article class="platform-stat-card home-stat-pill">
+            <span>Payroll Profiles</span>
+            <strong>{{ finance_profile_total }}</strong>
+        </article>
+        <article class="platform-stat-card home-stat-pill home-stat-pill-danger">
+            <span>Profiles On Hold</span>
+            <strong>{{ finance_hold_profile_total }}</strong>
+        </article>
+    </section>
+
+    <section class="platform-grid home-content-grid home-content-grid-management">
+        <article class="platform-panel platform-panel-wide home-panel home-panel-wide" id="finance-approval-queue">
+            <div class="home-panel-head">
+                <span class="dashboard-kicker">Approval Queue</span>
+                <h3>Payroll Periods Waiting For Finance Approval</h3>
+                <p>These payroll periods are already prepared and submitted, and now they are waiting for finance review.</p>
+            </div>
+            {% if finance_review_periods %}
+                <div class="platform-list home-hire-list">
+                    {% for period in finance_review_periods %}
+                        <a href="{% url 'payroll:period_detail' period.pk %}" class="platform-list-item home-hire-item">
+                            <div class="platform-list-item-stack home-hire-main">
+                                <strong>{{ period.title }}</strong>
+                                <small>{{ period.company.name }} | {{ period.period_start|date:"M j" }} to {{ period.period_end|date:"M j, Y" }}</small>
+                            </div>
+                            <span class="badge badge-warning">{{ period.get_status_display }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No payroll periods waiting</h3>
+                    <p>The finance approval queue is currently clear.</p>
+                </div>
+            {% endif %}
+        </article>
+
+        <article class="platform-panel home-panel" id="finance-payment-status">
+            <div class="home-panel-head">
+                <span class="dashboard-kicker">Payment Ready</span>
+                <h3>Approved Payroll Waiting To Be Paid</h3>
+                <p>Finance can mark these approved periods as paid once the actual salary transfer is completed.</p>
+            </div>
+            {% if finance_ready_periods %}
+                <div class="platform-list home-stat-list">
+                    {% for period in finance_ready_periods %}
+                        <div class="platform-list-item home-stat-row">
+                            <strong>{{ period.title }}</strong>
+                            <span>{{ period.get_status_display }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No approved payroll pending payment</h3>
+                    <p>Approved payroll periods will appear here when they are ready for payment release.</p>
+                </div>
+            {% endif %}
+        </article>
+
+        <article class="platform-panel home-panel" id="finance-payslip-output">
+            <div class="home-panel-head">
+                <span class="dashboard-kicker">Payslip Output</span>
+                <h3>Recent Payslip Lines</h3>
+                <p>Open employee payslips quickly from the latest payroll periods in review, approved, or paid status.</p>
+            </div>
+            {% if finance_recent_lines %}
+                <div class="platform-list home-hire-list">
+                    {% for line in finance_recent_lines %}
+                        <a href="{% url 'payroll:line_payslip' line.pk %}" class="platform-list-item home-hire-item">
+                            <div class="platform-list-item-stack home-hire-main">
+                                <strong>{{ line.employee.full_name }}</strong>
+                                <small>{{ line.payroll_period.title }} | Net {{ line.net_pay }}</small>
+                            </div>
+                            <span class="badge badge-light">Open</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No payslip rows yet</h3>
+                    <p>Payslip-ready payroll lines will appear here after payroll periods are generated.</p>
+                </div>
+            {% endif %}
+        </article>
+
+        <article class="platform-panel home-panel">
+            <div class="home-panel-head">
+                <span class="dashboard-kicker">Bonus Watch</span>
+                <h3>Active Bonus Balances</h3>
+                <p>Follow bonus balances that can still be applied into future payroll periods.</p>
+            </div>
+            {% if finance_active_bonuses %}
+                <div class="platform-list home-stat-list">
+                    {% for bonus in finance_active_bonuses %}
+                        <div class="platform-list-item home-stat-row">
+                            <strong>{{ bonus.employee.full_name }}</strong>
+                            <span>{{ bonus.remaining_balance }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No active bonus balances</h3>
+                    <p>Bonus balances still available for payroll application will appear here.</p>
+                </div>
+            {% endif %}
+        </article>
+
+        <article class="platform-panel home-panel">
+            <div class="home-panel-head">
+                <span class="dashboard-kicker">Deduction Watch</span>
+                <h3>Active Loans And Advances</h3>
+                <p>Keep an eye on outstanding payroll obligations still being deducted from employees.</p>
+            </div>
+            {% if finance_active_obligations %}
+                <div class="platform-list home-stat-list">
+                    {% for obligation in finance_active_obligations %}
+                        <div class="platform-list-item home-stat-row">
+                            <strong>{{ obligation.employee.full_name }}</strong>
+                            <span>{{ obligation.remaining_balance }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No active obligations</h3>
+                    <p>Loans and advances still affecting payroll will appear here.</p>
+                </div>
+            {% endif %}
+        </article>
+
+        <article class="platform-panel home-panel">
+            <div class="home-panel-head">
+                <span class="dashboard-kicker">Profile Watch</span>
+                <h3>Payroll Profiles On Hold</h3>
+                <p>These payroll profiles are not currently active and may need finance follow-up before the next cycle.</p>
+            </div>
+            {% if finance_hold_profiles %}
+                <div class="platform-list home-stat-list">
+                    {% for profile in finance_hold_profiles %}
+                        <div class="platform-list-item home-stat-row">
+                            <strong>{{ profile.employee.full_name }}</strong>
+                            <span>{{ profile.get_status_display }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No payroll profiles on hold</h3>
+                    <p>Any held payroll profile will appear here for quick finance review.</p>
+                </div>
+            {% endif %}
+        </article>
+
+        <article class="platform-panel home-panel">
+            <div class="home-panel-head">
+                <span class="dashboard-kicker">Payment History</span>
+                <h3>Recently Paid Payroll Periods</h3>
+                <p>See the latest payroll cycles already closed out and marked as paid.</p>
+            </div>
+            {% if finance_recent_paid_periods %}
+                <div class="platform-list home-stat-list">
+                    {% for period in finance_recent_paid_periods %}
+                        <div class="platform-list-item home-stat-row">
+                            <strong>{{ period.title }}</strong>
+                            <span>{% if period.pay_date %}{{ period.pay_date|date:"M j, Y" }}{% else %}Paid{% endif %}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No paid payroll history yet</h3>
+                    <p>Paid payroll periods will appear here once finance closes completed cycles.</p>
                 </div>
             {% endif %}
         </article>

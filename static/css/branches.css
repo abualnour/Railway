@@ -649,8 +649,8 @@
 .org-standard-list-table tbody td,
 .org-related-table tbody td,
 .branch-overview-table tbody td {
-    padding-top: 14px;
-    padding-bottom: 14px;
+    padding-top: 10px;
+    padding-bottom: 10px;
     vertical-align: middle;
 }
 
@@ -660,17 +660,17 @@
 
 .org-name-cell-premium .org-name-title,
 .org-name-cell .org-name-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 800;
     line-height: 1.2;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
 }
 
 .org-name-cell-premium .org-name-subtitle,
 .org-name-cell .org-name-subtitle {
     color: var(--text-soft);
-    line-height: 1.5;
-    font-size: 13px;
+    line-height: 1.4;
+    font-size: 12px;
     max-width: 760px;
 }
 
@@ -680,7 +680,7 @@
 }
 
 .table-actions-col {
-    width: 280px;
+    width: 228px;
     white-space: nowrap;
 }
 
@@ -702,9 +702,9 @@
 .table-action-buttons-compact .btn,
 .table-action-buttons .btn,
 .table-action-buttons-premium .btn {
-    min-width: 74px;
-    padding-top: 8px;
-    padding-bottom: 8px;
+    min-width: 62px;
+    padding-top: 6px;
+    padding-bottom: 6px;
 }
 
 .branch-overview-table .table-action-buttons {
@@ -1663,7 +1663,7 @@
 .org-name-cell-with-media {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
 }
 
 .org-list-avatar-shell {
@@ -1672,9 +1672,9 @@
 
 .org-list-avatar,
 .org-list-avatar-fallback {
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: var(--surface-gradient-3);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
@@ -2210,11 +2210,11 @@
 .branch-overview-record-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 128px;
-    gap: 18px;
+    gap: 14px;
     align-items: stretch;
-    padding: 18px 18px 18px 16px;
+    padding: 14px 14px 14px 12px;
     border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 28px;
+    border-radius: 24px;
     background: linear-gradient(180deg, rgba(10, 10, 10, 0.99) 0%, rgba(4, 4, 4, 1) 100%);
     box-shadow:
         0 14px 30px rgba(0, 0, 0, 0.24),
@@ -2222,7 +2222,7 @@
 }
 
 .branch-overview-record-row + .branch-overview-record-row {
-    margin-top: 18px;
+    margin-top: 12px;
 }
 
 .branch-overview-record-main {
@@ -2241,14 +2241,14 @@
 .branch-overview-record-block {
     min-width: 0;
     display: grid;
-    gap: 10px;
+    gap: 8px;
     align-content: start;
 }
 
 .branch-overview-record-identity {
     display: flex;
     align-items: flex-start;
-    gap: 18px;
+    gap: 12px;
     min-width: 0;
 }
 
@@ -2256,7 +2256,7 @@
     display: block;
     margin: 0;
     color: var(--text-soft);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     line-height: 1.2;
     text-transform: uppercase;
@@ -2269,9 +2269,9 @@
 
 .branch-overview-record-identity .org-list-avatar,
 .branch-overview-record-identity .org-list-avatar-fallback {
-    width: 72px;
-    height: 72px;
-    border-radius: 22px;
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
 }
 
 .branch-overview-record-identity .org-name-copy {
@@ -2283,20 +2283,22 @@
 
 .branch-overview-record-identity .org-name-title,
 .branch-overview-record-identity .org-name-title a {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 800;
-    line-height: 1.25;
+    line-height: 1.2;
 }
 
 .branch-overview-branch-meta {
     display: grid;
-    gap: 3px;
+    gap: 2px;
     max-width: 280px;
     color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
 }
 
 .branch-overview-record-compliance {
-    margin-left: -40px;
+    margin-left: -20px;
 }
 
 .branch-overview-compliance-cell {
@@ -2317,22 +2319,22 @@
     line-height: 1.55;
 }
 .branch-overview-record-summary {
-    margin-left: -25px;
+    margin-left: -12px;
 }
 
 .branch-overview-summary-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
 }
 
 .branch-overview-summary-item {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    min-height: 34px;
-    padding: 6px 10px;
+    gap: 6px;
+    min-height: 30px;
+    padding: 5px 8px;
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.07);
     background: var(--surface-gradient-3);
@@ -2340,7 +2342,7 @@
 
 .branch-overview-summary-label {
     color: var(--text-soft);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -2349,14 +2351,14 @@
 
 .branch-overview-summary-value {
     color: var(--text);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
     line-height: 1;
 }
 
 .branch-overview-status-cell {
     display: grid;
-    gap: 8px;
+    gap: 6px;
     align-content: start;
 }
 
@@ -2366,16 +2368,16 @@
 
 .branch-overview-record-actions {
     display: grid;
-    gap: 12px;
+    gap: 8px;
     align-content: start;
-    padding-left: 18px;
+    padding-left: 12px;
     border-left: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .branch-overview-record-actions .table-action-buttons {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
     align-items: stretch;
 }
 

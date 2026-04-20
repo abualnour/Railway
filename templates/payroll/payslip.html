@@ -21,6 +21,7 @@
                 <span class="platform-hero-chip">Employee ID: {{ payroll_line.employee.employee_id|default:"Not Assigned" }}</span>
                 <span class="platform-hero-chip">Period: {{ payroll_line.payroll_period.get_status_display }}</span>
                 <span class="platform-hero-chip">Net Pay: {{ payroll_line.net_pay }}</span>
+                <span class="platform-hero-chip">Remaining Bonus Balance: {{ outstanding_bonus_balance|default:"0.00" }}</span>
             </div>
         </div>
         <div class="platform-hero-side">
@@ -85,7 +86,7 @@
                 </div>
                 <div class="platform-list-item">
                     <div><strong>Deductions</strong></div>
-                    <span class="badge badge-warning">{{ payroll_line.deductions }}</span>
+                    <span class="badge badge-warning">{{ total_deductions_value }}</span>
                 </div>
                 <div class="platform-list-item">
                     <div><strong>Net Pay</strong></div>
@@ -106,16 +107,16 @@
     </section>
 
     <section class="platform-panel">
-        <div class="platform-panel-head">
-            <h2>Adjustments And Installments</h2>
-        </div>
+            <div class="platform-panel-head">
+                <h2>Adjustments And Installments</h2>
+            </div>
         {% if payslip_adjustments %}
             <div class="platform-list">
                 {% for adjustment in payslip_adjustments %}
                     <div class="platform-list-item">
                         <div>
                             <strong>{{ adjustment.title }}</strong>
-                            <small>{{ adjustment.get_adjustment_type_display }}{% if adjustment.payroll_obligation %} | {{ adjustment.payroll_obligation.get_obligation_type_display }} installment{% endif %}{% if adjustment.notes %} | {{ adjustment.notes }}{% endif %}</small>
+                            <small>{{ adjustment.get_adjustment_type_display }}{% if adjustment.payroll_bonus %} | {{ adjustment.payroll_bonus.get_bonus_type_display }} bonus{% endif %}{% if adjustment.payroll_obligation %} | {{ adjustment.payroll_obligation.get_obligation_type_display }} installment{% endif %}{% if adjustment.notes %} | {{ adjustment.notes }}{% endif %}</small>
                         </div>
                         <span class="badge {% if adjustment.adjustment_type == 'allowance' %}badge-primary{% else %}badge-warning{% endif %}">{{ adjustment.amount }}</span>
                     </div>
@@ -125,6 +126,30 @@
             <div class="empty-state">
                 <h3>No adjustments on this payslip</h3>
                 <p>This payroll line does not contain additional bonuses, deductions, loans, or advances.</p>
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="platform-panel">
+        <div class="platform-panel-head">
+            <h2>Bonus Balance Summary</h2>
+        </div>
+        {% if employee_bonus_balances %}
+            <div class="platform-list">
+                {% for bonus in employee_bonus_balances %}
+                    <div class="platform-list-item">
+                        <div>
+                            <strong>{{ bonus.title }}</strong>
+                            <small>{{ bonus.get_bonus_type_display }} | Awarded {{ bonus.awarded_amount }} | Paid {{ bonus.paid_amount }}</small>
+                        </div>
+                        <span class="badge {% if bonus.status == 'completed' %}badge-success{% elif bonus.status == 'hold' %}badge-warning{% else %}badge-light{% endif %}">Remaining {{ bonus.remaining_balance }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>No bonus balances for this employee</h3>
+                <p>This employee does not have any tracked bonus balance records yet.</p>
             </div>
         {% endif %}
     </section>

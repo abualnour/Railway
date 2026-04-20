@@ -8,18 +8,10 @@
     <link rel="stylesheet" href="{% static 'css/branches.css' %}">
 {% endblock %}
 
+{% block organization_shell_header %}{% endblock %}
+
 {% block content %}
 <div class="org-page-shell org-form-page-shell">
-    <div class="page-header org-page-header org-page-header-spacious">
-        <div>
-            <div class="detail-page-kicker">Organization</div>
-            <h1 class="page-title">{{ page_title }}</h1>
-            <p class="page-subtitle org-page-subtitle-wide">
-                {{ organization_form_meta.subtitle|default:"Fill in the required information below." }}
-            </p>
-        </div>
-    </div>
-
     {% if organization_form_meta %}
     <div class="card org-form-guide-card org-related-card-premium">
         <div class="card-body org-form-guide-body">

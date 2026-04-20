@@ -50,11 +50,6 @@ def should_account_have_staff_access(role_value):
 
 
 class EmployeeForm(forms.ModelForm):
-    login_email = forms.EmailField(
-        required=False,
-        label="Login Email",
-        help_text="This email will be used as the employee login account.",
-    )
     password1 = forms.CharField(
         required=False,
         widget=forms.PasswordInput(render_value=False),
@@ -152,7 +147,6 @@ class EmployeeForm(forms.ModelForm):
         }
 
         if linked_user:
-            self.fields["login_email"].initial = getattr(linked_user, "email", "")
             self.fields["login_is_active"].initial = getattr(linked_user, "is_active", True)
 
         department_id = None
@@ -194,16 +188,11 @@ class EmployeeForm(forms.ModelForm):
             return False
 
 
-    def clean_login_email(self):
-        login_email = (self.cleaned_data.get("login_email") or "").strip().lower()
-        return login_email
-
     def _wants_login_account(self, cleaned_data):
         existing_user = getattr(self.instance, "user", None)
-        login_email = cleaned_data.get("login_email")
         password1 = cleaned_data.get("password1")
         password2 = cleaned_data.get("password2")
-        return bool(existing_user or login_email or password1 or password2)
+        return bool(existing_user or password1 or password2)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -211,9 +200,10 @@ class EmployeeForm(forms.ModelForm):
         department = cleaned_data.get("department")
         section = cleaned_data.get("section")
         job_title = cleaned_data.get("job_title")
-        login_email = cleaned_data.get("login_email")
+        employee_email = (cleaned_data.get("email") or "").strip().lower()
         password1 = cleaned_data.get("password1")
         password2 = cleaned_data.get("password2")
+        cleaned_data["email"] = employee_email
 
         if section and department and section.department_id != department.id:
             self.add_error("section", "Selected section must belong to the selected department.")
@@ -243,17 +233,17 @@ class EmployeeForm(forms.ModelForm):
             self.add_error("civil_id_expiry_date", "Civil ID expiry date must be on or after the Civil ID issue date.")
 
         if self._wants_login_account(cleaned_data):
-            if not login_email:
-                self.add_error("login_email", "Login email is required when creating or updating a login account.")
+            if not employee_email:
+                self.add_error("email", "Employee email is required when creating or updating a login account.")
 
-            existing_user_qs = UserModel.objects.filter(email__iexact=login_email)
+            existing_user_qs = UserModel.objects.filter(email__iexact=employee_email)
             existing_linked_user = getattr(self.instance, "user", None)
 
             if existing_linked_user:
                 existing_user_qs = existing_user_qs.exclude(pk=existing_linked_user.pk)
 
-            if login_email and existing_user_qs.exists():
-                self.add_error("login_email", "This login email is already used by another account.")
+            if employee_email and existing_user_qs.exists():
+                self.add_error("email", "This employee email is already used by another login account.")
 
             if password1 or password2:
                 if password1 != password2:
@@ -267,7 +257,10 @@ class EmployeeForm(forms.ModelForm):
         employee = super().save(commit=False)
 
         cleaned_data = getattr(self, "cleaned_data", {})
-        login_email = cleaned_data.get("login_email")
+        employee_email = (cleaned_data.get("email") or "").strip().lower()
+        employee_full_name = (cleaned_data.get("full_name") or "").strip()
+        employee.email = employee_email
+        employee.full_name = employee_full_name
         password1 = cleaned_data.get("password1")
         login_is_active = cleaned_data.get("login_is_active", True)
 
@@ -282,7 +275,7 @@ class EmployeeForm(forms.ModelForm):
                 self.account_save_action = "updated"
             else:
                 create_kwargs = {
-                    "email": login_email or "",
+                    "email": employee_email or "",
                     "password": password1,
                     "is_active": login_is_active,
                 }
@@ -294,7 +287,13 @@ class EmployeeForm(forms.ModelForm):
                 self.account_save_action = "created"
 
             if self._user_has_real_field(user, "email"):
-                user.email = login_email or ""
+                user.email = employee_email or ""
+
+            if self._user_has_real_field(user, "first_name"):
+                user.first_name = employee_full_name
+
+            if self._user_has_real_field(user, "last_name"):
+                user.last_name = ""
 
             if self._user_has_real_field(user, "is_active"):
                 user.is_active = login_is_active

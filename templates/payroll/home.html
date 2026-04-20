@@ -18,6 +18,7 @@
                 <span class="platform-hero-chip">Profiles: {{ payroll_profile_total }}</span>
                 <span class="platform-hero-chip">Draft Periods: {{ draft_period_total }}</span>
                 <span class="platform-hero-chip">Active Obligations: {{ active_obligation_total }}</span>
+                <span class="platform-hero-chip">Active Bonuses: {{ active_bonus_total }}</span>
             </div>
         </div>
         <div class="platform-hero-side">
@@ -115,6 +116,11 @@
             <strong>{{ outstanding_obligation_balance|default:"0.00" }}</strong>
             <small>Remaining balance across active obligations</small>
         </article>
+        <article class="platform-stat-card">
+            <span>Bonus Balance</span>
+            <strong>{{ outstanding_bonus_balance|default:"0.00" }}</strong>
+            <small>Remaining unpaid bonus balance</small>
+        </article>
     </section>
 
     <section class="platform-grid">
@@ -166,6 +172,7 @@
     </section>
 
     <section class="platform-grid">
+        {% if can_prepare_payroll %}
         <article class="platform-panel">
             <div class="platform-panel-head">
                 <h2>Create Payroll Period</h2>
@@ -188,7 +195,9 @@
                 </div>
             </form>
         </article>
+        {% endif %}
 
+        {% if can_prepare_payroll %}
         <article class="platform-panel">
             <div class="platform-panel-head">
                 <h2>Generate Payroll Lines</h2>
@@ -211,7 +220,9 @@
                 </div>
             </form>
         </article>
+        {% endif %}
 
+        {% if can_prepare_payroll %}
         <article class="platform-panel">
             <div class="platform-panel-head">
                 <h2>Create Loan / Advance</h2>
@@ -234,6 +245,32 @@
                 </div>
             </form>
         </article>
+        {% endif %}
+
+        {% if can_prepare_payroll %}
+        <article class="platform-panel">
+            <div class="platform-panel-head">
+                <h2>Create Bonus Balance</h2>
+                <p>Register approved employee bonus balances so they can be applied partially or fully into future payslips.</p>
+            </div>
+            <form method="post" class="platform-form-grid">
+                {% csrf_token %}
+                <input type="hidden" name="payroll_action" value="create_bonus">
+                {% for field in bonus_form %}
+                    <div class="form-group {% if field.name == 'notes' %}platform-form-span{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="form-error">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                <div class="platform-form-actions">
+                    <button type="submit" class="btn btn-primary">Save Bonus</button>
+                </div>
+            </form>
+        </article>
+        {% endif %}
 
         <article class="platform-panel platform-panel-wide">
             <div class="platform-panel-head">
@@ -393,7 +430,7 @@
                         <div class="platform-list-item">
                             <div>
                                 <strong>{{ adjustment.title }} | <a href="{% url 'employees:employee_detail' adjustment.payroll_line.employee.pk %}?tab=payroll#employee-payroll-section">{{ adjustment.payroll_line.employee.full_name }}</a></strong>
-                                <small>{{ adjustment.payroll_line.payroll_period.title }} | {{ adjustment.get_adjustment_type_display }}{% if adjustment.notes %} | {{ adjustment.notes }}{% endif %}</small>
+                                <small>{{ adjustment.payroll_line.payroll_period.title }} | {{ adjustment.get_adjustment_type_display }}{% if adjustment.payroll_bonus %} | From bonus balance{% endif %}{% if adjustment.notes %} | {{ adjustment.notes }}{% endif %}</small>
                             </div>
                             <span class="badge {% if adjustment.adjustment_type == 'allowance' %}badge-primary{% else %}badge-warning{% endif %}">{{ adjustment.amount }}</span>
                         </div>
@@ -403,6 +440,31 @@
                 <div class="empty-state">
                     <h3>No adjustments yet</h3>
                     <p>Adjustments will appear here once payroll lines start receiving bonuses, deductions, advances, or corrections.</p>
+                </div>
+            {% endif %}
+        </article>
+
+        <article class="platform-panel platform-panel-wide">
+            <div class="platform-panel-head">
+                <h2>Bonus Balances</h2>
+                <p>Track awarded, paid, and remaining bonus amounts before they move into employee payslips.</p>
+            </div>
+            {% if payroll_bonuses %}
+                <div class="platform-list">
+                    {% for bonus in payroll_bonuses %}
+                        <div class="platform-list-item">
+                            <div>
+                                <strong><a href="{% url 'employees:employee_detail' bonus.employee.pk %}?tab=payroll#employee-payroll-section">{{ bonus.employee.full_name }}</a> | {{ bonus.title }}</strong>
+                                <small>{{ bonus.get_bonus_type_display }} | Awarded {{ bonus.awarded_amount }} | Paid {{ bonus.paid_amount }} | Remaining {{ bonus.remaining_balance }}</small>
+                            </div>
+                            <span class="badge {% if bonus.status == 'completed' %}badge-success{% elif bonus.status == 'hold' %}badge-warning{% else %}badge-primary{% endif %}">{{ bonus.get_status_display }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No bonus balances yet</h3>
+                    <p>Create bonus balances here, then apply them from a payroll period into employee payslips.</p>
                 </div>
             {% endif %}
         </article>

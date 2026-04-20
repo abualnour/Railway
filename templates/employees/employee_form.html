@@ -218,18 +218,12 @@
                     <h2>System Login Account</h2>
                     <p>
                         Create or update the linked login account for this employee.
-                        Leave all fields in this section empty if this employee should not sign in to the system.
+                        The employee email above will be used as the login email automatically.
+                        Leave the password fields empty if this employee should not sign in to the system.
                     </p>
                 </div>
 
                 <div class="form-grid two-col">
-                    <div class="form-group">
-                        <label for="{{ form.login_email.id_for_label }}">Login Email</label>
-                        {{ form.login_email }}
-                        {{ form.login_email.errors }}
-                        <small class="form-help">{{ form.login_email.help_text }}</small>
-                    </div>
-
                     <div class="form-group">
                         <label for="{{ form.password1.id_for_label }}">Password</label>
                         {{ form.password1 }}

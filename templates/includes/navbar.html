@@ -162,6 +162,8 @@
                             My Supervisor Profile
                             {% elif user.is_hr %}
                             My HR Profile
+                            {% elif user.is_finance_manager %}
+                            My Finance Profile
                             {% elif user.is_operations_manager %}
                             My Operations Profile
                             {% else %}
@@ -294,7 +296,7 @@
 
                 {% if user.is_authenticated %}
                 <div class="topbar-user-card">
-                    {% if user.is_superuser or user.is_hr or user.is_operations_manager %}
+                    {% if user.is_superuser or user.is_hr or user.is_finance_manager or user.is_operations_manager %}
                     <img src="{% static 'brand/nouraxis-logo.png' %}" alt="Admin account" class="topbar-user-avatar">
                     {% elif nav_employee_profile and nav_employee_profile.photo %}
                     <img src="{{ nav_employee_profile.photo.url }}" alt="{{ user.get_full_name|default:user.username }}"
@@ -325,6 +327,8 @@
                             Supervisor | {{ nav_scoped_branch.name }}
                             {% elif user.is_hr %}
                             HR User
+                            {% elif user.is_finance_manager %}
+                            Finance Manager
                             {% elif user.is_operations_manager %}
                             Operations Manager
                             {% elif user.is_employee_role %}

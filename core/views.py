@@ -40,7 +40,7 @@ from organization.models import (
     JobTitle,
     Section,
 )
-from payroll.models import PayrollObligation, PayrollPeriod
+from payroll.models import PayrollBonus, PayrollLine, PayrollObligation, PayrollPeriod, PayrollProfile
 
 class DashboardHomeView(LoginRequiredMixin, TemplateView):
     template_name = "core/dashboard_home.html"
@@ -61,12 +61,15 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
         if getattr(user, "is_superuser", False):
             return True
         role_value = (getattr(user, "role", "") or "").strip().lower()
-        if role_value in {"hr", "supervisor", "operations_manager", "employee"}:
+        if role_value in {"hr", "finance_manager", "supervisor", "operations_manager", "employee"}:
             return False
         return bool(getattr(user, "is_staff", False))
 
     def is_hr_user(self, user):
         return bool(user and user.is_authenticated and getattr(user, "is_hr", False))
+
+    def is_finance_manager_user(self, user):
+        return bool(user and user.is_authenticated and getattr(user, "is_finance_manager", False))
 
     def is_supervisor_user(self, user):
         return bool(user and user.is_authenticated and getattr(user, "is_supervisor", False))
@@ -84,6 +87,7 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
             and (
                 self.is_admin_compatible(user)
                 or self.is_hr_user(user)
+                or self.is_finance_manager_user(user)
                 or self.is_supervisor_user(user)
                 or self.is_operations_manager_user(user)
             )
@@ -421,6 +425,7 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+        role_value = (getattr(user, "role", "") or "").strip().lower()
         today = timezone.localdate()
         employee_profile = self.get_employee_profile()
         scoped_branch = self.get_scoped_branch(user, employee_profile)
@@ -443,6 +448,11 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
             (self.is_admin_compatible(user) or getattr(user, "is_superuser", False))
             and scoped_branch is None
             and not is_employee_self_service_dashboard
+        )
+        is_finance_dashboard = bool(
+            role_value == "finance_manager"
+            and not is_employee_self_service_dashboard
+            and not is_executive_dashboard
         )
 
         if is_employee_self_service_dashboard:
@@ -508,6 +518,88 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
             .annotate(total=Count("id"))
             .order_by("-total", "department__name")[:8]
         )
+        payroll_profile_queryset = PayrollProfile.objects.select_related("employee", "company").order_by("employee__full_name")
+        finance_review_periods = list(
+            PayrollPeriod.objects.select_related("company")
+            .filter(status=PayrollPeriod.STATUS_REVIEW)
+            .order_by("-period_start", "-id")[:6]
+        )
+        finance_ready_periods = list(
+            PayrollPeriod.objects.select_related("company")
+            .filter(status=PayrollPeriod.STATUS_APPROVED)
+            .order_by("-period_start", "-id")[:6]
+        )
+        finance_recent_paid_periods = list(
+            PayrollPeriod.objects.select_related("company")
+            .filter(status=PayrollPeriod.STATUS_PAID)
+            .order_by("-pay_date", "-period_end", "-id")[:6]
+        )
+        finance_active_obligations = list(
+            PayrollObligation.objects.select_related("employee", "company")
+            .filter(status=PayrollObligation.STATUS_ACTIVE)
+            .order_by("-updated_at", "-id")[:6]
+        )
+        finance_active_bonuses = list(
+            PayrollBonus.objects.select_related("employee", "company")
+            .filter(status=PayrollBonus.STATUS_ACTIVE)
+            .order_by("-updated_at", "-id")[:6]
+        )
+        finance_recent_lines = list(
+            PayrollLine.objects.select_related("employee", "employee__company", "payroll_period", "payroll_period__company")
+            .filter(payroll_period__status__in=[PayrollPeriod.STATUS_REVIEW, PayrollPeriod.STATUS_APPROVED, PayrollPeriod.STATUS_PAID])
+            .order_by("-payroll_period__period_start", "employee__full_name")[:8]
+        )
+        finance_hold_profiles = list(
+            payroll_profile_queryset.filter(status=PayrollProfile.STATUS_HOLD)[:6]
+        )
+        finance_profile_total = payroll_profile_queryset.count()
+        finance_hold_profile_total = payroll_profile_queryset.filter(status=PayrollProfile.STATUS_HOLD).count()
+        finance_active_obligation_total = PayrollObligation.objects.filter(
+            status=PayrollObligation.STATUS_ACTIVE
+        ).count()
+        finance_active_bonus_total = PayrollBonus.objects.filter(
+            status=PayrollBonus.STATUS_ACTIVE
+        ).count()
+        finance_outstanding_obligation_balance = sum(
+            obligation.remaining_balance
+            for obligation in PayrollObligation.objects.filter(status=PayrollObligation.STATUS_ACTIVE)
+        )
+        finance_outstanding_bonus_balance = sum(
+            bonus.remaining_balance
+            for bonus in PayrollBonus.objects.filter(status=PayrollBonus.STATUS_ACTIVE)
+        )
+        finance_status_cards = [
+            {
+                "label": "In Review",
+                "value": PayrollPeriod.objects.filter(status=PayrollPeriod.STATUS_REVIEW).count(),
+                "tone": "warning",
+                "help_text": "Payroll periods waiting for finance approval.",
+            },
+            {
+                "label": "Ready For Payment",
+                "value": PayrollPeriod.objects.filter(status=PayrollPeriod.STATUS_APPROVED).count(),
+                "tone": "primary",
+                "help_text": "Approved payroll periods still waiting to be marked paid.",
+            },
+            {
+                "label": "Active Bonuses",
+                "value": finance_active_bonus_total,
+                "tone": "primary",
+                "help_text": "Bonus balances still available to be applied.",
+            },
+            {
+                "label": "Active Obligations",
+                "value": finance_active_obligation_total,
+                "tone": "warning",
+                "help_text": "Loans and advances still affecting payroll lines.",
+            },
+        ]
+        finance_quick_links = [
+            {"label": "Open Payroll Workspace", "url": reverse("payroll:home")},
+            {"label": "Approval Queue", "url": "#finance-approval-queue"},
+            {"label": "Payslip Output", "url": "#finance-payslip-output"},
+            {"label": "Payment Status", "url": "#finance-payment-status"},
+        ]
 
         can_view_organization_setup = bool(
             self.is_admin_compatible(user)
@@ -651,6 +743,7 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
         context.update(
             {
                 "is_employee_self_service_dashboard": False,
+                "is_finance_dashboard": is_finance_dashboard,
                 "is_executive_dashboard": is_executive_dashboard,
                 "is_branch_scoped_supervisor": scoped_branch is not None,
                 "scoped_branch": scoped_branch,
@@ -677,6 +770,21 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
                 "executive_active_obligations": executive_active_obligations,
                 "executive_policies": executive_policies,
                 "executive_announcements": executive_announcements,
+                "finance_quick_links": finance_quick_links,
+                "finance_status_cards": finance_status_cards,
+                "finance_review_periods": finance_review_periods,
+                "finance_ready_periods": finance_ready_periods,
+                "finance_recent_paid_periods": finance_recent_paid_periods,
+                "finance_recent_lines": finance_recent_lines,
+                "finance_active_obligations": finance_active_obligations,
+                "finance_active_bonuses": finance_active_bonuses,
+                "finance_hold_profiles": finance_hold_profiles,
+                "finance_profile_total": finance_profile_total,
+                "finance_hold_profile_total": finance_hold_profile_total,
+                "finance_active_obligation_total": finance_active_obligation_total,
+                "finance_active_bonus_total": finance_active_bonus_total,
+                "finance_outstanding_obligation_balance": finance_outstanding_obligation_balance,
+                "finance_outstanding_bonus_balance": finance_outstanding_bonus_balance,
                 "can_view_employee_directory": bool(
                     self.is_admin_compatible(user)
                     or self.is_hr_user(user)

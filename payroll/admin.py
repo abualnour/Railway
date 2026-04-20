@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import PayrollAdjustment, PayrollLine, PayrollObligation, PayrollPeriod, PayrollProfile
+from .models import PayrollAdjustment, PayrollBonus, PayrollLine, PayrollObligation, PayrollPeriod, PayrollProfile
 
 
 @admin.register(PayrollProfile)
@@ -47,4 +47,11 @@ class PayrollAdjustmentAdmin(admin.ModelAdmin):
 class PayrollObligationAdmin(admin.ModelAdmin):
     list_display = ("employee", "title", "obligation_type", "installment_amount", "remaining_installments", "status")
     list_filter = ("obligation_type", "status", "company")
+    search_fields = ("employee__full_name", "employee__employee_id", "title", "company__name")
+
+
+@admin.register(PayrollBonus)
+class PayrollBonusAdmin(admin.ModelAdmin):
+    list_display = ("employee", "title", "bonus_type", "awarded_amount", "paid_amount", "remaining_balance", "status")
+    list_filter = ("bonus_type", "status", "company")
     search_fields = ("employee__full_name", "employee__employee_id", "title", "company__name")
