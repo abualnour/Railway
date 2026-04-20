@@ -6,11 +6,20 @@
 
 .system-home-shell {
     width: 100%;
+    max-width: 100%;
     padding-bottom: 18px;
 }
 
 .system-home-shell-landing {
+    grid-template-columns: minmax(0, 1fr);
     gap: 30px;
+}
+
+.system-home-shell-landing > section,
+.system-home-shell-landing > div {
+    width: 100%;
+    max-width: 100%;
+    justify-self: stretch;
 }
 
 .system-home-surface {
