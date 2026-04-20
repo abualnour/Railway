@@ -68,6 +68,7 @@
     padding: 28px 30px;
     border: 1px solid var(--border);
     border-radius: 30px;
+    background: var(--surface-hero-gradient);
     background:
         radial-gradient(circle at top right, color-mix(in srgb, var(--color-bg-radial) 78%, transparent), transparent 32%),
         var(--surface-hero-gradient);
@@ -77,6 +78,7 @@
 .dashboard-page-header-minimal {
     padding: 26px 28px;
     border: 1px solid var(--border);
+    background: var(--surface-hero-gradient);
     background:
         radial-gradient(circle at top right, color-mix(in srgb, var(--color-bg-radial) 74%, transparent), transparent 34%),
         var(--surface-hero-gradient);
@@ -240,6 +242,8 @@
     padding: 0 16px;
     border-radius: 999px;
     border: 1px solid var(--border);
+    background: var(--surface-gradient-3);
+    background: var(--surface-gradient-3);
     background: color-mix(in srgb, var(--color-surface-2) 88%, transparent);
     color: var(--color-text-muted);
     font-weight: 800;
@@ -254,6 +258,7 @@
 
 .home-hero-action:hover {
     transform: translateY(-1px);
+    background: var(--surface-gradient-3);
     background: color-mix(in srgb, var(--color-surface-2) 96%, transparent);
     border-color: var(--color-hover-border);
     color: var(--color-text);
@@ -367,6 +372,7 @@
 }
 
 .home-panel-identity {
+    background: var(--surface-gradient-1);
     background:
         radial-gradient(circle at top right, color-mix(in srgb, var(--status-info-bg) 18%, transparent), transparent 38%),
         var(--surface-gradient-1);
@@ -538,6 +544,7 @@
     padding: 7px 10px;
     border-radius: 999px;
     border: 1px solid var(--border);
+    background: var(--surface-gradient-3);
     background: color-mix(in srgb, var(--color-surface-2) 90%, transparent);
     font-weight: 800;
 }
@@ -579,6 +586,7 @@
     padding: 24px;
     border: 1px dashed var(--border);
     border-radius: 18px;
+    background: var(--surface-gradient-3);
     background:
         linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 90%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 94%, transparent) 100%);
 }

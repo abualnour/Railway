@@ -81,6 +81,7 @@
     margin-bottom: 0;
     border: 1px solid var(--border);
     border-radius: 28px;
+    background: var(--surface-header-gradient);
     background:
         radial-gradient(circle at top right, color-mix(in srgb, var(--color-bg-radial) 52%, transparent), transparent 34%),
         linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 95%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 99%, transparent) 100%);
@@ -233,6 +234,7 @@
     padding: 16px 18px;
     border: 1px solid var(--border);
     border-radius: 18px;
+    background: var(--surface-gradient-3);
     background: color-mix(in srgb, var(--surface-gradient-3) 82%, transparent);
     text-decoration: none;
     color: inherit;
@@ -242,6 +244,7 @@
 .branch-documents-picker-item:hover,
 .branch-documents-picker-item.is-active {
     border-color: var(--color-hover-border);
+    background: var(--surface-interactive-neutral-bg-hover);
     background: color-mix(in srgb, var(--status-info-bg) 70%, transparent);
     transform: translateY(-1px);
 }
@@ -297,6 +300,7 @@
 .branch-documents-page-number:hover,
 .branch-documents-page-number.is-active {
     border-color: var(--color-hover-border);
+    background: var(--surface-interactive-neutral-bg-hover);
     background: color-mix(in srgb, var(--status-info-bg) 70%, transparent);
     transform: translateY(-1px);
 }
@@ -331,6 +335,7 @@
     width: 34px;
     height: 34px;
     border-radius: 999px;
+    background: var(--surface-interactive-neutral-bg-hover);
     background: color-mix(in srgb, var(--status-info-bg) 78%, transparent);
     color: var(--text);
     font-weight: 800;

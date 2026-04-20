@@ -46,6 +46,7 @@
 
 .system-home-intro-copy,
 .system-home-intro-stat {
+    background: var(--surface-gradient-2);
     background:
         radial-gradient(circle at top right, color-mix(in srgb, var(--color-bg-radial) 62%, transparent), transparent 38%),
         linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 94%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 96%, transparent) 100%);
@@ -101,12 +102,14 @@
 }
 
 .system-home-intro-stat-strong {
+    background: var(--surface-gradient-2);
     background:
         radial-gradient(circle at top right, color-mix(in srgb, var(--status-info-bg) 20%, transparent), transparent 42%),
         linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 94%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 96%, transparent) 100%);
 }
 
 .system-home-intro-stat-soft {
+    background: var(--surface-gradient-2);
     background:
         radial-gradient(circle at bottom left, color-mix(in srgb, var(--surface-pill-neutral-bg) 55%, transparent), transparent 44%),
         linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 94%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 96%, transparent) 100%);
@@ -146,6 +149,7 @@
 .system-home-hero-main,
 .auth-modern-intro,
 .auth-modern-card {
+    background: var(--surface-hero-gradient);
     background:
         radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--color-bg-radial) 94%, transparent), transparent 30%),
         radial-gradient(circle at 0% 100%, color-mix(in srgb, var(--status-info-bg) 72%, transparent), transparent 34%),
@@ -257,6 +261,7 @@
     padding: 0 14px;
     border-radius: 999px;
     border: 1px solid var(--border);
+    background: var(--surface-gradient-3);
     background: color-mix(in srgb, var(--color-surface-2) 86%, transparent);
     color: var(--color-text);
     font-size: 12px;
@@ -267,6 +272,7 @@
 .system-home-spotlight-card,
 .system-home-mini-card {
     border: 1px solid var(--border);
+    background: var(--surface-gradient-3);
     background: color-mix(in srgb, var(--color-surface-2) 90%, transparent);
     box-shadow: var(--shadow-sm);
 }
@@ -333,6 +339,7 @@
     padding: 24px;
     border-radius: 26px;
     border: 1px solid var(--border);
+    background: var(--surface-gradient-2);
     background:
         radial-gradient(circle at top right, color-mix(in srgb, var(--color-bg-radial) 46%, transparent), transparent 36%),
         linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 94%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 98%, transparent) 100%);
@@ -404,6 +411,7 @@
     padding: 18px;
     border-radius: 22px;
     border: 1px solid var(--border);
+    background: var(--surface-gradient-3);
     background: color-mix(in srgb, var(--color-surface-2) 80%, transparent);
 }
 
