@@ -1,27 +1,70 @@
-{% extends "base.html" %}
+{% extends "organization/base.html" %}
 
 {% block title %}{{ page_title }}{% endblock %}
 
-{% block content %}
-<div class="page-header">
+{% block organization_shell_header %}
+<div class="page-header org-page-header org-page-header-spacious">
     <div>
+        <div class="detail-page-kicker">Organization</div>
         <h1 class="page-title">{{ page_title }}</h1>
-        <p class="page-subtitle">Please confirm this delete action.</p>
+        <p class="page-subtitle org-page-subtitle-wide">Please confirm this delete action.</p>
     </div>
 </div>
+{% endblock %}
 
-<div class="card delete-confirm-card">
-    <div class="confirm-delete">
-        <h3 class="delete-confirm-title">Are you sure you want to delete <strong>{{ object }}</strong>?</h3>
-        <p class="text-muted">This action cannot be undone.</p>
-
-        <form method="post">
-            {% csrf_token %}
-            <div class="form-actions">
-                <button type="submit" class="btn btn-danger">Delete</button>
-                <a href="{{ cancel_url }}" class="btn btn-outline">Cancel</a>
+{% block organization_content %}
+<div class="org-page-shell org-form-page-shell">
+    <div class="card org-form-guide-card org-related-card-premium">
+        <div class="card-body org-form-guide-body">
+            <div class="org-form-guide-head">
+                <div>
+                    <p class="org-detail-label">Delete Confirmation</p>
+                    <h2 class="org-form-guide-title">{{ object }}</h2>
+                    <p class="org-form-guide-description">
+                        This record will be removed from the organization structure. Review the action carefully before continuing.
+                    </p>
+                </div>
             </div>
-        </form>
+
+            <div class="org-form-guide-grid">
+                <div class="org-form-guide-item">
+                    <strong>Action</strong>
+                    <span>Permanently delete this organization record.</span>
+                </div>
+                <div class="org-form-guide-item">
+                    <strong>Impact</strong>
+                    <span>This action cannot be undone after confirmation.</span>
+                </div>
+                <div class="org-form-guide-item">
+                    <strong>Next Step</strong>
+                    <span>Use cancel to return safely without making changes.</span>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
+
+    <div class="card form-shell-card org-form-shell-card org-detail-hero-card-premium delete-confirm-card">
+        <div class="card-body">
+            <div class="employee-form-pro">
+                <div class="form-section">
+                    <div class="form-section-header org-form-section-header">
+                        <h2>Are you sure you want to delete {{ object }}?</h2>
+                        <p>This action cannot be undone.</p>
+                    </div>
+
+                    <div class="alert alert-danger">
+                        Deleting this record will remove it from the current organization setup.
+                    </div>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-danger btn-action-dot btn-action-delete">Delete</button>
+                        <a href="{{ cancel_url }}" class="btn btn-outline btn-action-dot btn-action-neutral">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 {% endblock %}
