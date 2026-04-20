@@ -6,6 +6,51 @@
     padding-bottom: 24px;
 }
 
+.dashboard-platform-hero {
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-platform-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.04), transparent 38%);
+    pointer-events: none;
+}
+
+.dashboard-platform-hero .platform-hero-copy,
+.dashboard-platform-hero .platform-hero-side {
+    position: relative;
+    z-index: 1;
+}
+
+.dashboard-platform-hero-self {
+    background:
+        radial-gradient(circle at top right, rgba(34, 197, 94, 0.12), transparent 30%),
+        var(--surface-hero-gradient);
+}
+
+.dashboard-platform-hero-executive {
+    background:
+        radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 28%),
+        var(--surface-hero-gradient);
+}
+
+.dashboard-platform-hero-operations {
+    background:
+        radial-gradient(circle at top right, rgba(34, 197, 94, 0.10), transparent 30%),
+        var(--surface-hero-gradient);
+}
+
+.dashboard-platform-hero-single {
+    grid-template-columns: 1fr;
+}
+
+.dashboard-platform-actions {
+    justify-content: flex-start;
+}
+
 .dashboard-shell-self,
 .dashboard-shell-executive,
 .dashboard-shell-operations,
@@ -21,21 +66,22 @@
     gap: 18px;
     flex-wrap: wrap;
     margin-bottom: 0;
-    padding: 24px 28px;
+    padding: 28px 30px;
     border: 1px solid var(--border);
-    border-radius: 26px;
+    border-radius: 30px;
     background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--color-bg-radial) 55%, transparent), transparent 40%),
-        linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 94%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 98%, transparent) 100%);
-    box-shadow: var(--shadow-sm);
+        radial-gradient(circle at top right, color-mix(in srgb, var(--color-bg-radial) 78%, transparent), transparent 32%),
+        var(--surface-hero-gradient);
+    box-shadow: var(--shadow-md);
 }
 
 .dashboard-page-header-minimal {
-    padding: 22px 26px;
+    padding: 26px 28px;
     border: 1px solid var(--border);
     background:
-        linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 94%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 98%, transparent) 100%);
-    box-shadow: var(--shadow-sm);
+        radial-gradient(circle at top right, color-mix(in srgb, var(--color-bg-radial) 74%, transparent), transparent 34%),
+        var(--surface-hero-gradient);
+    box-shadow: var(--shadow-md);
     margin-bottom: 18px;
 }
 
@@ -108,14 +154,13 @@
 .home-hero-panel {
     position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.86fr);
-    gap: 24px;
-    padding: 32px;
-    border-radius: 32px;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.8fr);
+    gap: 20px;
+    padding: 30px;
+    border-radius: 30px;
     border: 1px solid var(--border);
     background:
-        radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--color-bg-radial) 84%, transparent), transparent 31%),
-        radial-gradient(circle at 0% 100%, color-mix(in srgb, var(--status-info-bg) 70%, transparent), transparent 36%),
+        radial-gradient(circle at top right, color-mix(in srgb, var(--color-bg-radial) 84%, transparent), transparent 32%),
         var(--surface-hero-gradient);
     box-shadow: var(--shadow-md);
     overflow: hidden;
@@ -123,8 +168,7 @@
 
 .home-hero-panel-self {
     background:
-        radial-gradient(circle at top right, rgba(34, 197, 94, 0.13), transparent 30%),
-        radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.14), transparent 34%),
+        radial-gradient(circle at top right, rgba(34, 197, 94, 0.12), transparent 30%),
         var(--surface-hero-gradient);
 }
 
@@ -133,8 +177,7 @@
     position: absolute;
     inset: 0;
     background:
-        linear-gradient(120deg, rgba(255, 255, 255, 0.045), transparent 35%),
-        linear-gradient(320deg, rgba(56, 189, 248, 0.08), transparent 48%);
+        linear-gradient(120deg, rgba(255, 255, 255, 0.04), transparent 38%);
     pointer-events: none;
 }
 
@@ -144,8 +187,7 @@
 
 .home-hero-panel-executive {
     background:
-        radial-gradient(circle at top right, rgba(14, 165, 233, 0.18), transparent 28%),
-        radial-gradient(circle at bottom left, rgba(245, 158, 11, 0.16), transparent 30%),
+        radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 28%),
         var(--surface-hero-gradient);
 }
 
@@ -154,8 +196,7 @@
 .home-hero-panel-operations,
 .home-hero-panel-management {
     background:
-        radial-gradient(circle at top right, rgba(34, 197, 94, 0.14), transparent 30%),
-        radial-gradient(circle at bottom left, rgba(14, 165, 233, 0.14), transparent 34%),
+        radial-gradient(circle at top right, rgba(34, 197, 94, 0.1), transparent 30%),
         var(--surface-hero-gradient);
 }
 
@@ -170,10 +211,10 @@
 
 .home-hero-copy h2 {
     margin: 0 0 12px;
-    font-size: clamp(1.95rem, 3.1vw, 3.05rem);
-    line-height: 1.02;
+    font-size: clamp(2rem, 4vw, 3.15rem);
+    line-height: 0.98;
     letter-spacing: -0.055em;
-    max-width: 12ch;
+    max-width: 12.5ch;
     text-wrap: balance;
 }
 
@@ -181,27 +222,27 @@
     margin: 0;
     max-width: 760px;
     color: var(--color-text-soft);
-    font-size: 0.96rem;
-    line-height: 1.74;
+    font-size: 15px;
+    line-height: 1.8;
 }
 
 .home-hero-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 26px;
+    gap: 10px;
+    margin-top: 22px;
 }
 
 .home-hero-action {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 48px;
-    padding: 0 18px;
-    border-radius: 16px;
+    min-height: 42px;
+    padding: 0 16px;
+    border-radius: 999px;
     border: 1px solid var(--border);
-    background: color-mix(in srgb, var(--color-surface-2) 84%, transparent);
-    color: var(--color-text);
+    background: color-mix(in srgb, var(--color-surface-2) 88%, transparent);
+    color: var(--color-text-muted);
     font-weight: 800;
     transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
 }
@@ -214,8 +255,9 @@
 
 .home-hero-action:hover {
     transform: translateY(-1px);
-    background: var(--color-hover-surface);
+    background: color-mix(in srgb, var(--color-surface-2) 96%, transparent);
     border-color: var(--color-hover-border);
+    color: var(--color-text);
 }
 
 .home-hero-aside {
@@ -229,35 +271,35 @@
 .home-aside-card {
     display: grid;
     gap: 8px;
-    padding: 18px 18px 20px;
-    border-radius: 22px;
+    padding: 20px;
+    border-radius: 24px;
     border: 1px solid var(--border);
-    background:
-        linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 92%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 94%, transparent) 100%);
+    background: var(--surface-gradient-1);
     box-shadow: var(--shadow-sm);
 }
 
 .home-aside-card strong {
-    font-size: clamp(1.8rem, 2.2vw, 2.25rem);
-    line-height: 1.05;
-    letter-spacing: -0.05em;
+    font-size: clamp(1.85rem, 2.4vw, 2.5rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
 }
 
 .home-aside-card small,
 .home-aside-label {
-    color: var(--color-text-muted);
+    color: var(--color-text-soft);
 }
 
 .home-aside-label {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 800;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
 }
 
+/* Keep legacy dashboard section hooks visually aligned with the shared platform component system. */
 .home-stat-ribbon {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 14px;
 }
 
@@ -265,19 +307,17 @@
 .home-stat-ribbon-management,
 .home-stat-ribbon-operations,
 .home-stat-ribbon-executive {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .home-stat-pill {
     display: grid;
     gap: 8px;
-    min-height: 118px;
+    min-height: 112px;
     padding: 18px 20px;
-    border-radius: 22px;
+    border-radius: 24px;
     border: 1px solid var(--border);
-    background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--color-bg-radial) 32%, transparent), transparent 40%),
-        linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 94%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 98%, transparent) 100%);
+    background: var(--surface-gradient-1);
     box-shadow: var(--shadow-sm);
 }
 
@@ -306,7 +346,7 @@
 .home-content-grid {
     display: grid;
     grid-template-columns: 1.08fr 0.92fr;
-    gap: 20px;
+    gap: 18px;
 }
 
 .home-content-grid-self {
@@ -318,19 +358,17 @@
 }
 
 .home-panel {
-    padding: 24px;
-    border-radius: 26px;
+    padding: 22px;
+    border-radius: 24px;
     border: 1px solid var(--border);
-    background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--color-bg-radial) 22%, transparent), transparent 40%),
-        linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 95%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 99%, transparent) 100%);
+    background: var(--surface-gradient-1);
     box-shadow: var(--shadow-sm);
 }
 
 .home-panel-identity {
     background:
         radial-gradient(circle at top right, color-mix(in srgb, var(--status-info-bg) 18%, transparent), transparent 38%),
-        linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 95%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 99%, transparent) 100%);
+        var(--surface-gradient-1);
 }
 
 .home-panel-wide {
@@ -416,10 +454,9 @@
     gap: 6px;
     min-height: 116px;
     padding: 18px;
-    border-radius: 20px;
+    border-radius: 18px;
     border: 1px solid var(--border);
-    background:
-        linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 92%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 94%, transparent) 100%);
+    background: var(--surface-gradient-3);
 }
 
 .home-detail-chip label {
@@ -452,8 +489,7 @@
     padding: 15px 16px;
     border-radius: 18px;
     border: 1px solid var(--border);
-    background:
-        linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 91%, transparent) 0%, color-mix(in srgb, var(--color-surface-3) 94%, transparent) 100%);
+    background: var(--surface-gradient-3);
 }
 
 .home-flow-item,
@@ -501,7 +537,7 @@
     padding: 7px 10px;
     border-radius: 999px;
     border: 1px solid var(--border);
-    background: color-mix(in srgb, var(--color-surface-2) 86%, transparent);
+    background: color-mix(in srgb, var(--color-surface-2) 90%, transparent);
     font-weight: 800;
 }
 
@@ -597,7 +633,8 @@
     .dashboard-page-header,
     .dashboard-page-header-minimal,
     .home-hero-panel,
-    .home-panel {
+    .home-panel,
+    .dashboard-platform-hero {
         padding: 18px;
         border-radius: 22px;
     }
@@ -649,6 +686,14 @@
     }
 
     .home-hero-action {
+        width: 100%;
+    }
+
+    .dashboard-platform-actions {
+        flex-direction: column;
+    }
+
+    .dashboard-platform-actions .btn {
         width: 100%;
     }
 

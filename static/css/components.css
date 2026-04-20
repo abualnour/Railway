@@ -50,6 +50,69 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
+.btn.btn-action-dot {
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+.btn.btn-action-dot::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    flex: 0 0 10px;
+    border-radius: 999px;
+    background: var(--action-accent, color-mix(in srgb, var(--color-text-muted) 72%, transparent));
+    box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--action-accent, var(--color-text-muted)) 14%, transparent),
+        inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.btn.btn-action-view {
+    --action-accent: #2563eb;
+}
+
+.btn.btn-action-edit {
+    --action-accent: #f59e0b;
+}
+
+.btn.btn-action-delete {
+    --action-accent: #dc2626;
+}
+
+.btn.btn-action-documents {
+    --action-accent: #7c3aed;
+}
+
+.btn.btn-action-approve {
+    --action-accent: #16a34a;
+}
+
+.btn.btn-action-download {
+    --action-accent: #0891b2;
+}
+
+.btn.btn-action-navigation {
+    --action-accent: #64748b;
+}
+
+.btn.btn-action-search {
+    --action-accent: #0f766e;
+}
+
+.btn.btn-action-warning {
+    --action-accent: #ea580c;
+}
+
+.btn.btn-action-neutral {
+    --action-accent: #94a3b8;
+}
+
+.btn.btn-action-dot.is-disabled::before,
+.btn.btn-action-dot:disabled::before,
+.btn.btn-action-dot[aria-disabled="true"]::before {
+    opacity: 0.55;
+}
+
 .btn:hover {
     transform: translateY(-1px);
 }
@@ -647,94 +710,4 @@ textarea::placeholder {
     .detail-grid > .form-group-full {
         grid-column: span 1;
     }
-}
-
-
-/* -------------------------------------------------------------
-   Date input icon reset + custom single calendar icon
-   Fixes repeated native Edge/WebKit calendar painting
--------------------------------------------------------------- */
-
-.profile-modal-form input[type="date"],
-.employee-profile-page .profile-modal-form input[type="date"] {
-    -webkit-appearance: none;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cfd4dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") !important;
-    background-repeat: no-repeat !important;
-    background-position: right 14px center !important;
-    background-size: 18px 18px !important;
-    padding-right: 44px !important;
-}
-
-.profile-modal-form input[type="date"]::-webkit-calendar-picker-indicator,
-.employee-profile-page .profile-modal-form input[type="date"]::-webkit-calendar-picker-indicator {
-    -webkit-appearance: none !important;
-    appearance: none !important;
-    opacity: 0 !important;
-    background: transparent !important;
-    color: transparent !important;
-    border: 0 !important;
-    box-shadow: none !important;
-}
-
-.profile-modal-form input[type="date"]::-webkit-datetime-edit,
-.profile-modal-form input[type="date"]::-webkit-datetime-edit-fields-wrapper,
-.profile-modal-form input[type="date"]::-webkit-datetime-edit-text,
-.profile-modal-form input[type="date"]::-webkit-datetime-edit-month-field,
-.profile-modal-form input[type="date"]::-webkit-datetime-edit-day-field,
-.profile-modal-form input[type="date"]::-webkit-datetime-edit-year-field,
-.employee-profile-page .profile-modal-form input[type="date"]::-webkit-datetime-edit,
-.employee-profile-page .profile-modal-form input[type="date"]::-webkit-datetime-edit-fields-wrapper,
-.employee-profile-page .profile-modal-form input[type="date"]::-webkit-datetime-edit-text,
-.employee-profile-page .profile-modal-form input[type="date"]::-webkit-datetime-edit-month-field,
-.employee-profile-page .profile-modal-form input[type="date"]::-webkit-datetime-edit-day-field,
-.employee-profile-page .profile-modal-form input[type="date"]::-webkit-datetime-edit-year-field {
-    color: inherit !important;
-}
-
-/* Keep popup icon visible in light and dark themes */
-.profile-modal-form input[type="date"],
-.employee-profile-page .profile-modal-form input[type="date"] {
-    background-position: right 14px center !important;
-}
-
-
-
-
-/* Premium dark date input icon alignment */
-html[data-theme="premium-dark"] .profile-modal-form input[type="date"],
-html[data-theme="premium-dark"] .employee-profile-page .profile-modal-form input[type="date"],
-html[data-theme="premium-dark"] .profile-modal-form input[type="date"],
-html[data-theme="premium-dark"] .employee-profile-page .profile-modal-form input[type="date"],
-html[data-theme="premium-dark"] .profile-modal-form input[type="date"],
-html[data-theme="premium-dark"] .employee-profile-page .profile-modal-form input[type="date"],
-html[data-theme="premium-dark"] .profile-modal-form input[type="date"],
-html[data-theme="premium-dark"] .employee-profile-page .profile-modal-form input[type="date"] {
-    color-scheme: dark;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cfd4dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") !important;
-}
-
-html[data-theme="premium-light"] .profile-modal-form input[type="date"],
-html[data-theme="premium-light"] .employee-profile-page .profile-modal-form input[type="date"],
-html[data-theme="premium-light"] .profile-modal-form input[type="date"],
-html[data-theme="premium-light"] .employee-profile-page .profile-modal-form input[type="date"] {
-    color-scheme: light;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b6472' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") !important;
-}
-
-
-/* Final native date-input reset for normal system pages */
-input[type="date"]:not(.profile-modal-form input[type="date"]),
-.form-control[type="date"]:not(.profile-modal-form input[type="date"]) {
-    -webkit-appearance: auto !important;
-    appearance: auto !important;
-    background-image: none !important;
-    padding-right: 14px !important;
-}
-
-input[type="date"]:not(.profile-modal-form input[type="date"])::-webkit-calendar-picker-indicator,
-.form-control[type="date"]:not(.profile-modal-form input[type="date"])::-webkit-calendar-picker-indicator {
-    opacity: 1 !important;
-    color: inherit !important;
-    background: transparent !important;
 }

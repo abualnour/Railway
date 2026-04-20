@@ -95,10 +95,17 @@
                                     </p>
                                 </div>
                                 <div class="page-actions">
-                                    <button class="btn btn-light" type="button" id="capture-location-btn" {% if not attendance_branch_has_location_config %}disabled{% endif %}>Get My Live Location</button>
-                                    <button class="btn btn-secondary" type="button" id="clear-location-btn" {% if not attendance_branch_has_location_config %}disabled{% endif %}>Clear Captured Location</button>
+                                    <button class="btn btn-light" type="button" id="capture-location-btn" {% if not attendance_branch_has_location_config %}disabled title="Branch attendance location setup is incomplete. Ask HR or Operations to configure the branch latitude, longitude, and allowed radius first."{% endif %}>Get My Live Location</button>
+                                    <button class="btn btn-secondary" type="button" id="clear-location-btn" {% if not attendance_branch_has_location_config %}disabled title="Branch attendance location setup is incomplete, so no live location can be captured yet."{% endif %}>Clear Captured Location</button>
                                 </div>
                             </div>
+
+                            {% if not attendance_branch_has_location_config %}
+                                <div class="attendance-map-setup-note">
+                                    Live location capture is currently unavailable because your branch attendance point is not fully configured yet.
+                                    HR or Operations needs to set the branch latitude, longitude, and allowed attendance radius first.
+                                </div>
+                            {% endif %}
 
                             <div class="attendance-map-grid">
                                 <div class="attendance-map-canvas-wrap">

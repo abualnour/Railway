@@ -822,11 +822,29 @@ class EmployeeAttendanceLedger(models.Model):
     SHIFT_MORNING = "morning"
     SHIFT_MIDDLE = "middle"
     SHIFT_NIGHT = "night"
+    SHIFT_NINE_TO_FIVE = "nine_to_five"
+    SHIFT_TWELVE_TO_EIGHT = "twelve_to_eight"
+    SHIFT_ONE_TO_NINE = "one_to_nine"
+    SHIFT_TWO_TO_TEN = "two_to_ten"
+    SHIFT_THREE_TO_ELEVEN = "three_to_eleven"
+    SHIFT_FOUR_TO_MIDNIGHT = "four_to_midnight"
+    SHIFT_MORNING_STANDARD = "morning_standard"
+    SHIFT_MIDDLE_STANDARD = "middle_standard"
+    SHIFT_EVENING_STANDARD = "evening_standard"
 
     SHIFT_CHOICES = [
         (SHIFT_MORNING, "Morning Shift"),
         (SHIFT_MIDDLE, "Middle Shift"),
         (SHIFT_NIGHT, "Night Shift"),
+        (SHIFT_NINE_TO_FIVE, "9 am to 5 pm"),
+        (SHIFT_TWELVE_TO_EIGHT, "12 pm to 8 pm"),
+        (SHIFT_ONE_TO_NINE, "1 pm to 9 pm"),
+        (SHIFT_TWO_TO_TEN, "2 pm to 10 pm"),
+        (SHIFT_THREE_TO_ELEVEN, "3 pm to 11 pm"),
+        (SHIFT_FOUR_TO_MIDNIGHT, "4 pm to 12 am"),
+        (SHIFT_MORNING_STANDARD, "Morning shift"),
+        (SHIFT_MIDDLE_STANDARD, "Middle shift"),
+        (SHIFT_EVENING_STANDARD, "Evening shift"),
     ]
 
     SOURCE_MANUAL = "manual"
@@ -845,6 +863,15 @@ class EmployeeAttendanceLedger(models.Model):
         SHIFT_MORNING: ("09:00", "18:00"),
         SHIFT_MIDDLE: ("13:00", "22:00"),
         SHIFT_NIGHT: ("22:00", "06:00"),
+        SHIFT_NINE_TO_FIVE: ("09:00", "17:00"),
+        SHIFT_TWELVE_TO_EIGHT: ("12:00", "20:00"),
+        SHIFT_ONE_TO_NINE: ("13:00", "21:00"),
+        SHIFT_TWO_TO_TEN: ("14:00", "22:00"),
+        SHIFT_THREE_TO_ELEVEN: ("15:00", "23:00"),
+        SHIFT_FOUR_TO_MIDNIGHT: ("16:00", "23:59"),
+        SHIFT_MORNING_STANDARD: ("09:00", "17:00"),
+        SHIFT_MIDDLE_STANDARD: ("13:00", "21:00"),
+        SHIFT_EVENING_STANDARD: ("15:00", "23:00"),
     }
 
     employee = models.ForeignKey(
@@ -933,6 +960,15 @@ class EmployeeAttendanceLedger(models.Model):
             cls.SHIFT_MORNING: {"label": "Morning Shift", "start": "09:00", "end": "18:00"},
             cls.SHIFT_MIDDLE: {"label": "Middle Shift", "start": "13:00", "end": "22:00"},
             cls.SHIFT_NIGHT: {"label": "Night Shift", "start": "22:00", "end": "06:00"},
+            cls.SHIFT_NINE_TO_FIVE: {"label": "9 am to 5 pm", "start": "09:00", "end": "17:00"},
+            cls.SHIFT_TWELVE_TO_EIGHT: {"label": "12 pm to 8 pm", "start": "12:00", "end": "20:00"},
+            cls.SHIFT_ONE_TO_NINE: {"label": "1 pm to 9 pm", "start": "13:00", "end": "21:00"},
+            cls.SHIFT_TWO_TO_TEN: {"label": "2 pm to 10 pm", "start": "14:00", "end": "22:00"},
+            cls.SHIFT_THREE_TO_ELEVEN: {"label": "3 pm to 11 pm", "start": "15:00", "end": "23:00"},
+            cls.SHIFT_FOUR_TO_MIDNIGHT: {"label": "4 pm to 12 am", "start": "16:00", "end": "23:59"},
+            cls.SHIFT_MORNING_STANDARD: {"label": "Morning shift", "start": "09:00", "end": "17:00"},
+            cls.SHIFT_MIDDLE_STANDARD: {"label": "Middle shift", "start": "13:00", "end": "21:00"},
+            cls.SHIFT_EVENING_STANDARD: {"label": "Evening shift", "start": "15:00", "end": "23:00"},
         }
 
     def get_shift_window(self):

@@ -3,10 +3,35 @@ input[type="date"],
     min-height: 50px;
     padding-right: 48px !important;
     border-radius: 14px;
-    background-repeat: no-repeat !important;
-    background-position: right 14px center !important;
-    background-size: 18px 18px !important;
     cursor: pointer;
+}
+
+.date-input-wrap {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.date-input-wrap input[type="date"],
+.date-input-wrap .form-control[type="date"] {
+    position: relative;
+    z-index: 1;
+}
+
+.date-input-wrap::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    width: 18px;
+    height: 18px;
+    transform: translateY(-50%);
+    background-image: var(--date-picker-icon);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 18px 18px;
+    pointer-events: none;
+    z-index: 2;
 }
 
 html[data-theme="premium-dark"] input[type="date"],
@@ -14,7 +39,12 @@ html[data-theme="dark-accent"] input[type="date"],
 html[data-theme="premium-dark"] .form-control[type="date"],
 html[data-theme="dark-accent"] .form-control[type="date"] {
     color-scheme: dark;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f4a261' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") !important;
+    --date-picker-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='%23f4a261' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+}
+
+html[data-theme="premium-dark"] .date-input-wrap,
+html[data-theme="dark-accent"] .date-input-wrap {
+    --date-picker-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='%23f4a261' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
 }
 
 html[data-theme="premium-light"] input[type="date"],
@@ -22,15 +52,22 @@ html[data-theme="sunrise"] input[type="date"],
 html[data-theme="premium-light"] .form-control[type="date"],
 html[data-theme="sunrise"] .form-control[type="date"] {
     color-scheme: light;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b6472' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") !important;
+    --date-picker-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='%235b6472' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+}
+
+html[data-theme="premium-light"] .date-input-wrap,
+html[data-theme="sunrise"] .date-input-wrap {
+    --date-picker-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='%235b6472' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator,
 .form-control[type="date"]::-webkit-calendar-picker-indicator {
-    opacity: 0.02 !important;
+    opacity: 1 !important;
     width: 42px;
     height: 100%;
+    margin: 0;
     cursor: pointer;
+    background: transparent !important;
 }
 
 input[type="date"]::-webkit-datetime-edit,
@@ -48,3 +85,34 @@ input[type="date"]::-webkit-datetime-edit-year-field,
     color: inherit !important;
 }
 
+/* Final shared reset: always prefer the native calendar picker across the app. */
+input[type="date"],
+.form-control[type="date"] {
+    -webkit-appearance: auto !important;
+    appearance: auto !important;
+    background-image: var(--date-picker-icon) !important;
+    background-repeat: no-repeat !important;
+    background-position: right 14px center !important;
+    background-size: 18px 18px !important;
+    padding-right: 48px !important;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+.form-control[type="date"]::-webkit-calendar-picker-indicator {
+    -webkit-appearance: auto !important;
+    appearance: auto !important;
+    opacity: 0.01 !important;
+    display: block !important;
+    position: absolute !important;
+    right: 0 !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: inherit !important;
+    cursor: pointer !important;
+    filter: none !important;
+}

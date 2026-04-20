@@ -8,11 +8,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="employee-profile-page self-service-hub-page">
+<div class="employee-profile-page self-service-hub-page self-service-working-time-page">
     <div class="page-header employee-profile-header">
         <div class="employee-page-header-main">
             <h1 class="page-title">Working Time Summary</h1>
-            <p class="page-subtitle">Your service duration, leave balance, and working totals in a dedicated page.</p>
+            <p class="page-subtitle">Review your service progress, leave position, and working totals in one clean view built for desktop and mobile.</p>
         </div>
         <div class="employee-page-header-tools">
             <div class="employee-header-meta">
@@ -27,12 +27,41 @@
     </div>
 
     <div class="self-service-shell">
-        <div class="card detail-card modern-soft-card">
+        <section class="card detail-card modern-soft-card working-time-overview-panel">
+            <div class="card-body">
+                <div class="working-time-overview-layout">
+                    <div class="working-time-overview-copy">
+                        <span class="working-time-overview-eyebrow">Personal Summary</span>
+                        <h2>One compact view of your service and leave position</h2>
+                        <p>Track the most important numbers first, then scan the detailed totals below without oversized blocks taking over the page.</p>
+                    </div>
+                    <div class="working-time-overview-stats">
+                        <div class="working-time-overview-stat">
+                            <span class="working-time-overview-label">Service Duration</span>
+                            <strong>{{ working_time_summary.service_duration_display }}</strong>
+                        </div>
+                        <div class="working-time-overview-stat">
+                            <span class="working-time-overview-label">Available Leave</span>
+                            <strong>{{ working_time_summary.annual_leave_available_after_planning_days }}</strong>
+                        </div>
+                        <div class="working-time-overview-stat">
+                            <span class="working-time-overview-label">Working Hours</span>
+                            <strong>{{ working_time_summary.total_working_hours }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="card detail-card modern-soft-card working-time-section-card">
             <div class="card-header">
-                <h2>Leave Balance Summary</h2>
+                <div class="working-time-section-heading">
+                    <h2>Leave Balance Summary</h2>
+                    <p>Service and annual leave visibility for planning ahead.</p>
+                </div>
             </div>
             <div class="card-body">
-                <div class="modern-metric-grid working-time-metrics working-time-metrics--balance">
+                <div class="modern-metric-grid working-time-metrics working-time-metrics--summary">
                     <div class="metric-card"><span class="metric-label">Service Duration</span><span class="metric-value">{{ working_time_summary.service_duration_display }}</span></div>
                     <div class="metric-card"><span class="metric-label">Service Days</span><span class="metric-value">{{ working_time_summary.service_days }}</span></div>
                     <div class="metric-card"><span class="metric-label">Annual Leave Entitlement</span><span class="metric-value">{{ working_time_summary.annual_leave_entitlement_days }}</span></div>
@@ -43,12 +72,15 @@
             </div>
         </div>
 
-        <div class="card detail-card modern-soft-card">
+        <div class="card detail-card modern-soft-card working-time-section-card">
             <div class="card-header">
-                <h2>Core Working Totals</h2>
+                <div class="working-time-section-heading">
+                    <h2>Core Working Totals</h2>
+                    <p>Your attendance and workload totals in a tighter operational view.</p>
+                </div>
             </div>
             <div class="card-body">
-                <div class="modern-metric-grid working-time-metrics working-time-metrics--balance">
+                <div class="modern-metric-grid working-time-metrics working-time-metrics--summary">
                     <div class="metric-card"><span class="metric-label">Scheduled Working Days</span><span class="metric-value">{{ working_time_summary.scheduled_working_days }}</span></div>
                     <div class="metric-card"><span class="metric-label">Absence Days</span><span class="metric-value">{{ working_time_summary.absence_days }}</span></div>
                     <div class="metric-card"><span class="metric-label">Punctuality Deduction Hours</span><span class="metric-value">{{ working_time_summary.punctuality_deduction_hours }}</span></div>

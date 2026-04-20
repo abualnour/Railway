@@ -1025,6 +1025,7 @@ class EmployeeSelfServiceAttendanceForm(forms.Form):
             self.fields["shift"].choices = shift_choices
         if shift_locked:
             self.fields["shift"].help_text = "This attendance shift is controlled by today's assigned duty."
+            self.fields["shift"].disabled = True
         for field_name, field in self.fields.items():
             widget = field.widget
             existing = widget.attrs.get("class", "")

@@ -1,0 +1,290 @@
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-published-wrap,
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-published-wrap,
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-published-wrap {
+  background: linear-gradient(180deg, #fbfcfe 0%, #f4f7fb 100%) !important;
+  border: 1px solid rgba(15,23,42,.08) !important;
+}
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table thead th,
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table thead th,
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table thead th {
+  background: linear-gradient(180deg, #eef2f7 0%, #e7ecf3 100%) !important;
+  color: #475569 !important;
+  border-right: 1px solid rgba(15,23,42,.06) !important;
+  border-bottom: 1px solid rgba(15,23,42,.08) !important;
+}
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table thead th small,
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table thead th small,
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table thead th small {
+  color: #64748b !important;
+}
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody td,
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody td,
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody td {
+  background: #f8fafc !important;
+  color: #1f2937 !important;
+  border-right: 1px solid rgba(15,23,42,.05) !important;
+  border-bottom: 1px solid rgba(15,23,42,.05) !important;
+}
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody td.free-schedule-meta-cell,
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(1),
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(2),
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(3),
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody td.free-schedule-meta-cell,
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(1),
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(2),
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(3),
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody td.free-schedule-meta-cell,
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(1),
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(2),
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(3) {
+  background: linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%) !important;
+  color: #111827 !important;
+}
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody td.free-schedule-meta-cell strong,
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(1) strong,
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(2),
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(3),
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody td.free-schedule-meta-cell strong,
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(1) strong,
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(2),
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(3),
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody td.free-schedule-meta-cell strong,
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(1) strong,
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(2),
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody tr td:nth-child(3) {
+  color: #111827 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  font-weight: 800 !important;
+}
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-public-cell,
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-public-cell[style],
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-public-cell,
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-public-cell[style],
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-public-cell,
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-public-cell[style] {
+  background: linear-gradient(180deg, #ffffff 0%, #f4f6f9 100%) !important;
+  color: #111827 !important;
+  border: 1px solid rgba(15,23,42,.10) !important;
+  box-shadow: none !important;
+}
+html[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .branch-schedule-published-wrap,
+body[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .branch-schedule-published-wrap,
+[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .branch-schedule-published-wrap {
+  background: linear-gradient(180deg, rgba(8,8,8,.985) 0%, rgba(4,4,4,.995) 100%) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+}
+html[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody td,
+body[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody td,
+[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .free-schedule-grid-table.free-schedule-grid-table-roster.branch-schedule-published-table tbody td {
+  background: rgba(5,5,5,.92) !important;
+  color: #f8fafc !important;
+}
+
+
+/* -------------------------------------------------------------
+   Weekly Schedule: Add New Duty Option left + Employee Order right
+-------------------------------------------------------------- */
+.employee-profile-page.branch-schedule-page .branch-duty-master-top-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr) !important;
+    gap: 18px !important;
+    align-items: start !important;
+    margin-bottom: 18px !important;
+}
+
+.employee-profile-page.branch-schedule-page .branch-duty-master-create-form {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 18px 20px 20px !important;
+    border-radius: 20px !important;
+}
+
+.employee-profile-page.branch-schedule-page .branch-duty-master-create-form .branch-schedule-theme-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px 14px !important;
+    align-items: end !important;
+}
+
+.employee-profile-page.branch-schedule-page .branch-duty-master-create-form .form-group.form-check {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding-top: 24px !important;
+}
+
+.employee-profile-page.branch-schedule-page .branch-duty-master-order-panel {
+    margin: 0 !important;
+    height: 100% !important;
+}
+
+.employee-profile-page.branch-schedule-page .branch-duty-master-order-panel .card-body {
+    padding-top: 18px !important;
+}
+
+.employee-profile-page.branch-schedule-page .branch-employee-order-list {
+    display: grid !important;
+    gap: 10px !important;
+    max-height: 438px !important;
+    overflow: auto !important;
+    padding-right: 2px !important;
+}
+
+.employee-profile-page.branch-schedule-page .branch-employee-order-item {
+    min-height: 58px !important;
+}
+
+.employee-profile-page.branch-schedule-page .branch-employee-order-item {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 12px 14px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 16px !important;
+    background: var(--surface-gradient-3) !important;
+}
+
+.employee-profile-page.branch-schedule-page .branch-employee-order-copy {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.employee-profile-page.branch-schedule-page .branch-employee-order-copy strong,
+.employee-profile-page.branch-schedule-page .branch-employee-order-copy small {
+    overflow-wrap: anywhere;
+}
+
+.employee-profile-page.branch-schedule-page .branch-employee-order-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.employee-profile-page.branch-schedule-page .branch-employee-order-button {
+    min-width: 64px;
+}
+
+.employee-profile-page.branch-schedule-page .branch-duty-master-order-panel .form-actions {
+    margin-top: 14px !important;
+}
+
+.employee-profile-page.branch-schedule-page .branch-duty-master-order-panel .form-actions .btn,
+.employee-profile-page.branch-schedule-page .branch-duty-master-create-form .form-actions .btn {
+    width: 100% !important;
+}
+
+@media (max-width: 1200px) {
+    .employee-profile-page.branch-schedule-page .branch-duty-master-top-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .employee-profile-page.branch-schedule-page .branch-duty-master-order-panel {
+        order: 2 !important;
+    }
+
+    .employee-profile-page.branch-schedule-page .branch-duty-master-create-form {
+        order: 1 !important;
+    }
+}
+
+@media (max-width: 700px) {
+    .employee-profile-page.branch-schedule-page .branch-duty-master-create-form {
+        padding: 16px !important;
+    }
+
+    .employee-profile-page.branch-schedule-page .branch-duty-master-create-form .branch-schedule-theme-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .employee-profile-page.branch-schedule-page .branch-duty-master-create-form .form-group.form-check {
+        padding-top: 0 !important;
+    }
+
+    .employee-profile-page.branch-schedule-page .branch-employee-order-item {
+        grid-template-columns: 1fr !important;
+        align-items: stretch !important;
+    }
+
+    .employee-profile-page.branch-schedule-page .branch-employee-order-controls {
+        justify-content: stretch;
+    }
+
+    .employee-profile-page.branch-schedule-page .branch-employee-order-controls .branch-employee-order-button {
+        flex: 1 1 0;
+    }
+}
+
+
+/* -------------------------------------------------------------
+   Weekly Schedule: hard override for default duty preview pill
+   The preview span is rendered with inline style, so target [style]
+-------------------------------------------------------------- */
+html[data-theme="premium-light"] .employee-profile-page .branch-duty-master-summary .branch-duty-style-preview[style],
+html[data-theme="premium-light"] .employee-profile-page .branch-duty-style-preview[style],
+body[data-theme="premium-light"] .employee-profile-page .branch-duty-master-summary .branch-duty-style-preview[style],
+body[data-theme="premium-light"] .employee-profile-page .branch-duty-style-preview[style],
+[data-theme="premium-light"] .employee-profile-page .branch-duty-master-summary .branch-duty-style-preview[style],
+[data-theme="premium-light"] .employee-profile-page .branch-duty-style-preview[style] {
+    background: linear-gradient(180deg, #eef2ff 0%, #e2e8f0 100%) !important;
+    color: #334155 !important;
+    border: 1px solid rgba(99, 102, 241, 0.16) !important;
+    box-shadow: none !important;
+}
+
+html[data-theme="premium-dark"] .employee-profile-page .branch-duty-master-summary .branch-duty-style-preview[style],
+html[data-theme="premium-dark"] .employee-profile-page .branch-duty-style-preview[style],
+body[data-theme="premium-dark"] .employee-profile-page .branch-duty-master-summary .branch-duty-style-preview[style],
+body[data-theme="premium-dark"] .employee-profile-page .branch-duty-style-preview[style],
+[data-theme="premium-dark"] .employee-profile-page .branch-duty-master-summary .branch-duty-style-preview[style],
+[data-theme="premium-dark"] .employee-profile-page .branch-duty-style-preview[style] {
+    background: linear-gradient(180deg, rgba(24, 31, 47, 0.98) 0%, rgba(13, 18, 29, 0.99) 100%) !important;
+    color: #e5edf8 !important;
+    border: 1px solid rgba(124, 145, 182, 0.20) !important;
+    box-shadow: none !important;
+}
+
+
+/* -------------------------------------------------------------
+   Weekly Schedule: final both-themes published cell color fix
+   Force inline duty cell colors in BOTH premium-light and premium-dark
+-------------------------------------------------------------- */
+.employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style],
+.employee-profile-page.branch-schedule-page .branch-schedule-published-table td .branch-schedule-public-cell[style],
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style],
+html[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style],
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style],
+body[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style],
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style],
+[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style] {
+    background: var(--branch-duty-bg, transparent) !important;
+    background-image: none !important;
+    color: var(--branch-duty-text, inherit) !important;
+    box-shadow: none !important;
+}
+
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style],
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style],
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style] {
+    border: 1px solid rgba(15, 23, 42, 0.10) !important;
+}
+
+html[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style],
+body[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style],
+[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style] {
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+}
+
+.employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style] *,
+html[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style] *,
+html[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style] *,
+body[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style] *,
+body[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style] *,
+[data-theme="premium-light"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style] *,
+[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style] * {
+    color: var(--branch-duty-text, inherit) !important;
+}

@@ -192,6 +192,78 @@ def get_shift_time_defaults(shift_value):
     return shift_config or shift_map[EmployeeAttendanceLedger.SHIFT_MORNING]
 
 
+def normalize_attendance_shift_label(value):
+    return re.sub(r"\s+", " ", str(value or "").strip()).casefold()
+
+
+def resolve_attendance_shift_value(*, label="", start_time=None, end_time=None):
+    shift_map = EmployeeAttendanceLedger.get_shift_time_map()
+    normalized_label = normalize_attendance_shift_label(label)
+    start_value = start_time.strftime("%H:%M") if start_time else ""
+    end_value = end_time.strftime("%H:%M") if end_time else ""
+
+    if normalized_label and start_value and end_value:
+        for shift_value, shift_config in shift_map.items():
+            if (
+                normalize_attendance_shift_label(shift_config.get("label")) == normalized_label
+                and shift_config.get("start") == start_value
+                and shift_config.get("end") == end_value
+            ):
+                return shift_value
+
+    if start_value and end_value:
+        for shift_value, shift_config in shift_map.items():
+            if shift_config.get("start") == start_value and shift_config.get("end") == end_value:
+                return shift_value
+
+    if normalized_label:
+        for shift_value, shift_config in shift_map.items():
+            if normalize_attendance_shift_label(shift_config.get("label")) == normalized_label:
+                return shift_value
+
+    return ""
+
+
+def build_self_service_shift_choices(branch):
+    if not branch:
+        return list(EmployeeAttendanceLedger.SHIFT_CHOICES)
+
+    duty_options = list(
+        BranchWeeklyDutyOption.objects.filter(
+            branch=branch,
+            is_active=True,
+            duty_type=BranchWeeklyScheduleEntry.DUTY_TYPE_SHIFT,
+        ).order_by("display_order", "label", "id")
+    )
+    if not duty_options:
+        return list(EmployeeAttendanceLedger.SHIFT_CHOICES)
+
+    choices = []
+    seen_pairs = set()
+    fallback_seen_values = set()
+    fallback_choices = []
+
+    for duty_option in duty_options:
+        shift_value = resolve_attendance_shift_value(
+            label=duty_option.label,
+            start_time=duty_option.default_start_time,
+            end_time=duty_option.default_end_time,
+        )
+        if not shift_value:
+            continue
+
+        pair = (shift_value, duty_option.label)
+        if pair not in seen_pairs:
+            choices.append(pair)
+            seen_pairs.add(pair)
+
+        if shift_value not in fallback_seen_values:
+            fallback_choices.append((shift_value, dict(EmployeeAttendanceLedger.SHIFT_CHOICES).get(shift_value, duty_option.label)))
+            fallback_seen_values.add(shift_value)
+
+    return choices or fallback_choices or list(EmployeeAttendanceLedger.SHIFT_CHOICES)
+
+
 def build_attendance_location_label(cleaned_data):
     if not cleaned_data:
         return ""
@@ -3476,6 +3548,12 @@ class EmployeeDetailView(LoginRequiredMixin, DetailView):
             tab="performance",
             anchor="employee-timeline-section",
         )
+        context["employee_360_action_center_url"] = (
+            f"{reverse('employees:employee_admin_action_center')}?employee={employee.pk}"
+        )
+        context["employee_360_attendance_management_url"] = (
+            f"{reverse('employees:attendance_management')}?employee={employee.pk}"
+        )
         context["employee_360_overview_cards"] = employee_360_overview_cards
         context["employee_360_signal_cards"] = employee_360_signal_cards
         context["employee_leave_trends"] = employee_leave_trends
@@ -4066,6 +4144,32 @@ def self_service_attendance_page(request):
 
     today = timezone.localdate()
     branch = getattr(employee, "branch", None)
+    schedule_snapshot = build_employee_schedule_snapshot(employee, reference_date=today)
+    attendance_today_schedule_entry = schedule_snapshot.get("my_schedule_today_entry")
+    attendance_today_schedule_label = schedule_snapshot.get("my_schedule_today_label") or "No branch duty assigned"
+    attendance_today_schedule_time = (
+        attendance_today_schedule_entry.formatted_time_range
+        if attendance_today_schedule_entry
+        else ""
+    )
+    attendance_blocked_for_today = bool(
+        attendance_today_schedule_entry
+        and attendance_today_schedule_entry.duty_type
+        in {
+            BranchWeeklyScheduleEntry.DUTY_TYPE_OFF,
+            BranchWeeklyScheduleEntry.DUTY_TYPE_EXTRA_OFF,
+            BranchWeeklyScheduleEntry.DUTY_TYPE_CUSTOM,
+        }
+    )
+    attendance_shift_locked_value = ""
+    if attendance_today_schedule_entry and attendance_today_schedule_entry.duty_type == BranchWeeklyScheduleEntry.DUTY_TYPE_SHIFT:
+        attendance_shift_locked_value = resolve_attendance_shift_value(
+            label=attendance_today_schedule_entry.shift_label or attendance_today_schedule_label,
+            start_time=attendance_today_schedule_entry.start_time,
+            end_time=attendance_today_schedule_entry.end_time,
+        )
+    attendance_shift_locked = bool(attendance_shift_locked_value)
+    shift_choices = build_self_service_shift_choices(branch)
     branch_has_attendance_location_config = bool(
         branch and getattr(branch, "has_attendance_location_config", False)
     )
@@ -4075,11 +4179,22 @@ def self_service_attendance_page(request):
 
     if request.method == "POST":
         action = (request.POST.get("attendance_action") or "").strip()
-        form = EmployeeSelfServiceAttendanceForm(request.POST)
+        form_initial = {"shift": attendance_shift_locked_value} if attendance_shift_locked_value else None
+        form = EmployeeSelfServiceAttendanceForm(
+            request.POST,
+            initial=form_initial,
+            shift_choices=shift_choices,
+            shift_locked=attendance_shift_locked,
+        )
         if not branch_has_attendance_location_config:
             form.add_error(
                 None,
                 "Your branch does not have a fixed attendance point configured yet. Please contact HR or Operations.",
+            )
+        elif attendance_blocked_for_today:
+            form.add_error(
+                None,
+                f"Attendance is blocked today because your assigned duty is {attendance_today_schedule_label}.",
             )
         elif action not in {"check_in", "check_out"}:
             form.add_error(None, "Unknown attendance action requested.")
@@ -4192,9 +4307,15 @@ def self_service_attendance_page(request):
         messages.error(request, "Please review the attendance details and try again.")
     else:
         initial = {}
-        if attendance_event and attendance_event.shift:
+        if attendance_shift_locked_value:
+            initial["shift"] = attendance_shift_locked_value
+        elif attendance_event and attendance_event.shift:
             initial["shift"] = attendance_event.shift
-        form = EmployeeSelfServiceAttendanceForm(initial=initial)
+        form = EmployeeSelfServiceAttendanceForm(
+            initial=initial,
+            shift_choices=shift_choices,
+            shift_locked=attendance_shift_locked,
+        )
 
     attendance_history_queryset = employee.attendance_events.select_related("synced_ledger").order_by(
         "-attendance_date",
@@ -4224,6 +4345,11 @@ def self_service_attendance_page(request):
     context["attendance_branch_latitude"] = getattr(branch, "attendance_latitude", None)
     context["attendance_branch_longitude"] = getattr(branch, "attendance_longitude", None)
     context["attendance_branch_radius_meters"] = getattr(branch, "attendance_radius_meters", None)
+    context["attendance_today_schedule_entry"] = attendance_today_schedule_entry
+    context["attendance_today_schedule_label"] = attendance_today_schedule_label
+    context["attendance_today_schedule_time"] = attendance_today_schedule_time
+    context["attendance_shift_locked"] = attendance_shift_locked
+    context["attendance_blocked_for_today"] = attendance_blocked_for_today
     context["today"] = today
     return render(request, "employees/self_service_attendance.html", context)
 
