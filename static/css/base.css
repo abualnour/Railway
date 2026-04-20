@@ -353,12 +353,14 @@ body {
         linear-gradient(180deg, var(--color-bg-gradient-start) 0%, var(--color-bg-gradient-end) 100%);
     color: var(--color-text);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, "Segoe UI", sans-serif;
+    scrollbar-gutter: stable;
 }
 
 body {
     min-height: 100vh;
     font-size: 14px;
     line-height: 1.5;
+    overflow-y: auto;
 }
 
 a {
@@ -533,7 +535,11 @@ html[data-theme="premium-dark"] .dashboard-page-header,
 html[data-theme="premium-dark"] .dashboard-core-hero,
 html[data-theme="premium-dark"] .home-hero-panel,
 html[data-theme="premium-dark"] .home-aside-card,
+html[data-theme="premium-dark"] .system-home-intro-copy,
+html[data-theme="premium-dark"] .system-home-intro-stat,
 html[data-theme="premium-dark"] .system-home-hero-main,
+html[data-theme="premium-dark"] .system-home-spotlight-card,
+html[data-theme="premium-dark"] .system-home-mini-card,
 html[data-theme="premium-dark"] .system-home-feature-card,
 html[data-theme="premium-dark"] .backup-summary-card,
 html[data-theme="premium-dark"] .backup-panel,
@@ -558,7 +564,11 @@ html[data-theme="premium-dark"] .dashboard-page-header,
 html[data-theme="premium-dark"] .dashboard-core-hero,
 html[data-theme="premium-dark"] .home-hero-panel,
 html[data-theme="premium-dark"] .home-aside-card,
+html[data-theme="premium-dark"] .system-home-intro-copy,
+html[data-theme="premium-dark"] .system-home-intro-stat,
 html[data-theme="premium-dark"] .system-home-hero-main,
+html[data-theme="premium-dark"] .system-home-spotlight-card,
+html[data-theme="premium-dark"] .system-home-mini-card,
 html[data-theme="premium-dark"] .system-home-feature-card,
 html[data-theme="premium-dark"] .backup-summary-card,
 html[data-theme="premium-dark"] .backup-panel,
@@ -724,7 +734,11 @@ html[data-theme="premium-light"] .dashboard-page-header,
 html[data-theme="premium-light"] .dashboard-core-hero,
 html[data-theme="premium-light"] .home-hero-panel,
 html[data-theme="premium-light"] .home-aside-card,
+html[data-theme="premium-light"] .system-home-intro-copy,
+html[data-theme="premium-light"] .system-home-intro-stat,
 html[data-theme="premium-light"] .system-home-hero-main,
+html[data-theme="premium-light"] .system-home-spotlight-card,
+html[data-theme="premium-light"] .system-home-mini-card,
 html[data-theme="premium-light"] .system-home-feature-card,
 html[data-theme="premium-light"] .backup-summary-card,
 html[data-theme="premium-light"] .backup-panel,

@@ -1,0 +1,772 @@
+
+/* -------------------------------------------------------------
+   Employee detail + profile modals final token enforcement
+   Keeps management header, top action buttons, section text, and
+   profile edit popups consistent in dark, light, mint, and sunrise
+-------------------------------------------------------------- */
+.employee-profile-page .employee-profile-header,
+.employee-profile-page .employee-profile-header.page-header {
+    background: var(--surface-header-gradient);
+    border-color: var(--surface-soft-border);
+    box-shadow: var(--surface-card-shadow-strong);
+}
+
+.employee-profile-page .employee-hero-card,
+.employee-profile-page .employee-hero-card.card,
+.employee-profile-page .detail-card,
+.employee-profile-page .detail-card.card,
+.employee-profile-page .modern-soft-card,
+.employee-profile-page .modern-section-card,
+.employee-profile-page .self-service-request-status-card,
+.employee-profile-page .employee-information-card,
+.employee-profile-page .profile-status-dropdown-card {
+    background: var(--surface-elevated);
+    border-color: var(--surface-soft-border);
+    box-shadow: var(--surface-card-shadow);
+}
+
+.employee-profile-page .employee-hero-card .card-header,
+.employee-profile-page .employee-hero-card .card-body,
+.employee-profile-page .detail-card .card-header,
+.employee-profile-page .detail-card .card-body,
+.employee-profile-page .modern-soft-card .card-header,
+.employee-profile-page .modern-soft-card .card-body {
+    background-image: none;
+}
+
+.employee-profile-page .detail-card .card-header,
+.employee-profile-page .modern-soft-card .card-header,
+.employee-profile-page .self-service-request-status-card .card-header {
+    background: var(--surface-elevated-strong);
+    border-bottom-color: var(--surface-soft-border);
+}
+
+.employee-profile-page .detail-card .card-body,
+.employee-profile-page .modern-soft-card .card-body,
+.employee-profile-page .self-service-request-status-card .card-body,
+.employee-profile-page .employee-hero-card .card-body {
+    background: transparent;
+}
+
+.employee-profile-page .employee-hero-meta-item,
+.employee-profile-page .detail-item,
+.employee-profile-page .summary-list-item,
+.employee-profile-page .document-card-item,
+.employee-profile-page .id-status-card,
+.employee-profile-page .request-file-item,
+.employee-profile-page .employee-document-file-row,
+.employee-profile-page .action-record-card,
+.employee-profile-page .attendance-panel .detail-item,
+.employee-profile-page .profile-status-dropdown-card .detail-item {
+    background: var(--surface-inner);
+    border-color: var(--surface-soft-border);
+    box-shadow: none;
+}
+
+.employee-profile-page .empty-state,
+.employee-profile-page .compact-empty-state {
+    background: var(--surface-empty);
+    border-color: var(--surface-soft-border);
+}
+
+.employee-profile-page .page-title,
+.employee-profile-page .employee-hero-name,
+.employee-profile-page .employee-hero-role,
+.employee-profile-page .card-header h2,
+.employee-profile-page .card-header h3,
+.employee-profile-page .detail-value,
+.employee-profile-page .detail-value a,
+.employee-profile-page .metric-value,
+.employee-profile-page .summary-value,
+.employee-profile-page .table-stack strong,
+.employee-profile-page .document-card-title,
+.employee-profile-page .attendance-ledger-table td,
+.employee-profile-page .attendance-ledger-table th,
+.employee-profile-page .timeline-item-title,
+.employee-profile-page .timeline-item-body,
+.employee-profile-page .timeline-item-body p {
+    color: var(--color-text);
+}
+
+.employee-profile-page .page-subtitle,
+.employee-profile-page .detail-label,
+.employee-profile-page .metric-label,
+.employee-profile-page .summary-label,
+.employee-profile-page .muted-text,
+.employee-profile-page .form-help,
+.employee-profile-page .table-stack small,
+.employee-profile-page small {
+    color: var(--color-text-muted);
+}
+
+.employee-profile-page .page-actions .btn,
+.employee-profile-page .profile-status-dropdown-trigger,
+.employee-profile-page .profile-status-dropdown-actions .btn {
+    min-height: 42px;
+    border-radius: 14px;
+}
+
+.employee-profile-page .page-actions .btn.btn-light,
+.employee-profile-page .page-actions .btn.btn-secondary,
+.employee-profile-page .profile-status-dropdown-trigger,
+.employee-profile-page .profile-status-dropdown-actions .btn.btn-light,
+.employee-profile-page .profile-status-dropdown-actions .btn.btn-secondary {
+    background: var(--color-button-secondary-bg);
+    color: var(--color-button-secondary-text);
+    border: 1px solid var(--border-strong);
+    box-shadow: none;
+}
+
+.employee-profile-page .page-actions .btn.btn-light:hover,
+.employee-profile-page .page-actions .btn.btn-secondary:hover,
+.employee-profile-page .profile-status-dropdown-trigger:hover,
+.employee-profile-page .profile-status-dropdown-actions .btn.btn-light:hover,
+.employee-profile-page .profile-status-dropdown-actions .btn.btn-secondary:hover {
+    background: var(--color-button-secondary-bg-hover);
+    color: var(--color-button-secondary-text);
+    border-color: var(--color-hover-border);
+}
+
+.employee-profile-page .page-actions .btn.btn-primary,
+.employee-profile-page .profile-status-dropdown-actions .btn.btn-primary {
+    background: var(--color-button-primary-bg);
+    color: var(--color-button-primary-text);
+    border-color: var(--color-button-primary-bg);
+}
+
+.employee-profile-page .page-actions .btn.btn-primary:hover,
+.employee-profile-page .profile-status-dropdown-actions .btn.btn-primary:hover {
+    background: var(--color-button-primary-bg-hover);
+    color: var(--color-button-primary-text);
+}
+
+.employee-profile-page .page-actions .btn.btn-danger,
+.employee-profile-page .profile-status-dropdown-actions .btn.btn-danger {
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
+    border: 1px solid var(--status-danger-border);
+}
+
+.employee-profile-page .employee-page-header-main {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    flex: 1 1 620px;
+}
+
+.employee-profile-page .employee-page-header-tools {
+    display: grid;
+    gap: 12px;
+    justify-items: end;
+    min-width: min(100%, 420px);
+}
+
+.employee-profile-page .employee-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.employee-profile-page .employee-header-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--surface-soft-border);
+    background: color-mix(in srgb, var(--color-surface-2) 90%, transparent);
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.employee-profile-page .employee-header-actions {
+    justify-content: flex-end;
+}
+
+.employee-profile-page .employee-profile-scope-note {
+    margin-top: 8px;
+    max-width: 760px;
+}
+
+.employee-profile-page .attendance-ledger-table thead th {
+    background: var(--surface-table-head);
+    color: var(--color-text);
+    border-bottom-color: var(--surface-soft-border);
+}
+
+.employee-profile-page .attendance-ledger-table tbody tr,
+.employee-profile-page .attendance-ledger-table tbody tr:nth-child(even) {
+    background: transparent;
+}
+
+.profile-modal-page {
+    background: var(--surface-elevated);
+    border: 1px solid var(--surface-soft-border);
+    box-shadow: var(--surface-card-shadow-strong);
+    color: var(--color-text);
+}
+
+.profile-modal-header,
+.profile-modal-footer {
+    background: var(--surface-elevated-strong);
+    border-color: var(--surface-soft-border);
+}
+
+.profile-modal-body {
+    background: transparent;
+    color: var(--color-text);
+}
+
+.profile-modal-section-card {
+    background: var(--surface-inner);
+    border: 1px solid var(--surface-soft-border);
+    box-shadow: none;
+}
+
+.profile-modal-header h2,
+.profile-modal-section-head h3,
+.profile-modal-form label,
+.profile-modal-body,
+.profile-modal-page strong,
+.profile-modal-page .detail-value,
+.profile-modal-page .detail-value a {
+    color: var(--color-text);
+}
+
+.profile-modal-page .page-subtitle,
+.profile-modal-page .form-help,
+.profile-modal-page small,
+.profile-modal-page .muted-text,
+.profile-modal-eyebrow {
+    color: var(--color-text-muted);
+}
+
+.profile-modal-eyebrow {
+    background: var(--surface-pill-neutral-bg);
+    border-color: var(--surface-pill-neutral-border);
+}
+
+.profile-modal-close {
+    background: var(--surface-interactive-neutral-bg);
+    border-color: var(--surface-interactive-neutral-border);
+    color: var(--color-text);
+}
+
+.profile-modal-close:hover {
+    background: var(--surface-interactive-neutral-bg-hover);
+    border-color: var(--surface-interactive-neutral-border-hover);
+}
+
+.profile-modal-form .form-control,
+.profile-modal-form input,
+.profile-modal-form select,
+.profile-modal-form textarea,
+.profile-modal-form input[type="file"] {
+    background: var(--color-input-bg) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--border-strong) !important;
+    box-shadow: none !important;
+}
+
+.profile-modal-form .form-control:focus,
+.profile-modal-form input:focus,
+.profile-modal-form select:focus,
+.profile-modal-form textarea:focus {
+    background: var(--color-input-bg-focus) !important;
+    color: var(--color-text) !important;
+    border-color: var(--color-hover-border) !important;
+    box-shadow: 0 0 0 4px var(--color-focus-ring) !important;
+}
+
+html[data-theme="premium-dark"] .profile-modal-form input[type="date"],
+html[data-theme="dark-accent"] .profile-modal-form input[type="date"] {
+    color-scheme: dark;
+}
+
+html[data-theme="premium-light"] .profile-modal-form input[type="date"],
+html[data-theme="sunrise"] .profile-modal-form input[type="date"] {
+    color-scheme: light;
+}
+
+
+/* -------------------------------------------------------------
+   Attendance Management: summary card and snapshot cleanup fix
+-------------------------------------------------------------- */
+.attendance-management-page {
+    display: grid;
+    gap: 22px;
+}
+
+.attendance-management-page > .summary-grid {
+    display: grid !important;
+    gap: 14px !important;
+    margin: 0 !important;
+}
+
+.attendance-management-page .attendance-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.attendance-management-page .attendance-summary-grid.attendance-snapshot-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+}
+
+.attendance-management-page .summary-card {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    min-height: 110px !important;
+    padding: 16px 18px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 18px !important;
+    background: var(--surface-gradient-3) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+.attendance-management-page .summary-label {
+    display: block !important;
+    margin-bottom: 10px !important;
+}
+
+.attendance-management-page .summary-value {
+    display: block !important;
+    font-size: 28px !important;
+    line-height: 1.1 !important;
+    font-weight: 800 !important;
+}
+
+.attendance-management-page .attendance-snapshot-body {
+    display: grid;
+    gap: 18px;
+}
+
+.attendance-management-page .attendance-snapshot-card .card-body,
+.attendance-management-page .table-card .card-body,
+.attendance-management-page .filter-card .card-body {
+    overflow: visible;
+}
+
+@media (max-width: 1200px) {
+    .attendance-management-page .attendance-summary-grid,
+    .attendance-management-page .attendance-summary-grid.attendance-snapshot-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .attendance-management-page .attendance-summary-grid,
+    .attendance-management-page .attendance-summary-grid.attendance-snapshot-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* -------------------------------------------------------------
+   Employee Detail: branch team member visual hierarchy fix
+-------------------------------------------------------------- */
+.employee-profile-page .branch-team-member-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.employee-profile-page .branch-team-member-name,
+.employee-profile-page .branch-team-member-name a {
+    color: var(--color-text) !important;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.35;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+}
+
+.employee-profile-page .branch-team-member-meta {
+    color: var(--color-text-muted) !important;
+    font-size: 13px;
+    line-height: 1.5;
+    font-weight: 500;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+}
+
+.employee-profile-page .branch-team-member-name a:hover {
+    color: var(--color-text) !important;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+
+.employee-requests-page .request-documents-overview-card {
+    overflow: hidden;
+}
+
+.employee-requests-page .request-documents-overview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.employee-requests-page .request-documents-overview-header .card-subtitle {
+    margin: 8px 0 0;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 920px;
+}
+
+.employee-requests-page .request-document-group-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.employee-requests-page .request-document-group-card {
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface-gradient-2);
+    padding: 18px;
+    display: grid;
+    gap: 14px;
+}
+
+.employee-requests-page .request-document-group-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.employee-requests-page .request-document-file-list {
+    display: grid;
+    gap: 12px;
+}
+
+.employee-requests-page .request-document-file-item {
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface-gradient-3);
+    display: grid;
+    gap: 12px;
+}
+
+.employee-requests-page .request-document-employee-line {
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.employee-requests-page .request-document-group-footer {
+    padding-top: 2px;
+}
+
+@media (max-width: 900px) {
+    .employee-requests-page .request-documents-overview-header,
+    .employee-requests-page .request-document-group-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+
+.employee-requests-page .request-documents-overview-card-compact {
+    margin-top: 4px;
+}
+
+.employee-requests-page .request-documents-overview-card-compact .card-header {
+    padding: 14px 18px;
+}
+
+.employee-requests-page .request-documents-overview-card-compact .card-body {
+    padding: 16px 18px 18px;
+}
+
+.employee-requests-page .request-documents-overview-card-compact .request-documents-overview-header .card-subtitle {
+    margin-top: 6px;
+    max-width: 720px;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.employee-requests-page .request-documents-overview-card-compact .page-actions {
+    gap: 8px;
+}
+
+.employee-requests-page .request-documents-overview-card-compact .page-actions .btn {
+    min-height: 36px;
+    padding: 8px 12px;
+}
+
+.employee-requests-page .request-document-group-grid-compact {
+    gap: 12px;
+}
+
+.employee-requests-page .request-documents-overview-card-compact .request-document-group-card {
+    padding: 14px;
+    border-radius: 18px;
+    gap: 12px;
+}
+
+.employee-requests-page .request-documents-overview-card-compact .request-document-file-list {
+    gap: 10px;
+}
+
+.employee-requests-page .request-documents-overview-card-compact .request-document-file-item {
+    padding: 12px 14px;
+    border-radius: 14px;
+    gap: 10px;
+}
+
+.employee-requests-page .request-documents-overview-card-compact .request-file-detail-grid {
+    row-gap: 8px;
+    column-gap: 12px;
+}
+
+.employee-requests-page .request-documents-overview-card-compact .document-description--framed {
+    margin-top: 0;
+    padding: 10px 12px;
+}
+
+.employee-requests-page .request-documents-overview-card-compact .request-document-group-footer {
+    padding-top: 0;
+}
+
+.employee-requests-page .request-documents-overview-card-compact .muted-text {
+    font-size: 13px;
+}
+
+@media (max-width: 900px) {
+    .employee-requests-page .request-documents-overview-card-compact .card-header,
+    .employee-requests-page .request-documents-overview-card-compact .card-body {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+}
+
+
+/* -------------------------------------------------------------
+   Employee Requests: queue visibility + filter panel redesign
+-------------------------------------------------------------- */
+
+.employee-requests-page .request-queue-card,
+.employee-requests-page .request-filter-panel-card {
+    overflow: hidden;
+}
+
+.employee-requests-page .request-queue-card-header,
+.employee-requests-page .request-filter-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.employee-requests-page .request-queue-card-header .card-subtitle,
+.employee-requests-page .request-filter-panel-header .card-subtitle {
+    margin: 8px 0 0;
+    max-width: 860px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.employee-requests-page .request-queue-card-body,
+.employee-requests-page .request-filter-panel-body {
+    display: grid;
+    gap: 18px;
+}
+
+.employee-requests-page .request-queue-focus-band {
+    display: grid;
+    gap: 8px;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--surface-gradient-3);
+}
+
+.employee-requests-page .request-queue-focus-label,
+.employee-requests-page .request-queue-stat-label {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.2;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.employee-requests-page .request-queue-focus-value {
+    display: block;
+    color: var(--text);
+    font-size: 26px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.employee-requests-page .request-queue-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.employee-requests-page .request-queue-stat {
+    display: grid;
+    gap: 10px;
+    min-height: 146px;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--surface-gradient-3);
+    align-content: start;
+}
+
+.employee-requests-page .request-queue-stat-emphasis {
+    background: var(--surface-gradient-2);
+}
+
+.employee-requests-page .request-queue-stat-value {
+    display: block;
+    color: var(--text);
+    font-size: 30px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.employee-requests-page .request-queue-stat-help {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.employee-requests-page .request-filter-panel-shell {
+    gap: 20px;
+}
+
+.employee-requests-page .request-filter-panel-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.employee-requests-page .request-filter-panel-primary,
+.employee-requests-page .request-filter-panel-secondary {
+    display: grid;
+    gap: 18px;
+    min-width: 0;
+}
+
+.employee-requests-page .request-filter-panel-search,
+.employee-requests-page .request-filter-panel-compact-grid .form-group {
+    padding: 16px 16px 14px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--surface-gradient-3);
+}
+
+.employee-requests-page .request-filter-panel-search {
+    gap: 10px;
+}
+
+.employee-requests-page .request-filter-panel-search input,
+.employee-requests-page .request-filter-panel-compact-grid select {
+    width: 100%;
+}
+
+.employee-requests-page .request-filter-panel-compact-grid {
+    gap: 14px;
+}
+
+.employee-requests-page .request-filter-panel-branch-field {
+    grid-column: 1 / -1;
+}
+
+.employee-requests-page .request-filter-panel-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding-top: 2px;
+}
+
+.employee-requests-page .request-filter-panel-actions {
+    width: auto;
+    margin: 0;
+    padding-top: 0;
+}
+
+.employee-requests-page .request-filter-panel-note-block {
+    display: grid;
+    gap: 8px;
+    max-width: 760px;
+}
+
+.employee-requests-page .request-filter-panel-note-block .requests-filter-note {
+    margin: 0;
+}
+
+@media (max-width: 1180px) {
+    .employee-requests-page .request-queue-grid,
+    .employee-requests-page .request-filter-panel-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .employee-requests-page .request-queue-card-header,
+    .employee-requests-page .request-filter-panel-header,
+    .employee-requests-page .request-filter-panel-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .employee-requests-page .request-queue-grid,
+    .employee-requests-page .request-filter-panel-compact-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .employee-requests-page .request-queue-focus-value {
+        font-size: 22px;
+    }
+
+    .employee-requests-page .request-queue-stat-value {
+        font-size: 26px;
+    }
+}
+
+
+.employee-requests-page .request-document-group-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.employee-requests-page .request-document-group-actions .btn {
+    min-height: 34px;
+    padding: 7px 12px;
+}
+
+.employee-requests-page .request-documents-overview-card-compact .request-document-group-actions .btn {
+    min-height: 32px;
+    padding: 6px 11px;
+}
+
+@media (max-width: 900px) {
+    .employee-requests-page .request-document-group-actions {
+        justify-content: flex-start;
+    }
+}
+
+
+/* -------------------------------------------------------------

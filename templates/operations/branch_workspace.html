@@ -9,17 +9,37 @@
 {% endblock %}
 
 {% block content %}
-<div class="branch-workspace-page">
-    <div class="page-header employee-profile-header">
-        <div>
-            <h1 class="page-title">{{ branch.name }} Workspace</h1>
-            <p class="page-subtitle">Operational branch control center with schedule visibility, announcements, task flow, and structured discussion.</p>
+<div class="platform-page branch-workspace-page branch-workspace-platform-page">
+    <section class="platform-hero branch-workspace-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Branch Control Workspace</span>
+            <h1>{{ branch.name }} workspace for branch posts, team follow-up, and weekly schedule visibility</h1>
+            <p>Run branch operations from one cleaner workspace with pinned updates, team coverage, task movement, and the selected week snapshot in the same control layer.</p>
+            <div class="platform-hero-meta">
+                <span class="platform-hero-chip">Branch: {{ branch.name }}</span>
+                <span class="platform-hero-chip">Company: {{ branch.company.name }}</span>
+                <span class="platform-hero-chip">Team Members: {{ branch_workspace_team_total }}</span>
+                <span class="platform-hero-chip">Open Tasks: {{ branch_workspace_open_task_total }}</span>
+                <span class="platform-hero-chip">Awaiting Approval: {{ branch_workspace_approval_waiting_total }}</span>
+            </div>
         </div>
-        <div class="page-actions">
-            <a class="btn btn-light" href="{% url 'employees:employee_list' %}?branch={{ branch.id }}">Team Directory</a>
-            <a class="btn btn-secondary" href="{% url 'employees:self_service_weekly_schedule' %}?week={{ branch_workspace_selected_week_start|date:'Y-m-d' }}">Weekly Schedule</a>
+        <div class="platform-hero-side">
+            <div class="platform-side-card">
+                <span>Today Schedule</span>
+                <strong>{{ branch_workspace_today_schedule_total }}</strong>
+                <small>Scheduled duty items visible for today in this branch</small>
+            </div>
+            <div class="platform-side-card">
+                <span>Selected Week</span>
+                <strong>{{ branch_workspace_selected_week_start|date:"M j" }}</strong>
+                <small>Week starting {{ branch_workspace_selected_week_start|date:"M j, Y" }}</small>
+            </div>
+            <div class="platform-inline-actions platform-hero-actions">
+                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_list' %}?branch={{ branch.id }}">Team Directory</a>
+                <a class="btn btn-secondary btn-sm" href="{% url 'employees:self_service_weekly_schedule' %}?week={{ branch_workspace_selected_week_start|date:'Y-m-d' }}">Weekly Schedule</a>
+            </div>
         </div>
-    </div>
+    </section>
 
     {% include "operations/includes/branch_workspace_content.html" with branch_workspace_is_self_service=False %}
 </div>

@@ -222,23 +222,23 @@
         <div class="summary-grid attendance-summary-grid attendance-summary-grid-secondary">
             <div class="summary-card">
                 <span class="summary-label">Worked Hours</span>
-                <span class="summary-value">{{ total_worked_hours }}</span>
+                <span class="summary-value">{{ total_worked_hours_display }}</span>
             </div>
             <div class="summary-card">
                 <span class="summary-label">Scheduled Hours</span>
-                <span class="summary-value">{{ total_scheduled_hours }}</span>
+                <span class="summary-value">{{ total_scheduled_hours_display }}</span>
             </div>
             <div class="summary-card">
-                <span class="summary-label">Late Minutes</span>
-                <span class="summary-value">{{ total_late_minutes }}</span>
+                <span class="summary-label">Late Time</span>
+                <span class="summary-value">{{ total_late_minutes_display }}</span>
             </div>
             <div class="summary-card">
                 <span class="summary-label">Early Departure</span>
-                <span class="summary-value">{{ total_early_departure_minutes }}</span>
+                <span class="summary-value">{{ total_early_departure_minutes_display }}</span>
             </div>
             <div class="summary-card">
-                <span class="summary-label">Overtime Minutes</span>
-                <span class="summary-value">{{ total_overtime_minutes }}</span>
+                <span class="summary-label">Overtime</span>
+                <span class="summary-value">{{ total_overtime_minutes_display }}</span>
             </div>
             <div class="summary-card">
                 <span class="summary-label">Early Exit Flags</span>
@@ -293,7 +293,7 @@
                                         <span class="badge {{ record.check_out_status_badge_class }}">Out {{ record.check_out_status_label }}</span>
                                     </div>
                                     <span class="attendance-history-summary-meta">
-                                        {{ record.worked_hours }} hrs
+                                        {{ record.worked_hours_display }}
                                         {% if record.clock_in_time %} • In {{ record.clock_in_time|time:"H:i" }}{% endif %}
                                         {% if record.clock_out_time %} • Out {{ record.clock_out_time|time:"H:i" }}{% endif %}
                                     </span>
@@ -311,7 +311,7 @@
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Worked Hours</span>
-                                        <span class="detail-value">{{ record.worked_hours }}</span>
+                                        <span class="detail-value">{{ record.worked_hours_display }}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Day Status</span>
@@ -319,7 +319,7 @@
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Scheduled Hours</span>
-                                        <span class="detail-value">{{ record.scheduled_hours }}</span>
+                                        <span class="detail-value">{{ record.scheduled_hours_display }}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Check-In Status</span>
@@ -330,16 +330,16 @@
                                         <span class="detail-value"><span class="badge {{ record.check_out_status_badge_class }}">{{ record.check_out_status_label }}</span></span>
                                     </div>
                                     <div class="detail-item">
-                                        <span class="detail-label">Late Minutes</span>
-                                        <span class="detail-value">{{ record.late_minutes }}</span>
+                                        <span class="detail-label">Late Time</span>
+                                        <span class="detail-value">{{ record.late_minutes_display }}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Early Departure</span>
-                                        <span class="detail-value">{{ record.early_departure_minutes }}</span>
+                                        <span class="detail-value">{{ record.early_departure_minutes_display }}</span>
                                     </div>
                                     <div class="detail-item">
-                                        <span class="detail-label">Overtime Minutes</span>
-                                        <span class="detail-value">{{ record.overtime_minutes }}</span>
+                                        <span class="detail-label">Overtime</span>
+                                        <span class="detail-value">{{ record.overtime_minutes_display }}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Attendance Rule</span>
@@ -439,8 +439,8 @@
                                 </td>
                                 <td>
                                     <div class="table-stack">
-                                        <strong>{{ record.worked_hours }}</strong>
-                                        <span>Scheduled: {{ record.scheduled_hours }}</span>
+                                        <strong>{{ record.worked_hours_display }}</strong>
+                                        <span>Scheduled: {{ record.scheduled_hours_display }}</span>
                                         {% if record.clock_in_time or record.clock_out_time %}
                                             <small>
                                                 {% if record.clock_in_time %}In {{ record.clock_in_time|time:"H:i" }}{% endif %}
@@ -451,9 +451,9 @@
                                 </td>
                                 <td>
                                     <div class="table-stack">
-                                        <strong>Late: {{ record.late_minutes }}m</strong>
-                                        <span>Early: {{ record.early_departure_minutes }}m</span>
-                                        <small>Overtime: {{ record.overtime_minutes }}m</small>
+                                        <strong>Late: {{ record.late_minutes_display }}</strong>
+                                        <span>Early: {{ record.early_departure_minutes_display }}</span>
+                                        <small>Overtime: {{ record.overtime_minutes_display }}</small>
                                     </div>
                                 </td>
                                 <td>
@@ -468,17 +468,16 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="table-stack">
-                                        {% if record.notes %}
-                                            <span>{{ record.notes }}</span>
-                                        {% else %}
-                                            <span class="muted-text">No notes</span>
-                                        {% endif %}
+                                    <div class="table-stack attendance-notes-stack" title="{{ record.notes|default:'No notes' }}">
+                                        <span>{{ record.notes_preview }}</span>
                                         {% if record.linked_leave %}
                                             <small>Linked leave: {{ record.linked_leave.get_leave_type_display }}</small>
                                         {% endif %}
                                         {% if record.linked_action_record %}
                                             <small>Linked action: {{ record.linked_action_record.get_action_type_display }}</small>
+                                        {% endif %}
+                                        {% if record.notes and record.notes_preview != record.notes %}
+                                            <small>Open the row details for full audit text.</small>
                                         {% endif %}
                                     </div>
                                 </td>

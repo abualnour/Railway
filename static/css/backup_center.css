@@ -334,6 +334,32 @@
 }
 }
 
+@media (max-width: 900px) {
+    .backup-center-header {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 20px 18px;
+        border-radius: 22px;
+    }
+
+    .backup-center-header-chip {
+        white-space: normal;
+        min-height: 0;
+        line-height: 1.35;
+        text-align: center;
+    }
+
+    .backup-center-header-actions .btn,
+    .backup-destination-grid .btn,
+    .backup-panel .form-actions .btn {
+        flex: 1 1 180px;
+    }
+
+    .backup-audit-table {
+        min-width: 820px;
+    }
+}
+
 @media (max-width: 800px) {
     .backup-center-summary-grid {
         grid-template-columns: 1fr;
@@ -342,9 +368,35 @@
     .backup-summary-card {
         min-height: auto;
     }
-    .backup-path-chip-grid {
+.backup-path-chip-grid {
     grid-template-columns: 1fr;
 }
+}
+
+@media (max-width: 640px) {
+    .backup-center-header {
+        padding: 18px 16px;
+    }
+
+    .backup-panel .card-header,
+    .backup-panel .card-body {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .backup-center-header-actions,
+    .backup-panel .form-actions {
+        width: 100%;
+    }
+
+    .backup-center-header-actions .btn,
+    .backup-panel .form-actions .btn {
+        width: 100%;
+    }
+
+    .backup-audit-table {
+        min-width: 700px;
+    }
 }
 
 

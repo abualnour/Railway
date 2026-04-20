@@ -7,6 +7,7 @@ from django.db.models import Count, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
+from employees.access import is_admin_compatible as is_admin_compatible_role
 from employees.models import Employee, EmployeeAttendanceLedger
 
 from .forms import PayrollAdjustmentForm, PayrollLineForm, PayrollLineGenerationForm, PayrollObligationForm, PayrollPeriodForm
@@ -18,7 +19,7 @@ def can_access_payroll_workspace(user):
         user
         and user.is_authenticated
         and (
-            getattr(user, "is_superuser", False)
+            is_admin_compatible_role(user)
             or getattr(user, "is_hr", False)
             or getattr(user, "is_operations_manager", False)
         )

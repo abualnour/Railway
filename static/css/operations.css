@@ -14,6 +14,7 @@
 
 .branch-workspace-hero-grid {
     grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.9fr);
+    align-items: start;
 }
 
 .branch-workspace-layout {
@@ -36,6 +37,7 @@
 .branch-workspace-side {
     display: grid;
     gap: 18px;
+    align-content: start;
 }
 
 .branch-workspace-stack > .branch-workspace-panel {
@@ -44,6 +46,13 @@
 
 .branch-workspace-panel {
     margin-bottom: 0;
+    align-self: start;
+}
+
+.branch-workspace-hero-grid > .branch-workspace-panel,
+.branch-workspace-layout > .branch-workspace-main,
+.branch-workspace-layout > .branch-workspace-side {
+    align-self: start;
 }
 
 .workspace-kpi-grid {
@@ -254,5 +263,71 @@
     .branch-member-grid,
     .schedule-kpi-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .branch-workspace-page,
+    .my-schedule-page {
+        gap: 16px;
+    }
+
+    .branch-workspace-shell,
+    .branch-workspace-layout,
+    .branch-workspace-hero-grid,
+    .branch-workspace-stack,
+    .branch-workspace-main,
+    .branch-workspace-side {
+        gap: 16px;
+    }
+
+    .workspace-inline-actions,
+    .branch-post-footer {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .workspace-inline-actions .btn,
+    .branch-post-footer .btn {
+        flex: 1 1 180px;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 640px) {
+    .branch-workspace-page .page-header {
+        padding: 18px 16px;
+        border-radius: 22px;
+    }
+
+    .workspace-kpi,
+    .branch-post-card,
+    .branch-reply-card,
+    .schedule-entry-card,
+    .schedule-side-item,
+    .workspace-timeline-item,
+    .schedule-focus-card,
+    .branch-member-card {
+        padding: 12px 14px;
+    }
+
+    .workspace-inline-actions,
+    .branch-post-footer,
+    .page-actions {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .workspace-inline-actions .btn,
+    .branch-post-footer .btn,
+    .page-actions .btn {
+        width: 100%;
+    }
+
+    .branch-post-head,
+    .branch-reply-head,
+    .schedule-entry-head {
+        flex-direction: column;
+        align-items: stretch;
     }
 }

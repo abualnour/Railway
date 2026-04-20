@@ -13,6 +13,7 @@ from django.utils import timezone
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from config.mixins import ProtectedDeleteMixin
+from employees.access import is_admin_compatible as is_admin_compatible_role
 from employees.models import Employee
 
 from .forms import (
@@ -36,11 +37,7 @@ from .models import (
 
 
 def is_admin_compatible(user):
-    return bool(
-        user
-        and user.is_authenticated
-        and (getattr(user, "is_superuser", False) or getattr(user, "is_staff", False))
-    )
+    return is_admin_compatible_role(user)
 
 
 def is_hr_user(user):

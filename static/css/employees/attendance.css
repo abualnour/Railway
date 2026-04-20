@@ -213,6 +213,41 @@
     line-height: 1.35;
 }
 
+.attendance-management-page .attendance-table {
+    min-width: 1320px;
+}
+
+.attendance-management-page .attendance-table td {
+    vertical-align: top;
+}
+
+.attendance-management-page .attendance-table .table-stack {
+    min-width: 0;
+}
+
+.attendance-management-page .attendance-table td:nth-child(10) {
+    width: 280px;
+    min-width: 280px;
+}
+
+.attendance-management-page .attendance-table td:nth-child(11) {
+    width: 150px;
+    min-width: 150px;
+}
+
+.attendance-management-page .attendance-notes-stack span {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+    line-height: 1.55;
+}
+
+.attendance-management-page .attendance-notes-stack small {
+    line-height: 1.45;
+}
+
 .attendance-management-page .attendance-snapshot-card {
     margin-bottom: 0;
 }
@@ -315,6 +350,78 @@
 
     .attendance-management-page .attendance-progress-inline {
         justify-items: start;
+    }
+
+    .attendance-management-page .page-header {
+        padding: 20px 18px;
+        border-radius: 22px;
+    }
+
+    .attendance-management-page .attendance-management-header-tools,
+    .attendance-management-page .attendance-management-header-meta,
+    .attendance-management-page .attendance-management-header-actions,
+    .attendance-management-page .attendance-inline-badges,
+    .attendance-management-page .page-actions {
+        width: 100%;
+        justify-items: stretch;
+        justify-content: flex-start;
+    }
+
+    .attendance-management-page .attendance-management-header-chip {
+        white-space: normal;
+        min-height: 0;
+        line-height: 1.35;
+        text-align: center;
+    }
+
+    .attendance-management-page .page-actions .btn,
+    .attendance-management-page .filter-actions .btn,
+    .attendance-management-page .attendance-inline-badges .btn {
+        flex: 1 1 180px;
+    }
+}
+
+@media (max-width: 640px) {
+    .attendance-management-page .page-header,
+    .attendance-management-page .filter-card .card-header,
+    .attendance-management-page .filter-card .card-body,
+    .attendance-management-page .table-card .card-header,
+    .attendance-management-page .table-card .card-body {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .attendance-management-page .page-header {
+        padding-top: 18px;
+        padding-bottom: 18px;
+    }
+
+    .attendance-management-page .attendance-summary-disclosure-toggle,
+    .attendance-management-page .attendance-history-summary,
+    .attendance-management-page .attendance-summary-disclosure-body,
+    .attendance-management-page .attendance-history-panel {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .attendance-management-page .page-actions,
+    .attendance-management-page .filter-actions {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .attendance-management-page .page-actions .btn,
+    .attendance-management-page .filter-actions .btn {
+        width: 100%;
+    }
+
+    .attendance-management-page .summary-card {
+        min-height: 0;
+    }
+
+    .attendance-management-page .attendance-summary-text {
+        -webkit-line-clamp: unset;
+        overflow: visible;
     }
 }
 

@@ -223,6 +223,9 @@
                         <a href="{% url 'employees:attendance_management' %}" class="topbar-sub-link">Attendance
                             Management</a>
                         {% endif %}
+                        {% if nav_can_view_branch_schedule_overview %}
+                        <a href="{{ nav_branch_schedule_overview_url }}" class="topbar-sub-link">Branch Schedules</a>
+                        {% endif %}
                         {% if nav_can_add_employee %}
                         <a href="{% url 'employees:employee_create' %}" class="topbar-sub-link">Add Employee</a>
                         {% endif %}

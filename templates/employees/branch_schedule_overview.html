@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Branch Schedules Overview{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/employees.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="platform-page branch-schedule-overview-page employee-profile-page branch-schedule-page">
+    <section class="platform-hero branch-schedule-overview-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Branch Schedule Oversight</span>
+            <h1>
+                {% if selected_branch %}
+                    {{ selected_branch.name }} weekly schedule, team roster, and attendance follow-up
+                {% else %}
+                    Weekly branch schedules and attendance follow-up
+                {% endif %}
+            </h1>
+            <p>Use one management page to review each branch schedule board, switch weeks fast, and compare published duties with the branch attendance records for the same time window.</p>
+            <div class="platform-hero-meta">
+                <span class="platform-hero-chip">Week Start: {{ selected_week_start|date:"M j, Y" }}</span>
+                <span class="platform-hero-chip">Week End: {{ week_end|date:"M j, Y" }}</span>
+                <span class="platform-hero-chip">Branches: {{ branches|length }}</span>
+                {% if selected_branch %}
+                <span class="platform-hero-chip">Selected: {{ selected_branch.company.name }} / {{ selected_branch.name }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="platform-hero-side">
+            <div class="platform-side-card">
+                <span>Published Duties</span>
+                <strong>{{ overview_summary.schedule_total }}</strong>
+                <small>Schedule entries stored for the selected branch and week</small>
+            </div>
+            <div class="platform-side-card">
+                <span>Attendance Records</span>
+                <strong>{{ attendance_total }}</strong>
+                <small>Weekly ledger rows visible for follow-up</small>
+            </div>
+            <div class="platform-inline-actions platform-hero-actions">
+                <a href="{{ previous_week_url }}" class="btn btn-light btn-sm">Previous Week</a>
+                <a href="{{ current_week_url }}" class="btn btn-secondary btn-sm">Current Week</a>
+                <a href="{{ next_week_url }}" class="btn btn-light btn-sm">Next Week</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="platform-panel branch-schedule-overview-filter-panel">
+        <div class="platform-panel-head">
+            <h2>Overview Filters</h2>
+            <p>Change branch, week, employee search, and attendance status without leaving the oversight page.</p>
+        </div>
+        <form method="get" class="branch-schedule-overview-filter-form">
+            <div class="branch-schedule-overview-filter-grid">
+                <div class="form-group">
+                    <label for="branch">Branch</label>
+                    <select id="branch" name="branch" class="form-control">
+                        {% for branch in branches %}
+                        <option value="{{ branch.pk }}"{% if selected_branch and branch.pk == selected_branch.pk %} selected{% endif %}>
+                            {{ branch.company.name }} / {{ branch.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="week">Week Start</label>
+                    <input id="week" type="date" name="week" class="form-control" value="{{ selected_week_start|date:'Y-m-d' }}">
+                </div>
+                <div class="form-group">
+                    <label for="search">Employee Search</label>
+                    <input id="search" type="text" name="search" class="form-control" placeholder="Name, ID, or job title" value="{{ search_query }}">
+                </div>
+                <div class="form-group">
+                    <label for="day_status">Attendance Status</label>
+                    <select id="day_status" name="day_status" class="form-control">
+                        {% for value, label in day_status_filter_choices %}
+                        <option value="{{ value }}"{% if selected_day_status == value %} selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="branch-schedule-overview-filter-actions">
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <a href="{{ clear_filters_url }}" class="btn btn-secondary">Clear Filters</a>
+                {% if selected_branch_workspace_url %}
+                <a href="{{ selected_branch_workspace_url }}" class="btn btn-light">Open Branch Workspace</a>
+                {% endif %}
+                {% if attendance_management_url %}
+                <a href="{{ attendance_management_url }}" class="btn btn-light">Open Attendance Management</a>
+                {% endif %}
+            </div>
+        </form>
+    </section>
+
+    <section class="platform-grid branch-schedule-overview-branch-grid">
+        {% for card in branch_cards %}
+        <a href="{{ card.select_url }}" class="platform-panel branch-schedule-overview-branch-card{% if card.is_selected %} is-selected{% endif %}">
+            <div class="platform-panel-head">
+                <h2>{{ card.branch.name }}</h2>
+                <p>{{ card.branch.company.name }}</p>
+            </div>
+            <div class="branch-schedule-overview-branch-stats">
+                <span class="badge badge-light">Team {{ card.branch.active_employee_total }}</span>
+                <span class="badge badge-primary">Schedule {{ card.schedule_total }}</span>
+                <span class="badge badge-success">Done {{ card.completed_total }}</span>
+                <span class="badge {% if card.exception_total %}badge-danger{% else %}badge-light{% endif %}">
+                    Exceptions {{ card.exception_total }}
+                </span>
+            </div>
+        </a>
+        {% empty %}
+        <div class="empty-state">
+            <h3>No active branches found</h3>
+            <p>Create an active branch first, then the schedule overview will appear here.</p>
+        </div>
+        {% endfor %}
+    </section>
+
+    {% if selected_branch %}
+    <section class="platform-stats-grid">
+        <article class="platform-stat-card">
+            <span>Branch Team</span>
+            <strong>{{ team_schedule_rows|length }}</strong>
+            <small>Visible employees in the current filtered roster</small>
+        </article>
+        <article class="platform-stat-card">
+            <span>Published Schedule</span>
+            <strong>{{ overview_summary.schedule_total }}</strong>
+            <small>Stored entries for the selected branch week</small>
+        </article>
+        <article class="platform-stat-card">
+            <span>Completed Duties</span>
+            <strong>{{ overview_summary.completed_total }}</strong>
+            <small>Published rows marked completed</small>
+        </article>
+        <article class="platform-stat-card">
+            <span>In Progress</span>
+            <strong>{{ overview_summary.in_progress_total }}</strong>
+            <small>Rows still active during this week</small>
+        </article>
+        <article class="platform-stat-card">
+            <span>Attendance Exceptions</span>
+            <strong>{{ attendance_exception_total }}</strong>
+            <small>Absence, unpaid leave, or flagged records in the week ledger</small>
+        </article>
+        <article class="platform-stat-card">
+            <span>Present Records</span>
+            <strong>{{ attendance_present_total }}</strong>
+            <small>Recorded present attendance days</small>
+        </article>
+        <article class="platform-stat-card">
+            <span>Leave Records</span>
+            <strong>{{ attendance_leave_total }}</strong>
+            <small>Paid, unpaid, or sick leave days</small>
+        </article>
+        <article class="platform-stat-card">
+            <span>Weekly Off / Holiday</span>
+            <strong>{{ attendance_weekly_off_total|add:attendance_holiday_total }}</strong>
+            <small>Policy weekly off or official holiday rows</small>
+        </article>
+    </section>
+
+    <section class="platform-panel branch-schedule-overview-schedule-panel">
+        <div class="platform-panel-head">
+            <h2>Published Week Schedule</h2>
+            <p>Roster view from the official weekly schedule entries already stored in the system for {{ selected_branch.name }}.</p>
+        </div>
+        {% if selected_week_holidays %}
+        <div class="branch-schedule-overview-holiday-row">
+            {% for holiday in selected_week_holidays %}
+            <span class="badge badge-light">{{ holiday.holiday_date|date:"M j" }} | {{ holiday.title }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if team_schedule_rows %}
+        <div class="table-responsive branch-schedule-published-wrap">
+            <table class="free-schedule-grid-table free-schedule-grid-table-roster branch-schedule-published-table">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Job Title</th>
+                        <th>Pending Off</th>
+                        {% for day in overview_summary.week_days %}
+                        <th>{{ day|date:"l" }}<br><small>{{ day|date:"j-M-Y" }}</small></th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in team_schedule_rows %}
+                    <tr>
+                        <td class="free-schedule-meta-cell">
+                            <div class="table-stack">
+                                <strong><a class="org-name-link" href="{% url 'employees:employee_detail' row.employee.pk %}">{{ row.employee.full_name }}</a></strong>
+                                <small>{{ row.employee.employee_id }}</small>
+                            </div>
+                        </td>
+                        <td class="free-schedule-meta-cell">{{ row.employee.job_title.name|default:"-" }}</td>
+                        <td class="free-schedule-meta-cell">{{ row.pending_off_total }}</td>
+                        {% for cell in row.cells %}
+                        <td class="free-schedule-duty-cell">
+                            {% if cell.entry %}
+                            <div class="branch-schedule-public-cell" {% if cell.entry.inline_color_style %}style="{{ cell.entry.inline_color_style }}"{% endif %}>
+                                <strong>{{ cell.entry.primary_schedule_label }}</strong>
+                            </div>
+                            {% else %}
+                            <div class="free-grid-readonly">-</div>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No schedule rows found</h3>
+            <p>No branch employees or published rows matched the current branch and search filters.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="platform-panel branch-schedule-overview-attendance-panel">
+        <div class="platform-panel-head">
+            <h2>Weekly Attendance Records</h2>
+            <p>Attendance ledger rows for the same branch and week so management can compare the published roster with actual recorded outcomes.</p>
+        </div>
+        {% if attendance_records %}
+        <div class="table-responsive">
+            <table class="table attendance-table branch-schedule-overview-attendance-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Employee</th>
+                        <th>Status</th>
+                        <th>Shift</th>
+                        <th>Hours</th>
+                        <th>Punctuality</th>
+                        <th>Source</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance_records %}
+                    <tr>
+                        <td>
+                            <div class="table-stack">
+                                <strong>{{ record.attendance_date|date:"M j, Y" }}</strong>
+                                <small>{{ record.attendance_date|date:"l" }}</small>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="table-stack">
+                                <strong><a class="org-name-link" href="{% url 'employees:employee_detail' record.employee.pk %}?tab=performance#employee-timeline-section">{{ record.employee.full_name }}</a></strong>
+                                <span>{{ record.employee.employee_id }}</span>
+                                <small>{{ record.employee.job_title.name|default:"-" }}</small>
+                            </div>
+                        </td>
+                        <td><span class="badge {{ record.day_status_badge_class }}">{{ record.get_day_status_display }}</span></td>
+                        <td>
+                            <div class="table-stack">
+                                <strong>{{ record.get_shift_display|default:"-" }}</strong>
+                                {% if record.clock_in_time or record.clock_out_time %}
+                                <small>
+                                    {% if record.clock_in_time %}In {{ record.clock_in_time|time:"H:i" }}{% endif %}
+                                    {% if record.clock_out_time %} · Out {{ record.clock_out_time|time:"H:i" }}{% endif %}
+                                </small>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="table-stack">
+                                <strong>{{ record.worked_hours_display }}</strong>
+                                <small>Scheduled {{ record.scheduled_hours_display }}</small>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="table-stack">
+                                <strong>Late {{ record.late_minutes_display }}</strong>
+                                <span>Early {{ record.early_departure_minutes_display }}</span>
+                                <small>Overtime {{ record.overtime_minutes_display }}</small>
+                            </div>
+                        </td>
+                        <td><span class="badge {{ record.source_badge_class }}">{{ record.get_source_display }}</span></td>
+                        <td>
+                            {% if record.notes %}
+                            <span title="{{ record.notes }}">{{ record.notes_preview }}</span>
+                            {% else %}
+                            <span class="muted-text">No notes</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if attendance_total > attendance_records|length %}
+        <div class="status-sync-note">
+            Showing the first {{ attendance_records|length }} attendance records from {{ attendance_total }} total rows for the selected filters.
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="empty-state">
+            <h3>No attendance records found</h3>
+            <p>No weekly attendance ledger rows matched the selected branch, week, and filters.</p>
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

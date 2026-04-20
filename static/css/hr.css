@@ -37,6 +37,22 @@
     justify-content: flex-start;
 }
 
+@media (max-width: 900px) {
+    .hr-control-center-page {
+        gap: 18px;
+    }
+
+    .hr-control-center-page .platform-stat-card,
+    .hr-control-center-page .platform-side-card,
+    .hr-control-center-page .platform-feature-card {
+        min-height: 0;
+    }
+
+    .hr-lane-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 1100px) {
     .hr-lane-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -46,5 +62,13 @@
 @media (max-width: 700px) {
     .hr-lane-grid {
         grid-template-columns: 1fr;
+    }
+
+    .hr-hero-actions {
+        width: 100%;
+    }
+
+    .hr-hero-actions .btn {
+        width: 100%;
     }
 }

@@ -288,3 +288,109 @@ body[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .bra
 [data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .branch-schedule-published-table .branch-schedule-public-cell[style] * {
     color: var(--branch-duty-text, inherit) !important;
 }
+
+
+/* -------------------------------------------------------------
+   Branch Schedule Overview: management weekly follow-up page
+-------------------------------------------------------------- */
+.branch-schedule-overview-page {
+    display: grid;
+    gap: 22px;
+}
+
+.branch-schedule-overview-page .branch-schedule-overview-filter-panel,
+.branch-schedule-overview-page .branch-schedule-overview-branch-card,
+.branch-schedule-overview-page .branch-schedule-overview-schedule-panel,
+.branch-schedule-overview-page .branch-schedule-overview-attendance-panel {
+    border-radius: 24px;
+}
+
+.branch-schedule-overview-page .branch-schedule-overview-filter-form,
+.branch-schedule-overview-page .branch-schedule-overview-branch-stats {
+    display: grid;
+    gap: 14px;
+}
+
+.branch-schedule-overview-page .branch-schedule-overview-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.branch-schedule-overview-page .branch-schedule-overview-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.branch-schedule-overview-page .branch-schedule-overview-branch-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.branch-schedule-overview-page .branch-schedule-overview-branch-card {
+    display: grid;
+    gap: 14px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.branch-schedule-overview-page .branch-schedule-overview-branch-card:hover {
+    transform: translateY(-2px);
+}
+
+.branch-schedule-overview-page .branch-schedule-overview-branch-card.is-selected {
+    border-color: var(--color-button-primary-bg);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-button-primary-bg) 42%, transparent);
+}
+
+.branch-schedule-overview-page .branch-schedule-overview-branch-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.branch-schedule-overview-page .branch-schedule-overview-holiday-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.branch-schedule-overview-page .branch-schedule-overview-attendance-table {
+    min-width: 980px;
+}
+
+@media (max-width: 1200px) {
+    .branch-schedule-overview-page .branch-schedule-overview-filter-grid,
+    .branch-schedule-overview-page .branch-schedule-overview-branch-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .branch-schedule-overview-page .branch-schedule-overview-filter-grid,
+    .branch-schedule-overview-page .branch-schedule-overview-branch-grid,
+    .branch-schedule-overview-page .branch-schedule-overview-branch-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .branch-schedule-overview-page {
+        gap: 16px;
+    }
+
+    .branch-schedule-overview-page .branch-schedule-overview-filter-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .branch-schedule-overview-page .branch-schedule-overview-filter-actions .btn {
+        width: 100%;
+    }
+
+    .branch-schedule-overview-page .branch-schedule-overview-attendance-table {
+        min-width: 760px;
+    }
+}

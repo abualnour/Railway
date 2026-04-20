@@ -32,6 +32,7 @@ def navbar_context(request):
             "nav_can_access_admin": False,
             "nav_can_view_requests": False,
             "nav_can_view_attendance_management": False,
+            "nav_can_view_branch_schedule_overview": False,
             "nav_employee_profile": None,
             "nav_is_branch_scoped_supervisor": False,
             "nav_scoped_branch": None,
@@ -57,6 +58,7 @@ def navbar_context(request):
             "nav_hr_workspace_url": "",
             "nav_payroll_workspace_url": "",
             "nav_work_calendar_url": "",
+            "nav_branch_schedule_overview_url": "",
             "session_timeout_enabled": False,
             "session_timeout_remaining_seconds": 0,
             "session_timeout_total_seconds": 0,
@@ -174,6 +176,9 @@ def navbar_context(request):
         "nav_can_view_attendance_management": bool(
             is_admin_compatible or is_hr_user or is_operations_manager_user
         ),
+        "nav_can_view_branch_schedule_overview": bool(
+            is_admin_compatible or is_hr_user or is_operations_manager_user
+        ),
         "nav_employee_profile": employee_profile,
         "nav_is_branch_scoped_supervisor": nav_scoped_branch is not None,
         "nav_scoped_branch": nav_scoped_branch,
@@ -210,6 +215,7 @@ def navbar_context(request):
         "nav_hr_workspace_url": reverse("hr:home"),
         "nav_payroll_workspace_url": reverse("payroll:home"),
         "nav_work_calendar_url": reverse("workcalendar:home"),
+        "nav_branch_schedule_overview_url": reverse("employees:branch_schedule_overview"),
         "session_timeout_enabled": True,
         "session_timeout_remaining_seconds": session_timeout_remaining_seconds,
         "session_timeout_remaining_label": format_session_remaining_seconds(session_timeout_remaining_seconds),

@@ -260,12 +260,12 @@
                         <div class="employee-record-actions">
                             <span class="employee-record-label">Actions</span>
                             <div class="table-action-buttons">
-                                <a href="{% url 'employees:employee_detail' employee.pk %}?tab=overview" class="btn btn-sm btn-light">View</a>
+                                <a href="{% url 'employees:employee_detail' employee.pk %}?tab=overview" class="btn btn-sm btn-light btn-action-dot btn-action-view">View</a>
                                 {% if can_edit_employee_records %}
-                                    <a href="{% url 'employees:employee_update' employee.pk %}" class="btn btn-sm btn-secondary">Edit</a>
+                                    <a href="{% url 'employees:employee_update' employee.pk %}" class="btn btn-sm btn-secondary btn-action-dot btn-action-edit">Edit</a>
                                 {% endif %}
                                 {% if can_delete_employee_records %}
-                                    <a href="{% url 'employees:employee_delete' employee.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                                    <a href="{% url 'employees:employee_delete' employee.pk %}" class="btn btn-sm btn-danger btn-action-dot btn-action-delete">Delete</a>
                                 {% endif %}
                             </div>
                         </div>

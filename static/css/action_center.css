@@ -492,6 +492,34 @@
         align-items: stretch;
     }
 
+    .action-center-page .page-header {
+        padding: 20px 18px;
+        border-radius: 22px;
+    }
+
+    .action-center-page .action-center-header-tools,
+    .action-center-page .action-center-header-meta,
+    .action-center-page .action-center-header-actions {
+        width: 100%;
+        justify-items: stretch;
+        justify-content: flex-start;
+    }
+
+    .action-center-page .action-center-header-chip,
+    .action-center-page .action-center-live-badge,
+    .action-center-page .action-center-placeholder-badge {
+        white-space: normal;
+        min-height: 0;
+        line-height: 1.35;
+        text-align: center;
+    }
+
+    .action-center-page .page-actions .btn,
+    .action-center-page .action-center-actions .btn,
+    .action-center-page .action-center-form-actions .btn {
+        flex: 1 1 180px;
+    }
+
     .action-center-page .action-center-queue-item small {
         max-width: none;
         text-align: left;
@@ -716,6 +744,25 @@
 @media (max-width: 900px) {
     .action-center-page .action-center-form-grid-two {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .action-center-page .page-header {
+        padding: 18px 16px;
+    }
+
+    .action-center-page .page-actions,
+    .action-center-page .action-center-actions,
+    .action-center-page .action-center-form-actions {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .action-center-page .page-actions .btn,
+    .action-center-page .action-center-actions .btn,
+    .action-center-page .action-center-form-actions .btn {
+        width: 100%;
     }
 }
 

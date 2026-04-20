@@ -1440,6 +1440,30 @@
     .branch-overview-header-badges {
         justify-content: flex-start;
     }
+
+    .org-page-header.org-page-header-spacious,
+    .org-related-header,
+    .branch-documents-picker-results-head,
+    .branch-documents-header-actions,
+    .branch-documents-header-actions-centered,
+    .org-page-actions-top {
+        align-items: stretch;
+    }
+
+    .org-page-actions-top,
+    .org-related-header .page-actions,
+    .branch-documents-header-actions,
+    .branch-documents-header-actions-centered {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .org-page-actions-top .btn,
+    .org-related-header .page-actions .btn,
+    .branch-documents-header-actions .btn,
+    .branch-documents-header-actions-centered .btn {
+        flex: 1 1 180px;
+    }
 }
 
 
@@ -1564,7 +1588,7 @@
 
 @media (max-width: 900px) {
     .branch-overview-table {
-        min-width: 980px;
+        min-width: 900px;
     }
 
     .branch-overview-compliance-cell strong {
@@ -1573,6 +1597,15 @@
 
     .branch-overview-status-cell small {
         max-width: 150px;
+    }
+
+    .branch-overview-actions-col {
+        width: 140px;
+        min-width: 140px;
+    }
+
+    .branch-overview-actions-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -1673,6 +1706,10 @@
     .org-name-cell-with-media {
         align-items: flex-start;
     }
+
+    .org-name-copy {
+        gap: 6px;
+    }
 }
 
 
@@ -1728,6 +1765,76 @@
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.07);
     background: var(--surface-gradient-3);
+}
+
+@media (max-width: 640px) {
+    .branches-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .branch-documents-hero-clean,
+    .org-detail-hero-body,
+    .org-page-header.org-page-header-spacious {
+        padding: 18px 16px;
+        border-radius: 22px;
+    }
+
+    .branch-documents-status-table,
+    .branch-documents-registry-table,
+    .branch-detail-documents-table {
+        min-width: 620px;
+    }
+
+    .branch-overview-table {
+        min-width: 820px;
+    }
+
+    .branch-overview-record-row {
+        gap: 14px;
+    }
+
+    .branch-overview-record-main,
+    .branch-overview-record-actions {
+        width: 100%;
+    }
+
+    .branch-overview-record-actions .table-action-buttons {
+        width: 100%;
+    }
+
+    .branch-overview-record-actions .table-action-buttons .btn,
+    .branch-overview-record-actions .table-action-buttons a {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+
+    .org-name-cell-with-media {
+        gap: 10px;
+    }
+
+    .org-list-avatar,
+    .org-list-avatar-fallback {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+    }
+
+    .table-action-buttons,
+    .table-action-buttons-premium,
+    .table-action-buttons-row {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .table-action-buttons-compact .btn,
+    .table-action-buttons .btn,
+    .table-action-buttons-premium .btn,
+    .table-action-buttons-row .btn,
+    .table-action-buttons a,
+    .table-action-buttons-row a {
+        width: 100%;
+        justify-content: center;
+    }
 }
 
 .branch-overview-summary-label {

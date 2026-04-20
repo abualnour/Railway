@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 import re
 from uuid import uuid4
@@ -362,6 +362,24 @@ def minutes_to_hours_decimal(minutes):
     return (Decimal(minutes) / Decimal("60")).quantize(Decimal("0.01"))
 
 
+def format_minutes_as_hours_minutes(minutes):
+    total_minutes = int(minutes or 0)
+    hours, remainder = divmod(total_minutes, 60)
+    return f"{hours}h {remainder}m"
+
+
+def format_decimal_hours_as_hours_minutes(decimal_hours):
+    if decimal_hours in [None, ""]:
+        return "0h 0m"
+
+    total_minutes = int(
+        (
+            Decimal(decimal_hours) * Decimal("60")
+        ).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    )
+    return format_minutes_as_hours_minutes(total_minutes)
+
+
 def combine_date_and_time(target_date, target_time):
     if not target_date or not target_time:
         return None
@@ -372,7 +390,11 @@ def decimal_hours_from_datetimes(start_dt, end_dt):
     if not start_dt or not end_dt or end_dt <= start_dt:
         return Decimal("0.00")
     total_seconds = Decimal((end_dt - start_dt).total_seconds())
-    total_hours = total_seconds / Decimal("3600")
+    total_minutes = (total_seconds / Decimal("60")).quantize(
+        Decimal("1"),
+        rounding=ROUND_HALF_UP,
+    )
+    total_hours = total_minutes / Decimal("60")
     return total_hours.quantize(Decimal("0.01"))
 
 
@@ -860,15 +882,15 @@ class EmployeeAttendanceLedger(models.Model):
     ]
 
     SHIFT_TIME_MAP = {
-        SHIFT_MORNING: ("09:00", "18:00"),
-        SHIFT_MIDDLE: ("13:00", "22:00"),
+        SHIFT_MORNING: ("09:00", "17:00"),
+        SHIFT_MIDDLE: ("13:00", "21:00"),
         SHIFT_NIGHT: ("22:00", "06:00"),
         SHIFT_NINE_TO_FIVE: ("09:00", "17:00"),
         SHIFT_TWELVE_TO_EIGHT: ("12:00", "20:00"),
         SHIFT_ONE_TO_NINE: ("13:00", "21:00"),
         SHIFT_TWO_TO_TEN: ("14:00", "22:00"),
         SHIFT_THREE_TO_ELEVEN: ("15:00", "23:00"),
-        SHIFT_FOUR_TO_MIDNIGHT: ("16:00", "23:59"),
+        SHIFT_FOUR_TO_MIDNIGHT: ("16:00", "00:00"),
         SHIFT_MORNING_STANDARD: ("09:00", "17:00"),
         SHIFT_MIDDLE_STANDARD: ("13:00", "21:00"),
         SHIFT_EVENING_STANDARD: ("15:00", "23:00"),
@@ -957,15 +979,15 @@ class EmployeeAttendanceLedger(models.Model):
     @classmethod
     def get_shift_time_map(cls):
         return {
-            cls.SHIFT_MORNING: {"label": "Morning Shift", "start": "09:00", "end": "18:00"},
-            cls.SHIFT_MIDDLE: {"label": "Middle Shift", "start": "13:00", "end": "22:00"},
+            cls.SHIFT_MORNING: {"label": "Morning Shift", "start": "09:00", "end": "17:00"},
+            cls.SHIFT_MIDDLE: {"label": "Middle Shift", "start": "13:00", "end": "21:00"},
             cls.SHIFT_NIGHT: {"label": "Night Shift", "start": "22:00", "end": "06:00"},
             cls.SHIFT_NINE_TO_FIVE: {"label": "9 am to 5 pm", "start": "09:00", "end": "17:00"},
             cls.SHIFT_TWELVE_TO_EIGHT: {"label": "12 pm to 8 pm", "start": "12:00", "end": "20:00"},
             cls.SHIFT_ONE_TO_NINE: {"label": "1 pm to 9 pm", "start": "13:00", "end": "21:00"},
             cls.SHIFT_TWO_TO_TEN: {"label": "2 pm to 10 pm", "start": "14:00", "end": "22:00"},
             cls.SHIFT_THREE_TO_ELEVEN: {"label": "3 pm to 11 pm", "start": "15:00", "end": "23:00"},
-            cls.SHIFT_FOUR_TO_MIDNIGHT: {"label": "4 pm to 12 am", "start": "16:00", "end": "23:59"},
+            cls.SHIFT_FOUR_TO_MIDNIGHT: {"label": "4 pm to 12 am", "start": "16:00", "end": "00:00"},
             cls.SHIFT_MORNING_STANDARD: {"label": "Morning shift", "start": "09:00", "end": "17:00"},
             cls.SHIFT_MIDDLE_STANDARD: {"label": "Middle shift", "start": "13:00", "end": "21:00"},
             cls.SHIFT_EVENING_STANDARD: {"label": "Evening shift", "start": "15:00", "end": "23:00"},
@@ -1137,6 +1159,35 @@ class EmployeeAttendanceLedger(models.Model):
             return 0
 
         return int((clock_out_dt - shift_end_dt).total_seconds() // 60)
+
+    @property
+    def worked_hours_display(self):
+        return format_decimal_hours_as_hours_minutes(self.worked_hours)
+
+    @property
+    def scheduled_hours_display(self):
+        return format_decimal_hours_as_hours_minutes(self.scheduled_hours)
+
+    @property
+    def late_minutes_display(self):
+        return format_minutes_as_hours_minutes(self.late_minutes)
+
+    @property
+    def early_departure_minutes_display(self):
+        return format_minutes_as_hours_minutes(self.early_departure_minutes)
+
+    @property
+    def overtime_minutes_display(self):
+        return format_minutes_as_hours_minutes(self.overtime_minutes)
+
+    @property
+    def notes_preview(self):
+        note = " ".join((self.notes or "").split())
+        if not note:
+            return "No notes"
+        if len(note) <= 120:
+            return note
+        return f"{note[:117].rstrip()}..."
 
     def save(self, *args, **kwargs):
         zero_work_statuses = {
@@ -1617,10 +1668,10 @@ class EmployeeAttendanceEvent(models.Model):
     @property
     def worked_hours_display(self):
         if not self.check_in_at or not self.check_out_at or self.check_out_at <= self.check_in_at:
-            return "0.00"
-        total_seconds = Decimal((self.check_out_at - self.check_in_at).total_seconds())
-        hours = total_seconds / Decimal("3600")
-        return f"{hours.quantize(Decimal('0.01'))}"
+            return "0h 0m"
+        return format_decimal_hours_as_hours_minutes(
+            decimal_hours_from_datetimes(self.check_in_at, self.check_out_at)
+        )
 
     @property
     def branch_location_used_label(self):

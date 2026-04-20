@@ -1,0 +1,261 @@
+/* -------------------------------------------------------------
+   Self-service split pages + responsive polish
+-------------------------------------------------------------- */
+.employee-profile-page.self-service-hub-page {
+    display: grid;
+    gap: 16px;
+}
+
+.employee-profile-page .self-service-shell {
+    display: grid;
+    gap: 16px;
+}
+
+.employee-profile-page .self-service-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+}
+
+.employee-profile-page .self-service-summary-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.employee-profile-page.self-service-hub-page .card-header,
+.employee-profile-page.self-service-hub-page .card-body {
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.employee-profile-page.self-service-hub-page .page-actions {
+    margin-top: 16px;
+}
+
+.employee-profile-page.self-service-hub-page .page-actions form {
+    margin: 0;
+}
+
+.employee-profile-page.self-service-hub-page .employee-sidebar-form .detail-grid {
+    gap: 14px;
+}
+
+.employee-profile-page.self-service-hub-page .detail-item,
+.employee-profile-page.self-service-hub-page .summary-list-item,
+.employee-profile-page.self-service-hub-page .document-card-item {
+    min-width: 0;
+}
+
+/* -------------------------------------------------------------
+   Self-service working time: cleaner responsive layout
+-------------------------------------------------------------- */
+.employee-profile-page.self-service-working-time-page .self-service-shell {
+    gap: 14px;
+}
+
+.employee-profile-page.self-service-working-time-page .employee-profile-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.employee-profile-page.self-service-working-time-page .employee-page-header-main,
+.employee-profile-page.self-service-working-time-page .employee-page-header-tools {
+    flex: 1 1 320px;
+    min-width: min(100%, 320px);
+}
+
+.employee-profile-page.self-service-working-time-page .employee-page-header-tools {
+    display: grid;
+    gap: 10px;
+    justify-items: end;
+}
+
+.employee-profile-page.self-service-working-time-page .employee-header-meta,
+.employee-profile-page.self-service-working-time-page .employee-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-overview-panel .card-body {
+    padding: 18px 20px;
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-overview-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+    align-items: stretch;
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-overview-copy {
+    display: grid;
+    gap: 10px;
+    align-content: center;
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-overview-eyebrow {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-overview-copy h2 {
+    margin: 0;
+    font-size: clamp(22px, 3vw, 32px);
+    line-height: 1.05;
+    color: var(--text);
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-overview-copy p {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-overview-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-overview-stat {
+    display: grid;
+    gap: 6px;
+    padding: 14px 16px;
+    border: 1px solid var(--surface-soft-border);
+    border-radius: 18px;
+    background: var(--surface-inner);
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-overview-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-overview-stat strong {
+    font-size: clamp(18px, 2.2vw, 26px);
+    line-height: 1.1;
+    color: var(--text);
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-section-card .card-header,
+.employee-profile-page.self-service-working-time-page .working-time-section-card .card-body {
+    padding: 14px 16px;
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-section-heading {
+    display: grid;
+    gap: 4px;
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-section-heading h2 {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.2;
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-section-heading p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.employee-profile-page.self-service-working-time-page .modern-soft-card .card-header,
+.employee-profile-page.self-service-working-time-page .modern-soft-card .card-body {
+    padding: 14px 16px;
+}
+
+.employee-profile-page.self-service-working-time-page .modern-soft-card .card-header h2 {
+    font-size: 16px;
+    line-height: 1.2;
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-metrics--summary {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-metrics--summary .metric-card {
+    min-height: 110px;
+    padding: 16px 18px;
+    border-radius: 18px;
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-metrics--summary .metric-label {
+    min-height: 0;
+    font-size: 11px;
+    line-height: 1.25;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.employee-profile-page.self-service-working-time-page .working-time-metrics--summary .metric-value {
+    font-size: clamp(20px, 2vw, 28px);
+    line-height: 1.08;
+}
+
+@media (max-width: 980px) {
+    .employee-profile-page.self-service-working-time-page .employee-page-header-tools {
+        justify-items: start;
+    }
+
+    .employee-profile-page.self-service-working-time-page .working-time-overview-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .employee-profile-page.self-service-working-time-page .page-header.employee-profile-header {
+        padding: 14px;
+    }
+
+    .employee-profile-page.self-service-working-time-page .working-time-overview-panel .card-body,
+    .employee-profile-page.self-service-working-time-page .working-time-section-card .card-header,
+    .employee-profile-page.self-service-working-time-page .working-time-section-card .card-body {
+        padding: 14px;
+    }
+
+    .employee-profile-page.self-service-working-time-page .working-time-overview-copy h2 {
+        font-size: 22px;
+    }
+
+    .employee-profile-page.self-service-working-time-page .employee-page-header-main,
+    .employee-profile-page.self-service-working-time-page .employee-page-header-tools {
+        min-width: 0;
+        flex-basis: 100%;
+    }
+
+    .employee-profile-page.self-service-working-time-page .employee-page-header-tools,
+    .employee-profile-page.self-service-working-time-page .employee-header-meta,
+    .employee-profile-page.self-service-working-time-page .employee-header-actions {
+        justify-items: stretch;
+        justify-content: flex-start;
+    }
+
+    .employee-profile-page.self-service-working-time-page .employee-header-actions .btn {
+        flex: 1 1 140px;
+    }
+
+    .employee-profile-page.self-service-working-time-page .working-time-overview-stats,
+    .employee-profile-page.self-service-working-time-page .working-time-metrics--summary {
+        grid-template-columns: 1fr;
+    }
+
+    .employee-profile-page.self-service-working-time-page .working-time-metrics--summary .metric-card {
+        min-height: 0;
+        padding: 14px 16px;
+    }
+}
+

@@ -14,7 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
-from django.db.models import Case, IntegerField, Prefetch, Q, When
+from django.db.models import Case, Count, IntegerField, Prefetch, Q, When
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -89,6 +89,8 @@ from .models import (
     WORKING_HOURS_PER_DAY,
     build_employee_working_time_summary,
     count_policy_working_days,
+    format_decimal_hours_as_hours_minutes,
+    format_minutes_as_hours_minutes,
     get_schedule_week_start,
     is_policy_holiday,
     is_policy_weekly_off_day,
@@ -348,8 +350,8 @@ def sync_attendance_event_to_ledger(event, actor_label="System"):
     if not event or not event.employee_id or not event.check_in_at or not event.check_out_at:
         return None
 
-    clock_in_time = timezone.localtime(event.check_in_at).time().replace(microsecond=0)
-    clock_out_time = timezone.localtime(event.check_out_at).time().replace(microsecond=0)
+    clock_in_time = timezone.localtime(event.check_in_at).time().replace(second=0, microsecond=0)
+    clock_out_time = timezone.localtime(event.check_out_at).time().replace(second=0, microsecond=0)
 
     ledger, _created = EmployeeAttendanceLedger.objects.get_or_create(
         employee=event.employee,
@@ -751,6 +753,10 @@ def can_view_attendance_management(user):
     return is_admin_compatible(user) or is_hr_user(user) or is_operations_manager_user(user)
 
 
+def can_view_branch_schedule_overview(user):
+    return is_admin_compatible(user) or is_hr_user(user) or is_operations_manager_user(user)
+
+
 def can_view_branch_self_service(employee):
     return bool(employee and employee.branch_id)
 
@@ -969,11 +975,11 @@ def build_attendance_ledger_summary(attendance_entry):
     lines = [
         f"Attendance Date: {format_history_value(attendance_entry.attendance_date)}",
         f"Day Status: {attendance_entry.get_day_status_display()}",
-        f"Scheduled Hours: {attendance_entry.scheduled_hours}",
-        f"Worked Hours: {attendance_entry.worked_hours}",
-        f"Late Minutes: {attendance_entry.late_minutes}",
-        f"Early Departure Minutes: {attendance_entry.early_departure_minutes}",
-        f"Overtime Minutes: {attendance_entry.overtime_minutes}",
+        f"Scheduled Hours: {attendance_entry.scheduled_hours_display}",
+        f"Worked Hours: {attendance_entry.worked_hours_display}",
+        f"Late Time: {attendance_entry.late_minutes_display}",
+        f"Early Departure: {attendance_entry.early_departure_minutes_display}",
+        f"Overtime: {attendance_entry.overtime_minutes_display}",
         f"Paid Day: {'Yes' if attendance_entry.is_paid_day else 'No'}",
         f"Source: {attendance_entry.get_source_display()}",
     ]
@@ -1076,6 +1082,14 @@ def build_attendance_summary(attendance_entries):
         "total_late_minutes": total_late_minutes,
         "total_early_departure_minutes": total_early_departure_minutes,
         "punctuality_deduction_hours": punctuality_deduction_hours,
+        "total_scheduled_hours_display": format_decimal_hours_as_hours_minutes(total_scheduled_hours),
+        "total_worked_hours_display": format_decimal_hours_as_hours_minutes(total_worked_hours),
+        "total_overtime_minutes_display": format_minutes_as_hours_minutes(total_overtime_minutes),
+        "total_late_minutes_display": format_minutes_as_hours_minutes(total_late_minutes),
+        "total_early_departure_minutes_display": format_minutes_as_hours_minutes(total_early_departure_minutes),
+        "punctuality_deduction_hours_display": format_decimal_hours_as_hours_minutes(
+            punctuality_deduction_hours
+        ),
     }
 
 
@@ -6096,6 +6110,254 @@ def attendance_management(request):
 
     context = build_attendance_history_management_context(request, supervisor_history_only=False)
     return render(request, "employees/attendance_management.html", context)
+
+
+@login_required
+def branch_schedule_overview(request):
+    if not can_view_branch_schedule_overview(request.user):
+        return deny_employee_access(
+            request,
+            "You do not have permission to access branch schedules overview.",
+        )
+
+    today = timezone.localdate()
+    week_value = (request.GET.get("week") or "").strip()
+    if week_value:
+        try:
+            selected_week_start = get_schedule_week_start(date.fromisoformat(week_value))
+        except ValueError:
+            selected_week_start = get_schedule_week_start(today)
+    else:
+        selected_week_start = get_schedule_week_start(today)
+
+    week_end = selected_week_start + timedelta(days=6)
+    search_query = (request.GET.get("search") or "").strip()
+    selected_day_status = (request.GET.get("day_status") or "").strip()
+    selected_branch_token = (request.GET.get("branch") or "").strip()
+
+    branches = list(
+        Branch.objects.select_related("company")
+        .filter(is_active=True)
+        .annotate(active_employee_total=Count("employees", filter=Q(employees__is_active=True), distinct=True))
+        .order_by("company__name", "name")
+    )
+    selected_branch = next((branch for branch in branches if str(branch.pk) == selected_branch_token), None)
+    if selected_branch is None and branches:
+        selected_branch = branches[0]
+        selected_branch_token = str(selected_branch.pk)
+
+    schedule_count_map = {
+        row["branch_id"]: row
+        for row in (
+            BranchWeeklyScheduleEntry.objects.filter(week_start=selected_week_start)
+            .values("branch_id")
+            .annotate(
+                schedule_total=Count("id"),
+                completed_total=Count("id", filter=Q(status=BranchWeeklyScheduleEntry.STATUS_COMPLETED)),
+                planned_total=Count("id", filter=Q(status=BranchWeeklyScheduleEntry.STATUS_PLANNED)),
+                in_progress_total=Count("id", filter=Q(status=BranchWeeklyScheduleEntry.STATUS_IN_PROGRESS)),
+                on_hold_total=Count("id", filter=Q(status=BranchWeeklyScheduleEntry.STATUS_ON_HOLD)),
+            )
+        )
+    }
+    attendance_count_map = {
+        row["employee__branch_id"]: row
+        for row in (
+            EmployeeAttendanceLedger.objects.filter(
+                attendance_date__gte=selected_week_start,
+                attendance_date__lte=week_end,
+                employee__branch__isnull=False,
+            )
+            .values("employee__branch_id")
+            .annotate(
+                attendance_total=Count("id"),
+                exception_total=Count(
+                    "id",
+                    filter=Q(
+                        day_status__in=[
+                            EmployeeAttendanceLedger.DAY_STATUS_ABSENT,
+                            EmployeeAttendanceLedger.DAY_STATUS_UNPAID_LEAVE,
+                            EmployeeAttendanceLedger.DAY_STATUS_OTHER,
+                        ]
+                    ),
+                ),
+            )
+        )
+    }
+
+    branch_cards = []
+    for branch in branches:
+        branch_query = request.GET.copy()
+        branch_query["branch"] = str(branch.pk)
+        branch_cards.append(
+            {
+                "branch": branch,
+                "is_selected": bool(selected_branch and branch.pk == selected_branch.pk),
+                "schedule_total": schedule_count_map.get(branch.pk, {}).get("schedule_total", 0),
+                "completed_total": schedule_count_map.get(branch.pk, {}).get("completed_total", 0),
+                "attendance_total": attendance_count_map.get(branch.pk, {}).get("attendance_total", 0),
+                "exception_total": attendance_count_map.get(branch.pk, {}).get("exception_total", 0),
+                "select_url": (
+                    f"{reverse('employees:branch_schedule_overview')}?{branch_query.urlencode()}"
+                    if branch_query
+                    else reverse("employees:branch_schedule_overview")
+                ),
+            }
+        )
+
+    overview_summary = {
+        "team_members": [],
+        "team_schedule_rows": [],
+        "schedule_entries": [],
+        "week_days": build_schedule_week_days(selected_week_start),
+        "schedule_total": 0,
+        "completed_total": 0,
+        "in_progress_total": 0,
+        "planned_total": 0,
+        "on_hold_total": 0,
+    }
+    filtered_schedule_rows = []
+    attendance_records = []
+    attendance_total = 0
+    attendance_exception_total = 0
+    attendance_present_total = 0
+    attendance_leave_total = 0
+    attendance_weekly_off_total = 0
+    attendance_holiday_total = 0
+    selected_week_holidays = []
+
+    if selected_branch:
+        overview_summary = build_branch_weekly_schedule_summary(selected_branch, selected_week_start)
+        filtered_schedule_rows = list(overview_summary["team_schedule_rows"])
+        if search_query:
+            normalized_query = search_query.casefold()
+            filtered_schedule_rows = [
+                row
+                for row in filtered_schedule_rows
+                if normalized_query in (row["employee"].full_name or "").casefold()
+                or normalized_query in (row["employee"].employee_id or "").casefold()
+                or normalized_query in (getattr(getattr(row["employee"], "job_title", None), "name", "") or "").casefold()
+            ]
+
+        attendance_queryset = EmployeeAttendanceLedger.objects.select_related(
+            "employee",
+            "employee__company",
+            "employee__department",
+            "employee__branch",
+            "employee__section",
+            "employee__job_title",
+        ).filter(
+            employee__branch=selected_branch,
+            attendance_date__gte=selected_week_start,
+            attendance_date__lte=week_end,
+        )
+        if search_query:
+            attendance_queryset = attendance_queryset.filter(
+                Q(employee__full_name__icontains=search_query)
+                | Q(employee__employee_id__icontains=search_query)
+                | Q(employee__job_title__name__icontains=search_query)
+            )
+        if selected_day_status:
+            attendance_queryset = attendance_queryset.filter(day_status=selected_day_status)
+
+        attendance_queryset = attendance_queryset.order_by("attendance_date", "employee__full_name", "id")
+        attendance_total = attendance_queryset.count()
+        attendance_exception_total = attendance_queryset.filter(
+            day_status__in=[
+                EmployeeAttendanceLedger.DAY_STATUS_ABSENT,
+                EmployeeAttendanceLedger.DAY_STATUS_UNPAID_LEAVE,
+                EmployeeAttendanceLedger.DAY_STATUS_OTHER,
+            ]
+        ).count()
+        attendance_present_total = attendance_queryset.filter(day_status=EmployeeAttendanceLedger.DAY_STATUS_PRESENT).count()
+        attendance_leave_total = attendance_queryset.filter(
+            day_status__in=[
+                EmployeeAttendanceLedger.DAY_STATUS_PAID_LEAVE,
+                EmployeeAttendanceLedger.DAY_STATUS_UNPAID_LEAVE,
+                EmployeeAttendanceLedger.DAY_STATUS_SICK_LEAVE,
+            ]
+        ).count()
+        attendance_weekly_off_total = attendance_queryset.filter(
+            day_status=EmployeeAttendanceLedger.DAY_STATUS_WEEKLY_OFF
+        ).count()
+        attendance_holiday_total = attendance_queryset.filter(
+            day_status=EmployeeAttendanceLedger.DAY_STATUS_HOLIDAY
+        ).count()
+        attendance_records = list(attendance_queryset[:200])
+
+        try:
+            from workcalendar.services import get_holidays_for_range
+
+            selected_week_holidays = get_holidays_for_range(selected_week_start, week_end)
+        except Exception:
+            selected_week_holidays = []
+
+    previous_week_start = selected_week_start - timedelta(days=7)
+    next_week_start = selected_week_start + timedelta(days=7)
+    filter_query = request.GET.copy()
+
+    def build_overview_url(**updates):
+        query = filter_query.copy()
+        for key, value in updates.items():
+            if value in (None, ""):
+                query.pop(key, None)
+            else:
+                query[key] = value
+        querystring = query.urlencode()
+        return (
+            f"{reverse('employees:branch_schedule_overview')}?{querystring}"
+            if querystring
+            else reverse("employees:branch_schedule_overview")
+        )
+
+    selected_branch_workspace_url = (
+        reverse("operations:branch_workspace_detail", kwargs={"branch_id": selected_branch.pk})
+        if selected_branch
+        else ""
+    )
+    attendance_management_url = ""
+    if selected_branch:
+        attendance_query = (
+            f"branch={selected_branch.pk}"
+            f"&start_date={selected_week_start.isoformat()}"
+            f"&end_date={week_end.isoformat()}"
+            f"&filter_type=custom"
+        )
+        if search_query:
+            attendance_query += f"&search={search_query}"
+        attendance_management_url = f"{reverse('employees:attendance_management')}?{attendance_query}"
+
+    context = {
+        "selected_week_start": selected_week_start,
+        "week_end": week_end,
+        "today": today,
+        "previous_week_start": previous_week_start,
+        "next_week_start": next_week_start,
+        "selected_branch": selected_branch,
+        "selected_branch_token": selected_branch_token,
+        "branches": branches,
+        "branch_cards": branch_cards,
+        "search_query": search_query,
+        "selected_day_status": selected_day_status,
+        "day_status_filter_choices": [("", "All day statuses"), *EmployeeAttendanceLedger.DAY_STATUS_CHOICES],
+        "overview_summary": overview_summary,
+        "team_schedule_rows": filtered_schedule_rows,
+        "selected_week_holidays": selected_week_holidays,
+        "attendance_records": attendance_records,
+        "attendance_total": attendance_total,
+        "attendance_exception_total": attendance_exception_total,
+        "attendance_present_total": attendance_present_total,
+        "attendance_leave_total": attendance_leave_total,
+        "attendance_weekly_off_total": attendance_weekly_off_total,
+        "attendance_holiday_total": attendance_holiday_total,
+        "selected_branch_workspace_url": selected_branch_workspace_url,
+        "attendance_management_url": attendance_management_url,
+        "previous_week_url": build_overview_url(week=previous_week_start.isoformat()),
+        "next_week_url": build_overview_url(week=next_week_start.isoformat()),
+        "current_week_url": build_overview_url(week=get_schedule_week_start(today).isoformat()),
+        "clear_filters_url": reverse("employees:branch_schedule_overview"),
+    }
+    return render(request, "employees/branch_schedule_overview.html", context)
 
 
 @login_required

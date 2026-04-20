@@ -188,6 +188,33 @@
     margin-bottom: 22px;
 }
 
+/*
+   When collapsible cards sit side-by-side inside a grid, let each card keep
+   its natural height instead of stretching to match an expanded neighbor.
+   This keeps the collapse behavior visually consistent across pages.
+*/
+.main-content :is(
+    .platform-grid,
+    .home-content-grid,
+    .home-content-grid-management,
+    .backup-export-grid,
+    .backup-center-grid,
+    .action-center-queues-grid,
+    .employee-360-signal-grid,
+    .employee-360-detail-grid,
+    .org-detail-grid-premium,
+    .org-detail-stats-grid,
+    .branch-overview-grid,
+    .branch-compliance-grid,
+    .branch-document-grid,
+    .branch-schedule-grid,
+    .branch-workspace-grid,
+    .employee-profile-grid,
+    .employee-profile-shell-grid
+):has(> .is-collapsible) {
+    align-items: start;
+}
+
 .collapse-toggle-header {
     position: relative;
     display: flex;
@@ -671,6 +698,10 @@ textarea::placeholder {
         grid-template-columns: 1fr;
     }
 
+    .filter-search-group {
+        grid-column: auto;
+    }
+
     .detail-grid.two-col,
     .detail-grid.three-col {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -678,7 +709,7 @@ textarea::placeholder {
 
     .table,
     .data-table {
-        min-width: 900px;
+        min-width: 780px;
     }
 
     .card-body,
@@ -702,6 +733,18 @@ textarea::placeholder {
 }
 
 @media (max-width: 640px) {
+    .table,
+    .data-table {
+        min-width: 680px;
+    }
+
+    .table th,
+    .table td,
+    .data-table th,
+    .data-table td {
+        padding: 14px 12px;
+    }
+
     .detail-grid.two-col,
     .detail-grid.three-col {
         grid-template-columns: 1fr;
@@ -709,5 +752,20 @@ textarea::placeholder {
 
     .detail-grid > .form-group-full {
         grid-column: span 1;
+    }
+
+    .pagination-wrap {
+        justify-content: stretch;
+    }
+
+    .pagination {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .form-actions,
+    .filter-actions {
+        flex-direction: column;
+        align-items: stretch;
     }
 }

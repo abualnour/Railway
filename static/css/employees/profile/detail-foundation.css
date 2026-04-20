@@ -1,0 +1,571 @@
+/* -------------------------------------------------------------
+   Employee Detail: permission-aware cleanup pass
+   Safe UI refinement for management, supervisor, and self-profile views
+-------------------------------------------------------------- */
+
+.employee-profile-page {
+    display: grid;
+    gap: 18px;
+}
+
+.employee-profile-page .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 22px 24px;
+    margin-bottom: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface-gradient-1);
+}
+
+.employee-profile-page .page-header > div:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.employee-profile-page .page-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.employee-profile-page .employee-profile-grid,
+.employee-profile-page .employee-profile-main,
+.employee-profile-page .profile-main-stack,
+.employee-profile-page .detail-card-grid,
+.employee-profile-page .document-group-grid,
+.employee-profile-page .document-group-files,
+.employee-profile-page .action-record-list,
+.employee-profile-page .summary-list {
+    display: grid;
+    gap: 18px;
+}
+
+.employee-profile-page .detail-card,
+.employee-profile-page .employee-hero-card,
+.employee-profile-page .attendance-panel,
+.employee-profile-page .id-status-card,
+.employee-profile-page .document-group-card,
+.employee-profile-page .document-file-row,
+.employee-profile-page .action-record-card,
+.employee-profile-page .metric-card,
+.employee-profile-page .modern-metric,
+.employee-profile-page .summary-list-item {
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(15, 15, 15, 0.98) 0%, rgba(8, 8, 8, 0.99) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.employee-profile-page .detail-card .card-header,
+.employee-profile-page .employee-hero-card .card-body {
+    padding: 18px 20px;
+}
+
+.employee-profile-page .detail-card .card-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    background: linear-gradient(180deg, rgba(17, 17, 17, 0.98) 0%, rgba(11, 11, 11, 0.99) 100%);
+}
+
+.employee-profile-page .detail-card .card-body {
+    padding: 18px 20px 20px;
+}
+
+.employee-profile-page .section-heading,
+.employee-profile-page .document-card-head,
+.employee-profile-page .action-record-card-head,
+.employee-profile-page .attendance-period-note,
+.employee-profile-page .document-group-head,
+.employee-profile-page .id-status-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.employee-profile-page .employee-hero {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.employee-profile-page .employee-hero-card .card-body {
+    padding: 20px;
+}
+
+.employee-profile-page .employee-hero-media,
+.employee-profile-page .employee-hero-content {
+    min-width: 0;
+}
+
+.employee-profile-page .employee-photo,
+.employee-profile-page .employee-avatar-lg {
+    width: 78px;
+    height: 78px;
+}
+
+.employee-profile-page .employee-hero-content {
+    display: grid;
+    gap: 12px;
+}
+
+.employee-profile-page .employee-hero-topline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.employee-profile-page .employee-hero-name {
+    margin: 0;
+    font-size: 38px;
+    line-height: 1.08;
+}
+
+.employee-profile-page .employee-hero-role {
+    margin: 0;
+    color: var(--text);
+    font-size: 22px;
+    line-height: 1.3;
+    font-weight: 700;
+}
+
+.employee-profile-page .employee-hero-meta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.employee-profile-page .employee-hero-meta-item,
+.employee-profile-page .detail-item,
+.employee-profile-page .metric-card,
+.employee-profile-page .modern-metric {
+    padding: 13px 14px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: color-mix(in srgb, var(--status-info-bg) 56%, transparent);
+}
+
+.employee-profile-page .detail-grid.two-col,
+.employee-profile-page .employee-org-grid,
+.employee-profile-page .action-record-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    align-items: start;
+}
+
+.employee-profile-page .action-record-form-grid .form-group-full,
+.employee-profile-page .attendance-form-grid .form-group-full {
+    grid-column: 1 / -1;
+}
+
+.employee-profile-page .detail-item {
+    min-width: 0;
+}
+
+.employee-profile-page .detail-label,
+.employee-profile-page .metric-label,
+.employee-profile-page .summary-label {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.employee-profile-page .detail-value,
+.employee-profile-page .metric-value,
+.employee-profile-page .summary-value {
+    display: block;
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.4;
+    font-weight: 700;
+    word-break: break-word;
+}
+
+.employee-profile-page .page-subtitle,
+.employee-profile-page .muted-text,
+.employee-profile-page .form-help,
+.employee-profile-page small {
+    color: var(--muted);
+}
+
+.employee-profile-page .id-status-grid,
+.employee-profile-page .modern-metric-grid,
+.employee-profile-page .employee-stats-grid.action-records-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.employee-profile-page .employee-stats-grid.action-records-metrics {
+    margin-bottom: 18px;
+}
+
+.employee-profile-page .attendance-core-grid,
+.employee-profile-page .action-records-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    gap: 18px;
+}
+
+.employee-profile-page .attendance-panel,
+.employee-profile-page .action-record-form-panel,
+.employee-profile-page .action-record-list-panel,
+.employee-profile-page .document-group-card,
+.employee-profile-page .id-status-card {
+    padding: 18px;
+}
+
+.employee-profile-page .document-file-row,
+.employee-profile-page .action-record-card {
+    padding: 14px 16px;
+}
+
+.employee-profile-page .workflow-state-stack,
+.employee-profile-page .table-stack,
+.employee-profile-page .status-badge-stack,
+.employee-profile-page .document-card-stack {
+    display: grid;
+    gap: 8px;
+}
+
+.employee-profile-page .attendance-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.employee-profile-page .attendance-table-wrap {
+    overflow: auto;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.employee-profile-page .attendance-ledger-table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: collapse;
+}
+
+.employee-profile-page .attendance-ledger-table th,
+.employee-profile-page .attendance-ledger-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    vertical-align: top;
+}
+
+.employee-profile-page .attendance-ledger-table thead th {
+    background: rgba(18, 18, 18, 0.98);
+    color: var(--text);
+    font-size: 12px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.employee-profile-page .attendance-ledger-table tbody tr {
+    background: rgba(255, 255, 255, 0.015);
+}
+
+.employee-profile-page .attendance-ledger-table tbody tr:nth-child(even) {
+    background: color-mix(in srgb, var(--status-info-bg) 56%, transparent);
+}
+
+.employee-profile-page .compact-empty-state,
+.employee-profile-page .empty-state {
+    padding: 18px 16px;
+    border-radius: 16px;
+    border: 1px dashed rgba(255, 255, 255, 0.10);
+    background: color-mix(in srgb, var(--status-info-bg) 42%, transparent);
+}
+
+.employee-profile-page--management .employee-hero-card {
+    background: linear-gradient(180deg, rgba(13, 13, 13, 0.99) 0%, rgba(8, 8, 8, 0.995) 100%);
+}
+
+.employee-profile-page--self .employee-hero-card {
+    background: var(--surface-gradient-3);
+}
+
+.employee-profile-page .profile-status-dropdown-card {
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    background: linear-gradient(180deg, rgba(18, 18, 18, 0.99) 0%, rgba(9, 9, 9, 0.995) 100%);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
+}
+
+.employee-profile-page .profile-status-form .form-group label {
+    color: var(--text);
+}
+
+.employee-profile-page .document-actions-row,
+.employee-profile-page .attendance-form-actions,
+.employee-profile-page .profile-status-dropdown-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+@media (max-width: 1380px) {
+    .employee-profile-page .employee-hero-meta,
+    .employee-profile-page .id-status-grid,
+    .employee-profile-page .modern-metric-grid,
+    .employee-profile-page .employee-stats-grid.action-records-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1100px) {
+    .employee-profile-page .page-header,
+    .employee-profile-page .employee-hero,
+    .employee-profile-page .attendance-core-grid,
+    .employee-profile-page .action-records-grid {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .employee-profile-page .employee-hero {
+        display: grid;
+    }
+}
+
+@media (max-width: 900px) {
+    .employee-profile-page .detail-grid.two-col,
+    .employee-profile-page .employee-org-grid,
+    .employee-profile-page .action-record-form-grid,
+    .employee-profile-page .attendance-form-grid,
+    .employee-profile-page .employee-hero-meta,
+    .employee-profile-page .id-status-grid,
+    .employee-profile-page .modern-metric-grid,
+    .employee-profile-page .employee-stats-grid.action-records-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .employee-profile-page .employee-hero-name {
+        font-size: 32px;
+    }
+
+    .employee-profile-page .detail-card .card-header,
+    .employee-profile-page .detail-card .card-body,
+    .employee-profile-page .employee-hero-card .card-body {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+}
+
+@media (max-width: 640px) {
+    .employee-profile-page {
+        gap: 14px;
+    }
+
+    .employee-profile-page .page-header {
+        gap: 14px;
+        padding: 16px;
+        border-radius: 18px;
+    }
+
+    .employee-profile-page .page-actions,
+    .employee-profile-page .document-actions-row,
+    .employee-profile-page .attendance-form-actions,
+    .employee-profile-page .profile-status-dropdown-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .employee-profile-page .page-actions .btn,
+    .employee-profile-page .document-actions-row .btn,
+    .employee-profile-page .attendance-form-actions .btn,
+    .employee-profile-page .profile-status-dropdown-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .employee-profile-page .attendance-panel,
+    .employee-profile-page .action-record-form-panel,
+    .employee-profile-page .action-record-list-panel,
+    .employee-profile-page .document-group-card,
+    .employee-profile-page .id-status-card {
+        padding: 16px;
+    }
+
+    .employee-profile-page .document-file-row,
+    .employee-profile-page .action-record-card {
+        padding: 14px;
+    }
+
+    .employee-profile-page .attendance-ledger-table {
+        min-width: 760px;
+    }
+}
+
+
+/* -------------------------------------------------------------
+   Employee Detail: document, metrics, spacing, and supervisor fixes
+-------------------------------------------------------------- */
+
+.employee-profile-page .metric-card {
+    padding: 16px 18px;
+    min-height: 112px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.employee-profile-page .metric-label {
+    margin-bottom: 0;
+}
+
+.employee-profile-page .metric-value {
+    font-size: 30px;
+    line-height: 1;
+    font-weight: 800;
+    color: var(--text);
+}
+
+.employee-profile-page .metric-help {
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--muted);
+}
+
+.employee-profile-page .working-time-metrics {
+    margin-bottom: 0;
+}
+
+.employee-profile-page .working-time-metrics .metric-card {
+    min-height: 118px;
+}
+
+.employee-profile-page .document-group-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.employee-profile-page .document-group-files {
+    display: grid;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.employee-profile-page .document-group-head .badge {
+    margin-left: auto;
+}
+
+.employee-profile-page .document-file-row {
+    display: grid;
+    gap: 12px;
+}
+
+.employee-profile-page .document-file-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.employee-profile-page .document-file-row .table-stack {
+    gap: 6px;
+    min-width: 0;
+}
+
+.employee-profile-page .document-file-state {
+    margin-left: auto;
+    min-width: 180px;
+    text-align: right;
+}
+
+.employee-profile-page .document-date-stack {
+    display: grid;
+    gap: 4px;
+    color: var(--muted);
+    text-align: right;
+}
+
+.employee-profile-page .document-meta-line {
+    color: var(--muted);
+}
+
+.employee-profile-page .document-description {
+    margin-top: 0;
+}
+
+.employee-profile-page .document-actions-row,
+.employee-profile-page .attendance-form-actions,
+.employee-profile-page .profile-status-dropdown-actions {
+    margin-top: 14px;
+    padding-bottom: 6px;
+}
+
+.employee-profile-page .attendance-panel,
+.employee-profile-page .action-record-form-panel,
+.employee-profile-page .action-record-list-panel {
+    padding-bottom: 22px;
+}
+
+.employee-profile-page .attendance-form-grid,
+.employee-profile-page .action-record-form-grid {
+    row-gap: 16px;
+}
+
+.employee-profile-page .attendance-form-actions .btn,
+.employee-profile-page .document-actions-row .btn {
+    margin-bottom: 0;
+}
+
+.employee-profile-page .summary-grid.employee-stats-grid.action-records-metrics {
+    align-items: stretch;
+}
+
+.employee-profile-page .action-records-intro {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.employee-profile-page .profile-main-stack {
+    display: grid;
+    gap: 18px;
+}
+
+@media (max-width: 1100px) {
+    .employee-profile-page .document-file-state {
+        min-width: 0;
+        width: 100%;
+        margin-left: 0;
+        text-align: left;
+    }
+
+    .employee-profile-page .document-date-stack {
+        text-align: left;
+    }
+}
+
+@media (max-width: 900px) {
+    .employee-profile-page .employee-stats-grid.action-records-metrics,
+    .employee-profile-page .working-time-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .employee-profile-page .metric-card {
+        min-height: 0;
+    }
+}
+
+

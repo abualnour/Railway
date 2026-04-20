@@ -246,13 +246,13 @@
                                 <td>
                                     <div class="table-action-buttons">
                                         {% if document.file %}
-                                            <a href="{{ document.file.url }}" target="_blank" rel="noopener" class="btn btn-sm btn-light">Open</a>
+                                            <a href="{{ document.file.url }}" target="_blank" rel="noopener" class="btn btn-sm btn-light btn-action-dot btn-action-navigation">Open</a>
                                         {% endif %}
                                         {% if can_manage_branch_documents %}
                                             <form method="post" action="{% url 'organization:branch_document_delete' object.pk document.pk %}" style="display:inline;">
                                                 {% csrf_token %}
                                                 <input type="hidden" name="next" value="{{ request.path }}">
-                                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                                <button type="submit" class="btn btn-sm btn-danger btn-action-dot btn-action-delete">Delete</button>
                                             </form>
                                         {% endif %}
                                     </div>

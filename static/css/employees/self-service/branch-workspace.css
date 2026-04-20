@@ -1,0 +1,1698 @@
+/* -------------------------------------------------------------
+   Branch self-service: compact overview + sheet schedule
+-------------------------------------------------------------- */
+.employee-profile-page .branch-overview-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.employee-profile-page .branch-mini-card,
+.employee-profile-page .branch-member-compact-card {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-gradient-3);
+}
+
+.employee-profile-page .branch-mini-card span,
+.employee-profile-page .branch-member-compact-card span {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.employee-profile-page .branch-member-compact-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.employee-profile-page .branch-member-compact-card strong,
+.employee-profile-page .branch-mini-card strong {
+    line-height: 1.35;
+}
+
+.employee-profile-page .branch-member-compact-card small,
+.employee-profile-page .branch-member-compact-card small {
+    color: var(--muted);
+    line-height: 1.45;
+}
+
+.employee-profile-page .branch-schedule-form-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.employee-profile-page .branch-control-grid,
+.employee-profile-page .branch-duty-option-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.employee-profile-page .branch-schedule-inline-form .detail-item {
+    align-content: start;
+}
+
+.employee-profile-page .payroll-snapshot-badges {
+    margin-top: 10px;
+}
+
+.employee-profile-page .payroll-snapshot-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+    align-items: center;
+}
+
+.employee-profile-page .payroll-snapshot-actions .btn {
+    white-space: nowrap;
+}
+
+.employee-profile-page .payroll-setup-note {
+    margin-top: 8px;
+    margin-bottom: 0;
+    padding: 10px 12px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.04);
+    color: rgba(71, 85, 105, 0.96);
+    font-size: 0.86rem;
+    line-height: 1.55;
+}
+
+[data-theme="dark"] .employee-profile-page .payroll-setup-note,
+body.dark-mode .employee-profile-page .payroll-setup-note {
+    border-color: rgba(248, 250, 252, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(226, 232, 240, 0.82);
+}
+
+.employee-profile-page .payroll-snapshot-list {
+    margin-top: 18px;
+}
+
+.employee-profile-page .payroll-snapshot-grid {
+    margin-top: 14px;
+}
+
+.employee-profile-page .payroll-snapshot-empty {
+    margin-top: 18px;
+}
+
+.employee-profile-page.branch-overview-page {
+    gap: 12px;
+}
+
+.employee-profile-page.branch-overview-page .self-service-shell {
+    gap: 12px;
+}
+
+.employee-profile-page.branch-overview-page .card-header,
+.employee-profile-page.branch-overview-page .card-body {
+    padding: 12px 14px !important;
+}
+
+.employee-profile-page .branch-overview-top-grid {
+    gap: 12px;
+}
+
+.employee-profile-page .branch-group-stack {
+    gap: 10px;
+}
+
+.employee-profile-page .branch-group-card {
+    padding: 12px 14px !important;
+}
+
+.employee-profile-page .branch-schedule-sheet-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+}
+
+.employee-profile-page .branch-schedule-sheet {
+    width: 100%;
+    min-width: 1180px;
+    border-collapse: collapse;
+    background: var(--surface-gradient-3);
+}
+
+.employee-profile-page .branch-schedule-sheet th,
+.employee-profile-page .branch-schedule-sheet td {
+    border: 1px solid var(--border);
+    padding: 10px 8px;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.employee-profile-page .branch-schedule-sheet thead th {
+    background: #96c07a;
+    color: #14210d;
+    font-weight: 800;
+    text-align: center;
+}
+
+.employee-profile-page .branch-schedule-sheet .sheet-meta-cell {
+    min-width: 110px;
+    background: rgba(150, 192, 122, 0.18);
+    color: var(--text);
+    text-align: center;
+}
+
+.employee-profile-page .branch-schedule-sheet .sheet-meta-cell small {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+    line-height: 1.4;
+}
+
+.employee-profile-page .sheet-day-name,
+.employee-profile-page .sheet-day-date {
+    display: block;
+}
+
+.employee-profile-page .sheet-day-date {
+    margin-top: 6px;
+    font-size: 12px;
+}
+
+.employee-profile-page .sheet-section-divider {
+    border-right: 2px solid rgba(150, 192, 122, 0.85) !important;
+}
+
+.employee-profile-page .sheet-week-start {
+    border-left: 2px solid rgba(150, 192, 122, 0.85) !important;
+}
+
+.employee-profile-page .sheet-duty-cell {
+    min-width: 138px;
+    background: rgba(255, 255, 255, 0.03);
+    text-align: center;
+}
+
+.employee-profile-page .sheet-duty-cell.is-off {
+    background: #fff200;
+    color: #181818;
+}
+
+.employee-profile-page .sheet-duty-cell.is-custom {
+    background: rgba(244, 162, 97, 0.18);
+}
+
+.employee-profile-page .sheet-duty-main {
+    font-size: 15px;
+    line-height: 1.35;
+    font-weight: 700;
+}
+
+.employee-profile-page .sheet-duty-cell.is-morning .sheet-duty-main {
+    color: #ff5c5c;
+}
+
+.employee-profile-page .sheet-duty-sub,
+.employee-profile-page .sheet-duty-note,
+.employee-profile-page .sheet-duty-status,
+.employee-profile-page .sheet-duty-empty {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.employee-profile-page .sheet-duty-note,
+.employee-profile-page .sheet-duty-status,
+.employee-profile-page .sheet-duty-empty {
+    color: var(--muted);
+}
+
+.employee-profile-page .sheet-edit-link {
+    display: inline-flex;
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.2;
+    justify-content: center;
+}
+
+.employee-profile-page .branch-duty-option-card {
+    padding: 12px 14px !important;
+}
+
+.employee-profile-page .branch-duty-option-card .page-actions {
+    margin-top: 10px;
+}
+
+.employee-profile-page .branch-duty-option-card .page-actions form {
+    margin: 0;
+}
+
+.employee-profile-page .branch-compact-panel .card-header,
+.employee-profile-page .branch-compact-panel .card-body {
+    padding: 12px 14px !important;
+}
+
+.employee-profile-page .branch-compact-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+}
+
+.employee-profile-page .branch-simple-team-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.employee-profile-page .branch-simple-team-card {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    padding: 9px 11px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-gradient-3);
+}
+
+.employee-profile-page .branch-simple-team-card span,
+.employee-profile-page .branch-simple-team-card small {
+    color: var(--muted);
+}
+
+.employee-profile-page .free-schedule-grid-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    background: color-mix(in srgb, var(--color-surface-2) 80%, transparent);
+}
+
+.employee-profile-page .free-schedule-grid-table {
+    width: 100%;
+    min-width: 1380px;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--surface-gradient-3);
+}
+
+.employee-profile-page .free-schedule-grid-table th,
+.employee-profile-page .free-schedule-grid-table td {
+    border: 1px solid var(--border);
+    padding: 10px;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.employee-profile-page .free-schedule-grid-table thead th {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface-3) 96%, transparent) 0%, color-mix(in srgb, var(--color-surface-2) 96%, transparent) 100%);
+    color: var(--text);
+    font-weight: 800;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.employee-profile-page .free-schedule-meta-cell {
+    min-width: 170px;
+    text-align: left;
+    background: color-mix(in srgb, var(--color-surface-2) 92%, transparent);
+}
+
+.employee-profile-page .free-schedule-meta-cell small,
+.employee-profile-page .free-schedule-meta-cell span {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+}
+
+.employee-profile-page .free-grid-input {
+    min-width: 88px;
+    text-align: center;
+    min-height: 34px;
+    padding: 6px 8px;
+}
+
+.employee-profile-page .free-grid-textarea {
+    min-width: 140px;
+    min-height: 92px;
+    padding: 10px 12px;
+    resize: vertical;
+    text-align: left;
+    line-height: 1.45;
+    white-space: pre-wrap;
+}
+
+.employee-profile-page .free-grid-header-input,
+.employee-profile-page .free-grid-employee-select {
+    min-width: 130px;
+    min-height: 40px;
+    padding: 8px 10px;
+    text-align: center;
+}
+
+.employee-profile-page .free-grid-readonly {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+}
+
+.employee-profile-page .branch-schedule-sheet-toolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.employee-profile-page .branch-schedule-sheet-note {
+    display: grid;
+    gap: 6px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: var(--surface-gradient-3);
+}
+
+.employee-profile-page .branch-schedule-sheet-note strong {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.employee-profile-page .branch-schedule-sheet-note span {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.employee-profile-page .free-schedule-sticky-col {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+}
+
+.employee-profile-page .free-schedule-grid-table th.free-schedule-sticky-col,
+.employee-profile-page .free-schedule-grid-table td.free-schedule-sticky-col {
+    background: color-mix(in srgb, var(--color-surface-2) 98%, transparent);
+}
+
+.employee-profile-page .free-schedule-grid-table th.free-schedule-sticky-col:nth-child(2),
+.employee-profile-page .free-schedule-grid-table td.free-schedule-sticky-col:nth-child(2) {
+    left: 170px;
+    z-index: 4;
+}
+
+ .employee-profile-page .free-schedule-duty-cell {
+    min-width: 104px;
+    vertical-align: middle;
+    background: color-mix(in srgb, var(--color-surface-1) 92%, transparent);
+}
+
+.employee-profile-page .free-schedule-grid-table-roster .free-schedule-duty-cell {
+    padding: 2px;
+}
+
+.employee-profile-page .branch-schedule-published-table .free-schedule-duty-cell {
+    background: var(--branch-duty-bg, color-mix(in srgb, var(--color-surface-1) 92%, transparent));
+    color: var(--branch-duty-text, var(--text));
+}
+
+.employee-profile-page .branch-schedule-size-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.employee-profile-page .branch-schedule-size-label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.employee-profile-page .branch-schedule-size-button {
+    min-height: 34px;
+    padding: 0 12px;
+}
+
+.employee-profile-page .branch-schedule-size-button.is-active {
+    border-color: transparent;
+    background: var(--color-button-primary-bg);
+    color: var(--color-button-primary-text);
+}
+
+.employee-profile-page .branch-schedule-public-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--branch-schedule-cell-width, 92px);
+    height: var(--branch-schedule-cell-height, 35px);
+    min-height: var(--branch-schedule-cell-height, 35px);
+    padding: var(--branch-schedule-cell-padding, 2px 6px);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--branch-duty-bg, transparent) 82%, transparent);
+    color: var(--branch-duty-text, var(--text));
+    text-align: center;
+    overflow: hidden;
+}
+
+.employee-profile-page .branch-schedule-public-cell strong {
+    display: block;
+    width: 100%;
+    font-size: var(--branch-schedule-main-font, 11px);
+    line-height: 1.15;
+    text-align: center;
+    color: inherit;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.employee-profile-page .branch-schedule-public-cell span,
+.employee-profile-page .branch-schedule-public-cell small {
+    display: none;
+}
+
+.employee-profile-page .branch-schedule-published-wrap[data-schedule-size-mode="compact"] {
+    --branch-schedule-cell-width: 92px;
+    --branch-schedule-cell-height: 35px;
+    --branch-schedule-cell-padding: 2px 6px;
+    --branch-schedule-main-font: 11px;
+    --branch-schedule-sub-font: 10px;
+}
+
+.employee-profile-page .branch-schedule-published-wrap[data-schedule-size-mode="comfortable"] {
+    --branch-schedule-cell-width: 108px;
+    --branch-schedule-cell-height: 35px;
+    --branch-schedule-cell-padding: 2px 6px;
+    --branch-schedule-main-font: 11px;
+    --branch-schedule-sub-font: 10px;
+}
+
+.employee-profile-page .branch-schedule-published-wrap[data-schedule-size-mode="large"] {
+    --branch-schedule-cell-width: 124px;
+    --branch-schedule-cell-height: 35px;
+    --branch-schedule-cell-padding: 2px 6px;
+    --branch-schedule-main-font: 12px;
+    --branch-schedule-sub-font: 10px;
+}
+
+.employee-profile-page .branch-schedule-published-table {
+    width: 100%;
+    min-width: 100%;
+    table-layout: fixed;
+}
+
+.employee-profile-page .branch-schedule-published-table th,
+.employee-profile-page .branch-schedule-published-table td {
+    height: 35px;
+    padding: 0 3px;
+    vertical-align: middle;
+}
+
+.employee-profile-page .branch-schedule-published-table thead th {
+    background: var(--schedule-day-header-bg, #1d293d);
+    color: var(--schedule-day-header-text, #f8fafc);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.2;
+    height: 55px;
+    min-height: 55px;
+    padding: 6px 4px;
+    vertical-align: middle;
+}
+
+.employee-profile-page .branch-schedule-published-table thead th small {
+    display: block;
+    margin-top: 3px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: inherit;
+}
+
+.employee-profile-page .branch-schedule-published-table .free-schedule-meta-cell {
+    min-width: 0;
+    height: 35px;
+    padding: 0 5px;
+    font-size: 11px;
+    line-height: 1.15;
+    word-break: break-word;
+    vertical-align: middle;
+}
+
+.employee-profile-page .branch-schedule-published-table tbody td:nth-child(1) {
+    background: var(--schedule-employee-column-bg, #101828);
+    color: var(--schedule-employee-column-text, #f8fafc);
+}
+
+.employee-profile-page .branch-schedule-published-table tbody td:nth-child(2) {
+    background: var(--schedule-job-title-column-bg, #111827);
+    color: var(--schedule-job-title-column-text, #f8fafc);
+}
+
+.employee-profile-page .branch-schedule-published-table tbody td:nth-child(3) {
+    background: var(--schedule-pending-column-bg, #172033);
+    color: var(--schedule-pending-column-text, #f8fafc);
+}
+
+.employee-profile-page .branch-schedule-published-table tbody td:nth-child(1) strong,
+.employee-profile-page .branch-schedule-published-table tbody td:nth-child(2),
+.employee-profile-page .branch-schedule-published-table tbody td:nth-child(3) {
+    color: inherit;
+}
+
+.employee-profile-page .branch-schedule-published-table th:nth-child(1),
+.employee-profile-page .branch-schedule-published-table td:nth-child(1) {
+    width: 105px;
+}
+
+.employee-profile-page .branch-schedule-published-table th:nth-child(2),
+.employee-profile-page .branch-schedule-published-table td:nth-child(2) {
+    width: 110px;
+}
+
+.employee-profile-page .branch-schedule-published-table th:nth-child(3),
+.employee-profile-page .branch-schedule-published-table td:nth-child(3) {
+    width: 64px;
+}
+
+.employee-profile-page .branch-duty-style-list {
+    display: grid;
+    gap: 8px;
+}
+
+.employee-profile-page .branch-duty-style-form {
+    display: grid;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface-gradient-3);
+    min-width: 0;
+}
+
+.employee-profile-page .branch-duty-style-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.employee-profile-page .branch-duty-style-head strong {
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.employee-profile-page .branch-duty-style-preview {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 62px;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.employee-profile-page .branch-duty-style-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.employee-profile-page .branch-schedule-theme-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.employee-profile-page .branch-duty-style-grid input[type="color"] {
+    min-height: 34px;
+    padding: 2px 4px;
+}
+
+.employee-profile-page .branch-workspace-side .branch-workspace-panel .card-body {
+    padding: 12px 14px;
+}
+
+.employee-profile-page .branch-duty-style-form .form-actions .btn {
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 12px;
+    width: 100%;
+}
+
+.employee-profile-page .branch-duty-style-form label {
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+
+.employee-profile-page .branch-duty-timing-preview {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+.employee-profile-page .branch-employee-order-list {
+    display: grid;
+    gap: 8px;
+}
+
+.employee-profile-page .branch-employee-order-item {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 4px 10px;
+    align-items: center;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--color-surface-2) 86%, transparent);
+    cursor: move;
+}
+
+.employee-profile-page .branch-employee-order-item strong {
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.employee-profile-page .branch-employee-order-item small {
+    grid-column: 2;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.employee-profile-page .branch-employee-order-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+@media (max-width: 640px) {
+    .employee-profile-page .branch-duty-style-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .employee-profile-page .branch-schedule-theme-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.employee-profile-page .free-shift-box {
+    display: grid;
+    gap: 8px;
+    min-width: 132px;
+    min-height: 104px;
+    padding: 10px;
+    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--border) 96%, transparent);
+    background: color-mix(in srgb, var(--color-surface-2) 88%, transparent);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.employee-profile-page .free-grid-shift-select {
+    min-width: 0;
+    min-height: 40px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.employee-profile-page .free-shift-box-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 8px 10px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.3;
+    color: var(--text);
+    background: color-mix(in srgb, var(--color-surface-1) 72%, transparent);
+    text-align: center;
+}
+
+.employee-profile-page .free-shift-box-readonly {
+    min-height: 104px;
+    border-radius: 18px;
+    padding: 12px;
+    background: color-mix(in srgb, var(--color-surface-2) 82%, transparent);
+}
+
+.employee-profile-page .free-shift-box[data-shift-value="off"] .free-shift-box-label,
+.employee-profile-page .free-shift-box[data-shift-value="extra off"] .free-shift-box-label {
+    background: rgba(255, 235, 59, 0.82);
+    color: #111827;
+}
+
+.employee-profile-page .free-shift-box[data-shift-value="9 am to 5 pm"] .free-shift-box-label {
+    background: rgba(239, 68, 68, 0.82);
+    color: #fff7f7;
+}
+
+.employee-profile-page .free-shift-box[data-shift-value="2 pm to 10 pm"] .free-shift-box-label {
+    background: rgba(59, 130, 246, 0.78);
+    color: #eff6ff;
+}
+
+.employee-profile-page .free-shift-box[data-shift-value="3 pm to 11 pm"] .free-shift-box-label {
+    background: rgba(168, 85, 247, 0.78);
+    color: #faf5ff;
+}
+
+.employee-profile-page .free-shift-box[data-shift-value="morning"] .free-shift-box-label {
+    background: rgba(245, 158, 11, 0.8);
+    color: #111827;
+}
+
+.employee-profile-page .free-shift-box[data-shift-value="evening"] .free-shift-box-label,
+.employee-profile-page .free-shift-box[data-shift-value="split shift"] .free-shift-box-label {
+    background: rgba(16, 185, 129, 0.8);
+    color: #ecfdf5;
+}
+
+.employee-profile-page .free-schedule-theme-sunday {
+    background: color-mix(in srgb, #6aa84f 20%, var(--color-surface-1));
+}
+
+.employee-profile-page .free-schedule-theme-monday {
+    background: color-mix(in srgb, #7cb342 18%, var(--color-surface-1));
+}
+
+.employee-profile-page .free-schedule-theme-tuesday {
+    background: color-mix(in srgb, #8bc34a 16%, var(--color-surface-1));
+}
+
+.employee-profile-page .free-schedule-theme-wednesday {
+    background: color-mix(in srgb, #9ccc65 18%, var(--color-surface-1));
+}
+
+.employee-profile-page .free-schedule-theme-thursday {
+    background: color-mix(in srgb, #ffd54f 16%, var(--color-surface-1));
+}
+
+.employee-profile-page .free-schedule-theme-friday {
+    background: color-mix(in srgb, #ffb74d 18%, var(--color-surface-1));
+}
+
+.employee-profile-page .free-schedule-theme-saturday {
+    background: color-mix(in srgb, #ff8a65 18%, var(--color-surface-1));
+}
+
+.employee-profile-page .free-schedule-theme-notes {
+    background: color-mix(in srgb, #64b5f6 16%, var(--color-surface-1));
+}
+
+.employee-profile-page .free-schedule-theme-orders {
+    background: color-mix(in srgb, #ba68c8 16%, var(--color-surface-1));
+}
+
+.employee-profile-page .free-schedule-theme-followup {
+    background: color-mix(in srgb, #4db6ac 16%, var(--color-surface-1));
+}
+
+.employee-profile-page .free-schedule-grid-table thead .free-schedule-theme-sunday,
+.employee-profile-page .free-schedule-grid-table thead .free-schedule-theme-monday,
+.employee-profile-page .free-schedule-grid-table thead .free-schedule-theme-tuesday,
+.employee-profile-page .free-schedule-grid-table thead .free-schedule-theme-wednesday,
+.employee-profile-page .free-schedule-grid-table thead .free-schedule-theme-thursday,
+.employee-profile-page .free-schedule-grid-table thead .free-schedule-theme-friday,
+.employee-profile-page .free-schedule-grid-table thead .free-schedule-theme-saturday,
+.employee-profile-page .free-schedule-grid-table thead .free-schedule-theme-notes,
+.employee-profile-page .free-schedule-grid-table thead .free-schedule-theme-orders,
+.employee-profile-page .free-schedule-grid-table thead .free-schedule-theme-followup {
+    box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.08);
+}
+
+.employee-profile-page .employee-360-card,
+.employee-profile-page .employee-360-panel {
+    overflow: hidden;
+}
+
+.employee-profile-page .employee-360-workspace-nav-shell {
+    margin-top: -4px;
+}
+
+.employee-profile-page .employee-360-workspace-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.employee-profile-page .employee-360-tab-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface-gradient-3);
+    color: var(--text);
+    min-height: 42px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.employee-profile-page .employee-360-tab-button:hover {
+    transform: translateY(-1px);
+    border-color: var(--color-hover-border);
+    background: var(--color-hover-surface);
+}
+
+.employee-profile-page .employee-360-tab-button.is-active {
+    border-color: transparent;
+    background: var(--color-button-primary-bg);
+    color: var(--color-button-primary-text);
+    box-shadow: var(--shadow-sm);
+}
+
+html[data-theme="premium-light"] .employee-profile-page .employee-360-workspace-nav-shell,
+body[data-theme="premium-light"] .employee-profile-page .employee-360-workspace-nav-shell,
+[data-theme="premium-light"] .employee-profile-page .employee-360-workspace-nav-shell {
+    margin-top: 0;
+}
+
+html[data-theme="premium-light"] .employee-profile-page .employee-360-workspace-nav,
+body[data-theme="premium-light"] .employee-profile-page .employee-360-workspace-nav,
+[data-theme="premium-light"] .employee-profile-page .employee-360-workspace-nav {
+    padding: 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    width: fit-content;
+    max-width: 100%;
+}
+
+html[data-theme="premium-light"] .employee-profile-page .employee-360-tab-button,
+body[data-theme="premium-light"] .employee-profile-page .employee-360-tab-button,
+[data-theme="premium-light"] .employee-profile-page .employee-360-tab-button {
+    border-color: rgba(15, 23, 42, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.92) 100%);
+    color: #0f172a;
+    box-shadow: none;
+}
+
+html[data-theme="premium-light"] .employee-profile-page .employee-360-tab-button:hover,
+body[data-theme="premium-light"] .employee-profile-page .employee-360-tab-button:hover,
+[data-theme="premium-light"] .employee-profile-page .employee-360-tab-button:hover {
+    border-color: rgba(37, 99, 235, 0.18);
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+html[data-theme="premium-light"] .employee-profile-page .employee-360-tab-button.is-active,
+body[data-theme="premium-light"] .employee-profile-page .employee-360-tab-button.is-active,
+[data-theme="premium-light"] .employee-profile-page .employee-360-tab-button.is-active {
+    border-color: rgba(37, 99, 235, 0.18);
+    background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+    color: #ffffff;
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18);
+}
+
+.employee-profile-page .employee-360-tab-panel {
+    display: none;
+}
+
+.employee-profile-page .employee-360-tab-panel.is-active {
+    display: block;
+}
+
+.employee-profile-page .employee-360-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.employee-profile-page .employee-360-stat-card,
+.employee-profile-page .employee-360-signal-card,
+.employee-profile-page .employee-360-stream-item,
+.employee-profile-page .employee-360-timeline-item {
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+}
+
+.employee-profile-page .employee-360-stat-card {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    min-height: 132px;
+}
+
+.employee-profile-page .employee-360-stat-label {
+    font-size: 12px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+}
+
+.employee-profile-page .employee-360-stat-value {
+    font-size: 30px;
+    line-height: 1;
+    font-weight: 900;
+    color: var(--text);
+}
+
+.employee-profile-page .employee-360-stat-meta {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+.employee-profile-page .employee-360-signal-grid,
+.employee-profile-page .employee-360-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.employee-profile-page .employee-360-signal-card {
+    padding: 18px 18px 16px;
+}
+
+.employee-profile-page .employee-360-signal-head,
+.employee-profile-page .employee-360-timeline-topline,
+.employee-profile-page .employee-360-stream-meta,
+.employee-profile-page .employee-360-mini-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.employee-profile-page .employee-360-signal-head h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.employee-profile-page .employee-360-signal-value {
+    font-size: 22px;
+    line-height: 1;
+    font-weight: 900;
+}
+
+.employee-profile-page .employee-360-signal-card p,
+.employee-profile-page .employee-360-stream-body p {
+    margin: 10px 0 0;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.employee-profile-page .employee-360-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.employee-profile-page .employee-360-mini-table,
+.employee-profile-page .employee-360-stream {
+    display: grid;
+    gap: 12px;
+}
+
+.employee-profile-page .employee-360-mini-row {
+    display: grid;
+    grid-template-columns: minmax(0, 160px) minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+}
+
+.employee-profile-page .employee-360-mini-row:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.employee-profile-page .employee-360-progress-track {
+    position: relative;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.employee-profile-page .employee-360-progress-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #2f7ef7, #7bc9ff);
+}
+
+.employee-profile-page .employee-360-progress-label,
+.employee-profile-page .employee-360-stream-body small {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.employee-profile-page .employee-360-stream-item,
+.employee-profile-page .employee-360-timeline-item {
+    padding: 16px 18px;
+}
+
+.employee-profile-page .employee-360-documents-stats {
+    margin-bottom: 18px;
+}
+
+.employee-profile-page .employee-360-stream-meta span {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.employee-profile-page .employee-360-stat-card.tone-good,
+.employee-profile-page .employee-360-signal-card.tone-good,
+.employee-profile-page .employee-360-stream-item.tone-good,
+.employee-profile-page .employee-360-timeline-item.tone-good {
+    border-color: rgba(67, 181, 129, 0.34);
+    box-shadow: inset 0 0 0 1px rgba(67, 181, 129, 0.06);
+}
+
+.employee-profile-page .employee-360-stat-card.tone-warning,
+.employee-profile-page .employee-360-signal-card.tone-warning,
+.employee-profile-page .employee-360-stream-item.tone-warning,
+.employee-profile-page .employee-360-timeline-item.tone-warning {
+    border-color: rgba(243, 176, 53, 0.34);
+    box-shadow: inset 0 0 0 1px rgba(243, 176, 53, 0.06);
+}
+
+.employee-profile-page .employee-360-stat-card.tone-danger,
+.employee-profile-page .employee-360-signal-card.tone-danger,
+.employee-profile-page .employee-360-stream-item.tone-danger,
+.employee-profile-page .employee-360-timeline-item.tone-danger {
+    border-color: rgba(231, 91, 91, 0.34);
+    box-shadow: inset 0 0 0 1px rgba(231, 91, 91, 0.07);
+}
+
+@media (max-width: 1180px) {
+    .employee-profile-page .employee-360-overview-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .employee-profile-page .branch-overview-mini-grid,
+    .employee-profile-page .branch-member-compact-grid,
+    .employee-profile-page .branch-schedule-form-grid,
+    .employee-profile-page .branch-control-grid,
+    .employee-profile-page .branch-duty-option-grid,
+    .employee-profile-page .branch-compact-grid,
+    .employee-profile-page .branch-simple-team-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .employee-profile-page .employee-360-workspace-nav {
+        gap: 8px;
+    }
+
+    .employee-profile-page .employee-360-tab-button {
+        flex: 1 1 calc(50% - 8px);
+    }
+
+    .employee-profile-page .employee-360-signal-grid,
+    .employee-profile-page .employee-360-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .employee-profile-page .employee-360-mini-row {
+        grid-template-columns: 1fr;
+    }
+
+    .employee-profile-page .branch-schedule-sheet {
+        min-width: 900px;
+    }
+
+    .employee-profile-page .free-schedule-grid-table {
+        min-width: 1020px;
+    }
+
+    .employee-profile-page .branch-schedule-sheet-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .employee-profile-page .attendance-map-toolbar,
+    .employee-profile-page .payroll-snapshot-actions {
+        align-items: stretch;
+    }
+
+    .employee-profile-page .attendance-map-toolbar .page-actions,
+    .employee-profile-page .payroll-snapshot-actions {
+        width: 100%;
+    }
+
+    .employee-profile-page .attendance-map-toolbar .page-actions .btn,
+    .employee-profile-page .payroll-snapshot-actions .btn {
+        flex: 1 1 180px;
+        white-space: normal;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 640px) {
+    .employee-profile-page .employee-360-tab-button {
+        flex: 1 1 100%;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .employee-profile-page .employee-360-overview-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .employee-profile-page .branch-overview-mini-grid,
+    .employee-profile-page .branch-member-compact-grid,
+    .employee-profile-page .branch-schedule-form-grid,
+    .employee-profile-page .branch-control-grid,
+    .employee-profile-page .branch-duty-option-grid,
+    .employee-profile-page .branch-compact-grid,
+    .employee-profile-page .branch-simple-team-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .employee-profile-page.branch-overview-page .card-header,
+    .employee-profile-page.branch-overview-page .card-body {
+        padding: 10px 12px !important;
+    }
+
+    .employee-profile-page .branch-schedule-sheet,
+    .employee-profile-page .free-schedule-grid-table {
+        min-width: 820px;
+    }
+
+    .employee-profile-page .branch-schedule-sheet th,
+    .employee-profile-page .branch-schedule-sheet td,
+    .employee-profile-page .free-schedule-grid-table th,
+    .employee-profile-page .free-schedule-grid-table td {
+        padding: 8px 6px;
+    }
+
+    .employee-profile-page .sheet-duty-cell {
+        min-width: 116px;
+    }
+
+    .employee-profile-page .free-schedule-meta-cell {
+        min-width: 150px;
+    }
+
+    .employee-profile-page .free-grid-header-input,
+    .employee-profile-page .free-grid-employee-select {
+        min-width: 110px;
+        min-height: 36px;
+        padding: 6px 8px;
+    }
+
+    .employee-profile-page .free-grid-input {
+        min-width: 72px;
+        min-height: 32px;
+        padding: 5px 6px;
+    }
+
+    .employee-profile-page .free-grid-textarea {
+        min-width: 120px;
+        min-height: 80px;
+        padding: 8px 10px;
+    }
+
+    .employee-profile-page .branch-schedule-sheet-note {
+        padding: 12px 14px;
+        border-radius: 16px;
+    }
+
+    .employee-profile-page .attendance-map-shell {
+        padding: 14px;
+        border-radius: 18px;
+    }
+}
+
+.employee-profile-page .attendance-map-shell {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 18px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
+}
+
+.employee-profile-page .attendance-map-toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.employee-profile-page .attendance-map-toolbar p {
+    margin: 6px 0 0;
+    max-width: 780px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.employee-profile-page .attendance-map-toolbar .page-actions .btn:disabled,
+.employee-profile-page .attendance-map-toolbar .page-actions button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: saturate(0.65);
+    box-shadow: none;
+}
+
+.employee-profile-page .attendance-map-toolbar .page-actions .btn:disabled:hover,
+.employee-profile-page .attendance-map-toolbar .page-actions button:disabled:hover {
+    transform: none;
+}
+
+.employee-profile-page .attendance-map-setup-note {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border: 1px solid rgba(245, 158, 11, 0.28);
+    border-radius: 16px;
+    background: rgba(245, 158, 11, 0.08);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.employee-profile-page .attendance-map-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.75fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.employee-profile-page .attendance-map-canvas-wrap,
+.employee-profile-page .attendance-map-details,
+.employee-profile-page .attendance-record-card {
+    display: grid;
+    gap: 12px;
+}
+
+.employee-profile-page .attendance-live-map {
+    min-height: 360px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.employee-profile-page .attendance-map-status {
+    padding: 12px 14px;
+    border: 1px solid rgba(59, 130, 246, 0.28);
+    border-radius: 16px;
+    background: rgba(59, 130, 246, 0.08);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.employee-profile-page .attendance-map-status.is-error,
+.employee-profile-page .attendance-map-error-note {
+    border-color: rgba(231, 91, 91, 0.3);
+    background: rgba(231, 91, 91, 0.08);
+}
+
+.employee-profile-page .attendance-map-preview-grid,
+.employee-profile-page .attendance-record-grid,
+.employee-profile-page .attendance-entry-grid {
+    gap: 12px;
+}
+
+.employee-profile-page .attendance-map-details .form-group,
+.employee-profile-page .attendance-entry-grid .form-group {
+    margin-bottom: 0;
+}
+
+.employee-profile-page .attendance-records-list {
+    gap: 14px;
+}
+
+.employee-profile-page .attendance-history-pagination-wrap {
+    margin-top: 18px;
+}
+
+.employee-profile-page .attendance-record-card {
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--surface-gradient-3);
+}
+
+.employee-profile-page .attendance-history-disclosure,
+.attendance-management-page .attendance-history-disclosure {
+    overflow: hidden;
+}
+
+.employee-profile-page .attendance-history-summary,
+.attendance-management-page .attendance-history-summary,
+.attendance-management-page .attendance-summary-disclosure-toggle {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px;
+}
+
+.employee-profile-page .attendance-history-summary::-webkit-details-marker,
+.attendance-management-page .attendance-history-summary::-webkit-details-marker,
+.attendance-management-page .attendance-summary-disclosure-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.employee-profile-page .attendance-history-summary-main,
+.employee-profile-page .attendance-history-summary-side,
+.attendance-management-page .attendance-history-summary-main,
+.attendance-management-page .attendance-history-summary-side {
+    display: grid;
+    gap: 6px;
+}
+
+.employee-profile-page .attendance-history-summary-side,
+.attendance-management-page .attendance-history-summary-side {
+    justify-items: end;
+    text-align: right;
+}
+
+.employee-profile-page .attendance-history-summary-meta,
+.attendance-management-page .attendance-history-summary-meta {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.employee-profile-page .attendance-history-panel,
+.attendance-management-page .attendance-history-panel {
+    display: grid;
+    gap: 14px;
+    padding: 0 20px 20px;
+}
+
+.attendance-management-page .attendance-history-card-list {
+    display: grid;
+    gap: 14px;
+}
+
+.attendance-management-page .attendance-management-disclosure {
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--surface-gradient-3);
+}
+
+.attendance-management-page .attendance-summary-disclosure {
+    overflow: hidden;
+}
+
+.attendance-management-page .attendance-summary-disclosure-body {
+    display: grid;
+    gap: 18px;
+    padding: 0 20px 20px;
+}
+
+.employee-profile-page .attendance-record-location-block {
+    display: grid;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.employee-profile-page .attendance-record-location-block strong {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.employee-profile-page .attendance-record-location-block span,
+.employee-profile-page .attendance-record-location-block small {
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.employee-profile-page .attendance-map-link {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    margin-top: 4px;
+    color: var(--color-button-primary-bg);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.employee-profile-page .attendance-map-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 980px) {
+    .employee-profile-page .attendance-map-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .employee-profile-page .attendance-live-map {
+        min-height: 320px;
+    }
+
+    .employee-profile-page .attendance-history-summary,
+    .attendance-management-page .attendance-history-summary,
+    .attendance-management-page .attendance-summary-disclosure-toggle {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .employee-profile-page .attendance-history-summary-side,
+    .attendance-management-page .attendance-history-summary-side {
+        justify-items: start;
+        text-align: left;
+    }
+
+    .summary-disclosure-toggle {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 640px) {
+    .employee-profile-page .attendance-map-shell {
+        padding: 14px;
+    }
+
+    .employee-profile-page .attendance-map-toolbar {
+        align-items: stretch;
+    }
+
+    .employee-profile-page .attendance-map-toolbar .page-actions {
+        width: 100%;
+    }
+
+    .employee-profile-page .attendance-map-toolbar .page-actions .btn {
+        flex: 1 1 auto;
+    }
+}
+
+/* -------------------------------------------------------------
+   Self-service profile information: force left-to-right row order
+-------------------------------------------------------------- */
+.employee-profile-page .detail-grid.two-col.employee-information-grid,
+.employee-profile-page .detail-grid.two-col.employee-org-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-auto-flow: row !important;
+    gap: 10px !important;
+    align-items: start !important;
+}
+
+.employee-profile-page .detail-grid.two-col.employee-information-grid .detail-item,
+.employee-profile-page .detail-grid.two-col.employee-org-grid .detail-item {
+    min-width: 0;
+}
+
+@media (max-width: 1180px) {
+    .employee-profile-page .detail-grid.two-col.employee-information-grid,
+    .employee-profile-page .detail-grid.two-col.employee-org-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .employee-profile-page .detail-grid.two-col.employee-information-grid,
+    .employee-profile-page .detail-grid.two-col.employee-org-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+
+/* -------------------------------------------------------------
+   Employee Detail: ID Compliance exact final fix
+-------------------------------------------------------------- */
+.employee-profile-page .identity-detail-stack {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+}
+
+.employee-profile-page .employee-identity-status-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 18px !important;
+    align-items: start !important;
+}
+
+.employee-profile-page .employee-identity-status-card {
+    display: grid !important;
+    gap: 14px !important;
+    align-content: start !important;
+}
+
+@media (max-width: 900px) {
+    .employee-profile-page .employee-identity-status-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+
+/* -------------------------------------------------------------
+   Identity cards: same vertical order across all profiles
+-------------------------------------------------------------- */
+.employee-profile-page .identity-detail-stack,
+.employee-profile-page .compliance-meta-grid.compliance-meta-grid-vertical {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+}
+
+.employee-profile-page .employee-identity-status-grid,
+.employee-profile-page .id-status-grid.employee-identity-status-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 18px !important;
+    align-items: start !important;
+}
+
+.employee-profile-page .employee-identity-status-card,
+.employee-profile-page .id-status-card.employee-identity-status-card {
+    display: grid !important;
+    gap: 14px !important;
+    align-content: start !important;
+}
+
+.employee-profile-page .identity-detail-stack .detail-item,
+.employee-profile-page .compliance-meta-grid.compliance-meta-grid-vertical .detail-item {
+    width: 100% !important;
+    min-height: 0 !important;
+}
+
+@media (max-width: 900px) {
+    .employee-profile-page .employee-identity-status-grid,
+    .employee-profile-page .id-status-grid.employee-identity-status-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+
+/* Weekly schedule published sheet refinement */
+/* Weekly schedule published sheet refinement */
+.employee-profile-page .branch-schedule-size-label {
+    font-size: 13px;
+}
+
+.employee-profile-page .branch-schedule-size-button {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.employee-profile-page .branch-schedule-public-cell {
+    min-width: var(--branch-schedule-cell-width, 125px);
+    border-radius: 100px;
+}
+
+.employee-profile-page .branch-schedule-public-cell strong {
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.employee-profile-page .branch-schedule-published-wrap[data-schedule-size-mode="compact"],
+.employee-profile-page .branch-schedule-published-wrap[data-schedule-size-mode="comfortable"],
+.employee-profile-page .branch-schedule-published-wrap[data-schedule-size-mode="large"] {
+    --branch-schedule-cell-width: 125px;
+    --branch-schedule-cell-height: 30px;
+    --branch-schedule-cell-padding: 1px 6px;
+    --branch-schedule-main-font: 11px;
+    --branch-schedule-sub-font: 11px;
+}
+
+.employee-profile-page .branch-schedule-published-table th,
+.employee-profile-page .branch-schedule-published-table td,
+.employee-profile-page .branch-schedule-published-table .free-schedule-meta-cell {
+    height: 30px;
+    min-height: 30px;
+}
+
+.employee-profile-page .branch-schedule-published-table thead th {
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.employee-profile-page .branch-schedule-published-table thead th small {
+    margin-top: 0;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    color: inherit;
+}
+
+.employee-profile-page .branch-schedule-published-table .free-schedule-meta-cell,
+.employee-profile-page .branch-schedule-published-table tbody td:nth-child(1) strong,
+.employee-profile-page .branch-schedule-published-table tbody td:nth-child(2),
+.employee-profile-page .branch-schedule-published-table tbody td:nth-child(3) {
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.employee-profile-page .branch-schedule-published-table th:nth-child(1),
+.employee-profile-page .branch-schedule-published-table td:nth-child(1),
+.employee-profile-page .branch-schedule-published-table th:nth-child(2),
+.employee-profile-page .branch-schedule-published-table td:nth-child(2),
+.employee-profile-page .branch-schedule-published-table th:nth-child(3),
+.employee-profile-page .branch-schedule-published-table td:nth-child(3) {
+    width: 100px;
+}
+
+.employee-profile-page .branch-schedule-published-table th:nth-child(n + 4),
+.employee-profile-page .branch-schedule-published-table td:nth-child(n + 4) {
+    width: 125px;
+}
+
+.employee-profile-page .branch-schedule-published-table .free-schedule-meta-cell {
+    padding: 0 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Duty shift master + attendance schedule control */
+.employee-profile-page .branch-duty-style-form + .branch-duty-style-form {
+    margin-top: 14px;
+}
+
+.employee-profile-page .branch-duty-style-preview {
+    max-width: 100%;
+}
+
+.employee-profile-page .status-sync-note strong {
+    color: var(--text);
+}
+

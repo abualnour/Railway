@@ -558,6 +558,8 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
             or scoped_branch
         ):
             operations_quick_links.append({"label": "Attendance Management", "url": reverse("employees:attendance_management")})
+            if self.is_admin_compatible(user) or self.is_hr_user(user) or self.is_operations_manager_user(user):
+                operations_quick_links.append({"label": "Branch Schedules", "url": reverse("employees:branch_schedule_overview")})
             operations_quick_links.append({"label": "Action Center", "url": reverse("employees:employee_admin_action_center")})
             operations_quick_links.append({"label": "Employee Requests", "url": reverse("employees:employee_requests_overview")})
         operational_status_cards = [
@@ -592,6 +594,7 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
         executive_quick_links = [
             {"label": "HR Control Center", "url": reverse("hr:home")},
             {"label": "Payroll Workspace", "url": reverse("payroll:home")},
+            {"label": "Branch Schedules", "url": reverse("employees:branch_schedule_overview")},
             {"label": "Attendance Management", "url": reverse("employees:attendance_management")},
             {"label": "Action Center", "url": reverse("employees:employee_admin_action_center")},
             {"label": "Organization Setup", "url": reverse("organization:company_list")},

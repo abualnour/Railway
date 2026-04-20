@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 from django.utils import timezone
 
+from employees.access import is_admin_compatible as is_admin_compatible_role
 from employees.models import (
     Employee,
     EmployeeActionRecord,
@@ -24,7 +25,7 @@ def can_access_hr_workspace(user):
         user
         and user.is_authenticated
         and (
-            getattr(user, "is_superuser", False)
+            is_admin_compatible_role(user)
             or getattr(user, "is_hr", False)
             or getattr(user, "is_operations_manager", False)
             or getattr(user, "is_supervisor", False)

@@ -178,6 +178,7 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
+    align-items: start;
 }
 
 .platform-panel {
@@ -387,6 +388,38 @@
     }
 }
 
+@media (max-width: 900px) {
+    .platform-page {
+        gap: 18px;
+    }
+
+    .platform-hero {
+        padding: 22px;
+        border-radius: 24px;
+    }
+
+    .platform-hero-copy h1 {
+        font-size: clamp(1.8rem, 7vw, 2.55rem);
+    }
+
+    .platform-panel-head h2 {
+        font-size: 22px;
+    }
+
+    .platform-hero-chip {
+        white-space: normal;
+        min-height: 0;
+        line-height: 1.35;
+        text-align: center;
+    }
+
+    .platform-side-card strong,
+    .platform-stat-card strong,
+    .platform-metric-box strong {
+        font-size: 24px;
+    }
+}
+
 @media (max-width: 700px) {
     .platform-hero,
     .platform-panel {
@@ -407,6 +440,21 @@
     .platform-hero-actions {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .platform-hero-chip,
+    .platform-form-actions .btn,
+    .platform-inline-actions .btn,
+    .platform-hero-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .platform-side-card,
+    .platform-stat-card,
+    .platform-feature-card,
+    .platform-metric-box {
+        padding: 16px;
     }
 }
 

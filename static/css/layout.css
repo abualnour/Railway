@@ -1,4 +1,8 @@
 .layout {
+    --app-shell-max-width: 1450px;
+}
+
+.layout {
     min-height: 100vh;
 }
 
@@ -10,7 +14,7 @@
 }
 
 .topbar-inner {
-    max-width: 1450px;
+    max-width: var(--app-shell-max-width);
     margin: 0 auto;
     display: grid;
     grid-template-columns: auto 1fr auto;
@@ -367,7 +371,7 @@
 
 .container,
 .page-container {
-    max-width: 1450px;
+    max-width: var(--app-shell-max-width);
     margin: 0 auto;
 }
 

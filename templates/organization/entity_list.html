@@ -127,13 +127,13 @@
                             <div class="branch-overview-record-actions">
                                 <span class="branch-overview-record-label">Actions</span>
                                 <div class="table-action-buttons">
-                                    <a href="{{ row.detail_url }}" class="btn btn-sm btn-light">View</a>
-                                    <a href="{{ row.document_center_url }}" class="btn btn-sm btn-outline">Documents</a>
+                                    <a href="{{ row.detail_url }}" class="btn btn-sm btn-light btn-action-dot btn-action-view">View</a>
+                                    <a href="{{ row.document_center_url }}" class="btn btn-sm btn-outline btn-action-dot btn-action-documents">Documents</a>
                                     {% if update_url_name %}
-                                        <a href="{% url update_url_name row.branch_id %}" class="btn btn-sm btn-outline">Edit</a>
+                                        <a href="{% url update_url_name row.branch_id %}" class="btn btn-sm btn-outline btn-action-dot btn-action-edit">Edit</a>
                                     {% endif %}
                                     {% if delete_url_name %}
-                                        <a href="{% url delete_url_name row.branch_id %}" class="btn btn-sm btn-danger">Delete</a>
+                                        <a href="{% url delete_url_name row.branch_id %}" class="btn btn-sm btn-danger btn-action-dot btn-action-delete">Delete</a>
                                     {% endif %}
                                 </div>
                             </div>
@@ -223,13 +223,13 @@
                             <td class="table-actions-cell">
                                 <div class="table-action-buttons table-action-buttons-premium table-action-buttons-row table-action-buttons-compact">
                                     {% if detail_url_name %}
-                                        <a href="{% url detail_url_name row.object.pk %}" class="btn btn-sm btn-light">View</a>
+                                        <a href="{% url detail_url_name row.object.pk %}" class="btn btn-sm btn-light btn-action-dot btn-action-view">View</a>
                                     {% endif %}
                                     {% if update_url_name %}
-                                        <a href="{% url update_url_name row.object.pk %}" class="btn btn-sm btn-outline">Edit</a>
+                                        <a href="{% url update_url_name row.object.pk %}" class="btn btn-sm btn-outline btn-action-dot btn-action-edit">Edit</a>
                                     {% endif %}
                                     {% if delete_url_name %}
-                                        <a href="{% url delete_url_name row.object.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                                        <a href="{% url delete_url_name row.object.pk %}" class="btn btn-sm btn-danger btn-action-dot btn-action-delete">Delete</a>
                                     {% endif %}
                                 </div>
                             </td>
