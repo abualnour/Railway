@@ -1,2 +1,12 @@
 [phases.setup]
-nixPkgs = ["postgresql"]
+nixPkgs = [
+    "postgresql",
+    "pkg-config",
+    "cairo",
+    "pango",
+    "gdk-pixbuf",
+    "glib",
+    "fontconfig",
+    "freetype",
+    "libffi",
+]
