@@ -4,7 +4,6 @@ aptPkgs = [
     "python3.12-venv",
     "python3.12-dev",
     "python3-pip",
-    "python3-cairo",
     "libcairo2-dev",
     "pkg-config",
     "libpango1.0-dev",
@@ -14,9 +13,11 @@ aptPkgs = [
     "libfreetype6-dev",
     "libffi-dev",
     "postgresql-client",
+    "meson",
+    "ninja-build",
 ]
 
 [phases.install]
 cmds = [
-    "python3 -m venv /opt/venv --system-site-packages && . /opt/venv/bin/activate && pip install -r requirements.txt"
+    "python3.12 -m venv /opt/venv && . /opt/venv/bin/activate && pip install --no-build-isolation pycairo && pip install -r requirements.txt"
 ]
