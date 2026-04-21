@@ -1,15 +1,18 @@
 [phases.setup]
-nixPkgs = [
-    "python312",
-    "postgresql",
+aptPkgs = [
+    "python3.12",
+    "python3.12-venv",
+    "python3.12-dev",
+    "python3-pip",
+    "libcairo2-dev",
     "pkg-config",
-    "cairo",
-    "pango",
-    "gdk-pixbuf",
-    "glib",
-    "fontconfig",
-    "freetype",
-    "libffi",
+    "libpango1.0-dev",
+    "libgdk-pixbuf2.0-dev",
+    "libglib2.0-dev",
+    "libfontconfig1-dev",
+    "libfreetype6-dev",
+    "libffi-dev",
+    "postgresql-client",
 ]
 
 [phases.install]
