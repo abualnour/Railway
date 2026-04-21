@@ -4,9 +4,11 @@ aptPkgs = [
     "python3.12-venv",
     "python3.12-dev",
     "python3-pip",
-    "libcairo2-dev",
+    "build-essential",
     "pkg-config",
+    "libcairo2-dev",
     "libpango1.0-dev",
+    "libgdk-pixbuf-2.0-0",
     "libgdk-pixbuf2.0-dev",
     "libglib2.0-dev",
     "libfontconfig1-dev",
@@ -20,7 +22,6 @@ aptPkgs = [
 [phases.install]
 cmds = [
     "python3.12 -m venv /opt/venv",
-    ". /opt/venv/bin/activate && pip install --upgrade pip setuptools wheel",
-    ". /opt/venv/bin/activate && pip install pycairo",
+    ". /opt/venv/bin/activate && python -m pip install --upgrade pip setuptools wheel",
     ". /opt/venv/bin/activate && pip install -r requirements.txt"
 ]
