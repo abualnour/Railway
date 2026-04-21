@@ -6,6 +6,7 @@ This project is prepared to run on Railway as the active deployment platform.
 
 - Platform-neutral Gunicorn startup through `gunicorn.conf.py`
 - `Procfile` for Railway web process detection
+- `.python-version` to pin Railway builds to Python 3.12 for better compatibility with the PDF stack
 - Dynamic `PORT` binding for Railway
 - Automatic support for:
   - `RAILWAY_PUBLIC_DOMAIN`
@@ -44,6 +45,7 @@ HR_BACKUP_ROOT=/data/backups
 
 For full PostgreSQL backup ZIP support, Railway also needs the PostgreSQL client tool (`pg_dump`).
 This repository now includes [nixpacks.toml](C:\Users\AbuNour\Desktop\NourAxis\nixpacks.toml) to request the `postgresql` package during Railway build.
+Railway is currently using Railpack with `mise`, so the committed [.python-version](C:\Users\AbuNour\Desktop\NourAxis\.python-version) file is the important Python-version source for deploys.
 If you prefer an explicit override, you can also set:
 
 ```env
