@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="platform-page notifications-page">
+    <section class="platform-hero notifications-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Notification Center</span>
+            <h1>Track every update across payroll, requests, HR, operations, and calendar</h1>
+            <p>Unread updates stay organized here by source area, so request tracking, approvals, policy changes, and branch actions do not disappear into separate screens.</p>
+            <div class="platform-hero-meta">
+                <span class="platform-hero-chip">Unread: {{ unread_total }}</span>
+                <span class="platform-hero-chip">Visible feed: {{ notifications|length }}</span>
+                <span class="platform-hero-chip">Total tracked: {{ all_notifications_total }}</span>
+            </div>
+        </div>
+        <div class="platform-hero-side">
+            <div class="platform-side-card">
+                <span>Unread Items</span>
+                <strong>{{ unread_total }}</strong>
+                <small>Notifications still waiting for your review</small>
+            </div>
+            <div class="platform-inline-actions platform-hero-actions">
+                <a href="{% url 'dashboard_home' %}" class="btn btn-light btn-sm">Back To Dashboard</a>
+                {% if unread_total %}
+                <form method="post" action="{% url 'notifications:mark_all_read' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-sm">Mark All Read</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section class="platform-panel">
+        <div class="platform-panel-head">
+            <h2>Delivery Preferences</h2>
+            <p>Choose how payroll delivery and in-app category alerts should reach you across the system.</p>
+        </div>
+        <form method="post" action="{% url 'notifications:preferences' %}" class="platform-form-grid notification-preferences-form">
+            {% csrf_token %}
+            <div class="notification-preference-group platform-form-span">
+                <div class="notification-preference-group-head">
+                    <h3>Management Workflow Alerts</h3>
+                    <p>Control the review, approval, and paid-status updates sent to HR and finance roles.</p>
+                </div>
+                <div class="form-group platform-form-span">
+                    <label class="notification-preference-toggle">
+                        {{ preference_form.payroll_management_in_app_enabled }}
+                        <span>
+                            <strong>{{ preference_form.payroll_management_in_app_enabled.label }}</strong>
+                            <small>Show payroll workflow status changes in the NourAxis notification center.</small>
+                        </span>
+                    </label>
+                </div>
+                <div class="form-group platform-form-span">
+                    <label class="notification-preference-toggle">
+                        {{ preference_form.payroll_management_email_enabled }}
+                        <span>
+                            <strong>{{ preference_form.payroll_management_email_enabled.label }}</strong>
+                            <small>Send review, approval, and paid-status updates to your saved work email.</small>
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <div class="notification-preference-group platform-form-span">
+                <div class="notification-preference-group-head">
+                    <h3>Employee Payslip Delivery</h3>
+                    <p>Choose how the paid-status payslip notification reaches employees and whether it includes the direct PDF shortcut.</p>
+                </div>
+                <div class="form-group platform-form-span">
+                    <label class="notification-preference-toggle">
+                        {{ preference_form.payroll_employee_in_app_enabled }}
+                        <span>
+                            <strong>{{ preference_form.payroll_employee_in_app_enabled.label }}</strong>
+                            <small>Create a self-service in-app alert when a payslip is ready.</small>
+                        </span>
+                    </label>
+                </div>
+                <div class="form-group platform-form-span">
+                    <label class="notification-preference-toggle">
+                        {{ preference_form.payroll_employee_email_enabled }}
+                        <span>
+                            <strong>{{ preference_form.payroll_employee_email_enabled.label }}</strong>
+                            <small>Email employees when their payroll is marked paid.</small>
+                        </span>
+                    </label>
+                </div>
+                <div class="form-group platform-form-span">
+                    <label class="notification-preference-toggle">
+                        {{ preference_form.payroll_employee_include_pdf_link }}
+                        <span>
+                            <strong>{{ preference_form.payroll_employee_include_pdf_link.label }}</strong>
+                            <small>Add the direct PDF download link to paid-status messages.</small>
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <div class="notification-preference-group platform-form-span">
+                <div class="notification-preference-group-head">
+                    <h3>In-App Category Alerts</h3>
+                    <p>Turn specific app areas on or off in your notification stream without affecting payroll email delivery.</p>
+                </div>
+                <div class="notification-category-preferences">
+                    <label class="notification-preference-toggle">
+                        {{ preference_form.request_in_app_enabled }}
+                        <span>
+                            <strong>{{ preference_form.request_in_app_enabled.label }}</strong>
+                            <small>Leave requests, document requests, submissions, and approval tracking.</small>
+                        </span>
+                    </label>
+                    <label class="notification-preference-toggle">
+                        {{ preference_form.operations_in_app_enabled }}
+                        <span>
+                            <strong>{{ preference_form.operations_in_app_enabled.label }}</strong>
+                            <small>Branch announcements, tasks, replies, acknowledgements, and workflow status movement.</small>
+                        </span>
+                    </label>
+                    <label class="notification-preference-toggle">
+                        {{ preference_form.schedule_in_app_enabled }}
+                        <span>
+                            <strong>{{ preference_form.schedule_in_app_enabled.label }}</strong>
+                            <small>Manual branch schedule changes and imported week-plan updates.</small>
+                        </span>
+                    </label>
+                    <label class="notification-preference-toggle">
+                        {{ preference_form.employee_in_app_enabled }}
+                        <span>
+                            <strong>{{ preference_form.employee_in_app_enabled.label }}</strong>
+                            <small>Employee status updates, attendance entries, and action records.</small>
+                        </span>
+                    </label>
+                    <label class="notification-preference-toggle">
+                        {{ preference_form.hr_in_app_enabled }}
+                        <span>
+                            <strong>{{ preference_form.hr_in_app_enabled.label }}</strong>
+                            <small>HR announcements and active policy publishing.</small>
+                        </span>
+                    </label>
+                    <label class="notification-preference-toggle">
+                        {{ preference_form.calendar_in_app_enabled }}
+                        <span>
+                            <strong>{{ preference_form.calendar_in_app_enabled.label }}</strong>
+                            <small>Holiday additions, removals, and Kuwait work calendar updates.</small>
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <div class="platform-form-actions">
+                <button type="submit" class="btn btn-primary">Save Preferences</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="platform-panel">
+        <div class="platform-panel-head">
+            <h2>Recent Notifications</h2>
+            <p>Filter by category, review grouped source areas, and clear unread items category by category when needed.</p>
+        </div>
+        <div class="notification-filter-bar">
+            <a href="{% url 'notifications:home' %}" class="notification-filter-chip{% if not selected_category %} is-active{% endif %}">
+                <span>All Notifications</span>
+                <strong>{{ all_notifications_total }}</strong>
+            </a>
+            {% for category in category_cards %}
+            <a href="{% url 'notifications:home' %}?category={{ category.key }}" class="notification-filter-chip{% if selected_category == category.key %} is-active{% endif %}">
+                <span>{{ category.label }}</span>
+                <strong>{{ category.total }}</strong>
+            </a>
+            {% endfor %}
+        </div>
+        {% if notifications %}
+        <div class="notification-group-list">
+            {% for category in visible_category_cards %}
+            <section class="notification-category-group">
+                <div class="notification-category-group-head">
+                    <div>
+                        <h3>{{ category.label }}</h3>
+                        <p>{{ category.total }} item{{ category.total|pluralize }} in this area{% if category.unread_total %}, {{ category.unread_total }} unread{% endif %}.</p>
+                    </div>
+                    {% if category.unread_total %}
+                    <form method="post" action="{% url 'notifications:mark_category_read' category.key %}" class="notification-category-action">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}{% else %}{% url 'notifications:home' %}{% endif %}">
+                        <button type="submit" class="btn btn-light btn-sm">Mark {{ category.label }} Read</button>
+                    </form>
+                    {% endif %}
+                </div>
+                <div class="platform-list notifications-list">
+                    {% for notification in category.notifications %}
+                    <div class="platform-list-item notification-row{% if not notification.is_read %} notification-row-unread{% endif %}">
+                        <div class="platform-list-item-stack notification-main">
+                            <div class="notification-head">
+                                <strong>{{ notification.title }}</strong>
+                                <span class="badge {% if notification.level == 'success' %}badge-success{% elif notification.level == 'warning' %}badge-warning{% else %}badge-light{% endif %}">
+                                    {% if notification.is_read %}Read{% else %}Unread{% endif %}
+                                </span>
+                            </div>
+                            <small>{{ notification.created_at|date:"M j, Y g:i A" }} | {{ notification.get_category_display }}</small>
+                            <span>{{ notification.body }}</span>
+                        </div>
+                        <div class="platform-inline-actions notification-actions">
+                            {% if notification.action_url %}
+                            <a href="{{ notification.action_url }}" class="btn btn-light btn-sm">Open</a>
+                            {% endif %}
+                            {% if not notification.is_read %}
+                            <form method="post" action="{% url 'notifications:mark_read' notification.pk %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}{% else %}{% url 'notifications:home' %}{% endif %}">
+                                <button type="submit" class="btn btn-secondary btn-sm">Mark Read</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No notifications in {{ selected_category_label|lower }}</h3>
+            <p>Try another category filter or wait for the next tracked update to arrive.</p>
+        </div>
+        {% endif %}
+        {% if selected_category and not notifications %}
+        <div class="notification-empty-actions">
+            <a href="{% url 'notifications:home' %}" class="btn btn-light btn-sm">Show All Categories</a>
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

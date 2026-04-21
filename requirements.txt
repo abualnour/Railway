@@ -6,6 +6,9 @@ gunicorn==23.0.0
 openpyxl==3.1.5
 pillow==12.2.0
 psycopg[binary]==3.2.12
+pytest==9.0.3
+pytest-django==4.12.0
 sqlparse==0.5.5
+xhtml2pdf==0.2.17
 tzdata==2025.3
 whitenoise==6.11.0

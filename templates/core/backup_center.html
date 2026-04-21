@@ -50,22 +50,35 @@
             <span class="backup-summary-value">{{ leave_export_count }}</span>
             <p class="backup-summary-help">Leave workflow rows available for export.</p>
         </div>
+        <div class="backup-summary-card">
+            <span class="backup-summary-label">Database Backup</span>
+            <span class="backup-summary-value">{{ database_backup_status.engine }}</span>
+            <p class="backup-summary-help">{{ database_backup_status.help_text }}</p>
+        </div>
     </div>
 
     <div class="backup-center-grid backup-center-grid-top">
         <div class="card backup-panel backup-panel-primary">
             <div class="card-header backup-panel-header">
                 <div>
-                    <h2>Create New Backup</h2>
+                    <h2>Download New Backup</h2>
                     <p class="backup-panel-subtitle">
-                        Create a safe timestamped ZIP containing your database, media, and key project folders.
+                        Generate a safe timestamped ZIP containing your database, media, and key project folders, then download it directly to this device.
                     </p>
                 </div>
             </div>
             <div class="card-body backup-panel-body">
                 <div class="backup-callout">
                     This creates a new backup package only. It does not perform restore actions.
+                    {% if database_backup_status.archive_name %}
+                        It will also include <strong>{{ database_backup_status.archive_name }}</strong> as the database backup inside the ZIP.
+                    {% endif %}
                 </div>
+                {% if not database_backup_status.available %}
+                    <div class="backup-callout">
+                        Database dump tool is not available in this environment yet. File backup will work, but a full PostgreSQL backup will fail until <code>pg_dump</code> is installed or <code>HR_BACKUP_PG_DUMP_COMMAND</code> points to it.
+                    </div>
+                {% endif %}
 
                 <form method="post" class="backup-form-stack">
                     {% csrf_token %}
@@ -83,23 +96,22 @@
                         <p class="form-help">Optional short label added to the backup file name.</p>
                     </div>
 
-                    <div class="backup-destination-grid">
-                        <div class="backup-destination-card">
-                            <span class="backup-destination-label">Save on Server</span>
-                            <p class="backup-destination-help">Create the backup ZIP and store it in the configured server backup folder so it appears in the backup audit list below.</p>
-                            <button type="submit" name="action" value="create_backup_server" class="btn btn-primary backup-action-btn">Save Backup on Server</button>
-                        </div>
-                        <div class="backup-destination-card">
-                            <span class="backup-destination-label">Download to This Device</span>
-                            <p class="backup-destination-help">Generate the same backup package and download it immediately through the browser without saving it in the server backup list.</p>
-                            <button type="submit" name="action" value="download_backup_now" class="btn btn-light backup-action-btn">Download Backup Now</button>
-                        </div>
+                    <div class="backup-download-card">
+                        <span class="backup-destination-label">Download to This Device</span>
+                        <p class="backup-destination-help">
+                            Build the full backup package and download it immediately through the browser. This page no longer offers a server-save shortcut.
+                        </p>
+                        <button type="submit" name="action" value="download_backup_now" class="btn backup-download-btn backup-action-btn">Download Backup Now</button>
                     </div>
                 </form>
 
                 <div class="backup-path-note">
-                    <span class="backup-path-note-label">Server Save Location</span>
+                    <span class="backup-path-note-label">Existing Backup Audit Folder</span>
                     <strong>{{ backup_root }}</strong>
+                </div>
+                <div class="backup-path-note">
+                    <span class="backup-path-note-label">Database Backup Mode</span>
+                    <strong>{{ database_backup_status.mode }}</strong>
                 </div>
             </div>
         </div>
@@ -129,6 +141,54 @@
                         <p>Check the backup include settings in <code>config/settings.py</code>.</p>
                     </div>
                 {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="backup-center-grid backup-center-grid-updates">
+        <div class="card backup-panel">
+            <div class="card-header backup-panel-header">
+                <div>
+                    <h2>Recent Updates Included</h2>
+                    <p class="backup-panel-subtitle">
+                        Snapshot of the current implementation areas you are protecting with the next backup ZIP.
+                    </p>
+                </div>
+            </div>
+            <div class="card-body backup-panel-body">
+                <div class="backup-update-list">
+                    {% for item in backup_recent_update_items %}
+                        <article class="backup-update-item">
+                            <div class="backup-update-copy">
+                                <h3>{{ item.title }}</h3>
+                                <p>{{ item.summary }}</p>
+                            </div>
+                            <div class="backup-update-paths">
+                                {% for path in item.paths %}
+                                    <span class="backup-update-path">{{ path }}</span>
+                                {% endfor %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card backup-panel">
+            <div class="card-header backup-panel-header">
+                <div>
+                    <h2>Next Review Focus</h2>
+                    <p class="backup-panel-subtitle">
+                        The same shortlist is also written into the backup manifest so you can see what to do next later.
+                    </p>
+                </div>
+            </div>
+            <div class="card-body backup-panel-body">
+                <ol class="backup-next-step-list">
+                    {% for item in backup_next_focus_items %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                </ol>
             </div>
         </div>
     </div>
@@ -253,6 +313,8 @@
                                 <th>File Name</th>
                                 <th>Created At</th>
                                 <th>Size</th>
+                                <th>Database in ZIP</th>
+                                <th>DB Size</th>
                                 <th>Path</th>
                             </tr>
                         </thead>
@@ -266,6 +328,17 @@
                                     </td>
                                     <td>{{ backup.modified_at|date:"Y-m-d H:i" }}</td>
                                     <td>{{ backup.size_mb }} MB</td>
+                                    <td>
+                                        <div class="backup-db-status-cell">
+                                            <span class="backup-status-pill {{ backup.database_status_class }}">{{ backup.database_status_label }}</span>
+                                            {% if backup.database_entry_name %}
+                                                <span class="backup-db-entry">{{ backup.database_entry_name }}</span>
+                                            {% elif backup.database_inspection_error %}
+                                                <span class="backup-db-entry">{{ backup.database_inspection_error }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>{{ backup.database_size_label }}</td>
                                     <td class="backup-path-cell">{{ backup.path }}</td>
                                 </tr>
                             {% endfor %}

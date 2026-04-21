@@ -1,10 +1,12 @@
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from employees.access import is_admin_compatible as is_admin_compatible_role, is_hr_user as is_hr_user_role
+from notifications.models import InAppNotification, build_in_app_notification
 
 from .forms import RegionalHolidayForm, RegionalWorkCalendarForm
 from .models import RegionalHoliday, RegionalWorkCalendar
@@ -17,6 +19,29 @@ def can_manage_work_calendar(user):
         and user.is_authenticated
         and (is_admin_compatible_role(user) or is_hr_user_role(user))
     )
+
+
+def get_calendar_notification_users():
+    user_model = get_user_model()
+    return list(user_model.objects.filter(is_active=True).order_by("email"))
+
+
+def dispatch_calendar_notifications(*, title, body, level=InAppNotification.LEVEL_INFO):
+    notifications = []
+    for user in get_calendar_notification_users():
+        notifications.append(
+            build_in_app_notification(
+                recipient=user,
+                title=title,
+                body=body,
+                category=InAppNotification.CATEGORY_CALENDAR,
+                level=level,
+                action_url="/work-calendar/",
+            )
+        )
+    notifications = [notification for notification in notifications if notification is not None]
+    if notifications:
+        InAppNotification.objects.bulk_create(notifications)
 
 
 @login_required
@@ -41,6 +66,14 @@ def work_calendar_home(request):
             calendar_form = RegionalWorkCalendarForm(request.POST, instance=active_calendar)
             if calendar_form.is_valid():
                 saved_calendar = calendar_form.save()
+                dispatch_calendar_notifications(
+                    title=f"Work calendar updated: {saved_calendar.name}",
+                    body=(
+                        f"Weekly off days are now {', '.join(saved_calendar.weekend_day_labels)} "
+                        f"for region {saved_calendar.region_code}."
+                    ),
+                    level=InAppNotification.LEVEL_INFO,
+                )
                 recalculated_count = recalculate_employee_leave_totals()
                 messages.success(request, "Regional work calendar saved successfully.")
                 if recalculated_count:
@@ -57,6 +90,18 @@ def work_calendar_home(request):
                     holiday = holiday_form.save(commit=False)
                     holiday.calendar = active_calendar
                     holiday.save()
+                    dispatch_calendar_notifications(
+                        title=f"Holiday added: {holiday.title}",
+                        body=(
+                            f"{holiday.title} was added for {holiday.holiday_date:%b %d, %Y}."
+                            + (
+                                " It is marked as a non-working day."
+                                if holiday.is_non_working_day
+                                else " It is marked as an official observance."
+                            )
+                        ),
+                        level=InAppNotification.LEVEL_WARNING if holiday.is_non_working_day else InAppNotification.LEVEL_INFO,
+                    )
                     messages.success(request, f"{holiday.title} added to the work calendar.")
                     recalculated_count = recalculate_employee_leave_totals()
                     if recalculated_count:
@@ -67,7 +112,13 @@ def work_calendar_home(request):
         elif action == "delete_holiday":
             holiday = get_object_or_404(RegionalHoliday, pk=request.POST.get("holiday_id"))
             holiday_title = holiday.title
+            holiday_date = holiday.holiday_date
             holiday.delete()
+            dispatch_calendar_notifications(
+                title=f"Holiday removed: {holiday_title}",
+                body=f"{holiday_title} on {holiday_date:%b %d, %Y} was removed from the work calendar.",
+                level=InAppNotification.LEVEL_INFO,
+            )
             messages.success(request, f"{holiday_title} was removed from the work calendar.")
             recalculated_count = recalculate_employee_leave_totals()
             if recalculated_count:

@@ -2,6 +2,9 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 import io
 import re
+import shutil
+import subprocess
+import tempfile
 import zipfile
 from pathlib import Path
 
@@ -596,6 +599,7 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
         ]
         finance_quick_links = [
             {"label": "Open Payroll Workspace", "url": reverse("payroll:home")},
+            {"label": "Notifications", "url": reverse("notifications:home")},
             {"label": "Approval Queue", "url": "#finance-approval-queue"},
             {"label": "Payslip Output", "url": "#finance-payslip-output"},
             {"label": "Payment Status", "url": "#finance-payment-status"},
@@ -686,6 +690,7 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
         executive_quick_links = [
             {"label": "HR Control Center", "url": reverse("hr:home")},
             {"label": "Payroll Workspace", "url": reverse("payroll:home")},
+            {"label": "Notifications", "url": reverse("notifications:home")},
             {"label": "Branch Schedules", "url": reverse("employees:branch_schedule_overview")},
             {"label": "Attendance Management", "url": reverse("employees:attendance_management")},
             {"label": "Action Center", "url": reverse("employees:employee_admin_action_center")},
@@ -871,6 +876,60 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
         cleaned = re.sub(r"-+", "-", cleaned).strip("-")
         return cleaned[:50]
 
+    def get_backup_recent_update_items(self):
+        return [
+            {
+                "title": "Employee workspace refactor",
+                "summary": "The large employee view is now split into shared, directory, self-service, management, action-center, and API modules for safer maintenance.",
+                "paths": [
+                    "employees/views.py",
+                    "employees/views_shared.py",
+                    "employees/views_directory.py",
+                    "employees/views_self_service.py",
+                    "employees/views_management.py",
+                    "employees/views_action_center.py",
+                    "employees/views_api.py",
+                ],
+            },
+            {
+                "title": "Payroll hardening",
+                "summary": "Payroll now includes approval snapshots, approved-paid edit locks, overtime calculation, unpaid leave deduction, calculation trace, PDF payslips, and paid-period delivery.",
+                "paths": [
+                    "payroll/views.py",
+                    "payroll/tests.py",
+                    "templates/payroll/payslip.html",
+                    "templates/payroll/payslip_pdf.html",
+                ],
+            },
+            {
+                "title": "Notification platform",
+                "summary": "The app now has an in-app notification center with category filters, preferences, payroll delivery rules, and request-tracking alerts across key workflows.",
+                "paths": [
+                    "notifications/models.py",
+                    "notifications/views.py",
+                    "notifications/forms.py",
+                    "templates/notifications/center.html",
+                ],
+            },
+            {
+                "title": "System tracking coverage",
+                "summary": "Notifications now cover employee requests, branch operations, HR publications, work calendar changes, and employee status-schedule updates.",
+                "paths": [
+                    "employees/views.py",
+                    "operations/views.py",
+                    "hr/signals.py",
+                    "workcalendar/views.py",
+                ],
+            },
+        ]
+
+    def get_backup_next_focus_items(self):
+        return [
+            "Expand notifications into any still-silent workflows, especially future finance or compliance modules.",
+            "Add feed pagination, bulk read actions, and richer category unread summaries inside the notification center.",
+            "Start the finance foundation or Kuwait compliance layer only after the current notification and payroll flows feel stable in daily use.",
+        ]
+
     def get_include_paths(self):
         include_items = []
         for relative_item in getattr(settings, "HR_BACKUP_INCLUDE_PATHS", []):
@@ -878,6 +937,136 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
             if candidate.exists():
                 include_items.append(candidate)
         return include_items
+
+    def get_database_settings(self):
+        return (getattr(settings, "DATABASES", {}) or {}).get("default", {})
+
+    def get_database_engine(self):
+        return (self.get_database_settings().get("ENGINE") or "").lower()
+
+    def is_postgres_database(self):
+        return "postgresql" in self.get_database_engine() or "postgres" in self.get_database_engine()
+
+    def is_sqlite_database(self):
+        return "sqlite" in self.get_database_engine()
+
+    def get_pg_dump_command(self):
+        configured_command = str(
+            getattr(settings, "HR_BACKUP_PG_DUMP_COMMAND", "pg_dump") or "pg_dump"
+        ).strip()
+        if not configured_command:
+            configured_command = "pg_dump"
+        if Path(configured_command).exists():
+            return configured_command
+        resolved_command = shutil.which(configured_command)
+        return resolved_command or configured_command
+
+    def build_postgres_conninfo(self):
+        database_settings = self.get_database_settings()
+        options = database_settings.get("OPTIONS") or {}
+        conninfo_parts = []
+        field_map = {
+            "NAME": "dbname",
+            "USER": "user",
+            "PASSWORD": "password",
+            "HOST": "host",
+            "PORT": "port",
+        }
+        for field_name, conninfo_key in field_map.items():
+            field_value = str(database_settings.get(field_name) or "").strip()
+            if field_value:
+                conninfo_parts.append(f"{conninfo_key}={field_value}")
+        sslmode = str(options.get("sslmode") or "").strip()
+        if sslmode:
+            conninfo_parts.append(f"sslmode={sslmode}")
+        if not conninfo_parts:
+            raise ValueError("Database connection settings are missing for PostgreSQL backup.")
+        return " ".join(conninfo_parts)
+
+    def get_database_backup_status(self):
+        if self.is_postgres_database():
+            pg_dump_command = self.get_pg_dump_command()
+            pg_dump_available = Path(pg_dump_command).exists() or shutil.which(pg_dump_command) is not None
+            return {
+                "mode": "PostgreSQL dump",
+                "engine": "PostgreSQL",
+                "archive_name": "database/postgresql_dump.sql",
+                "available": pg_dump_available,
+                "help_text": "Full backup includes a live PostgreSQL SQL dump together with project files and media.",
+            }
+        if self.is_sqlite_database():
+            database_name = str(self.get_database_settings().get("NAME") or "").strip()
+            return {
+                "mode": "SQLite file",
+                "engine": "SQLite",
+                "archive_name": "db.sqlite3" if database_name.endswith("db.sqlite3") else "database/sqlite_backup.sqlite3",
+                "available": bool(database_name),
+                "help_text": "Full backup includes the SQLite database file together with project files and media.",
+            }
+        return {
+            "mode": "Project files only",
+            "engine": "Unknown",
+            "archive_name": "",
+            "available": False,
+            "help_text": "The current database engine is not configured for automatic backup export yet.",
+        }
+
+    def build_database_backup_file(self, temp_dir):
+        database_settings = self.get_database_settings()
+        if self.is_postgres_database():
+            pg_dump_command = self.get_pg_dump_command()
+            dump_output_path = Path(temp_dir) / "postgresql_dump.sql"
+            command = [
+                pg_dump_command,
+                "--file",
+                str(dump_output_path),
+                "--format=plain",
+                "--encoding=UTF8",
+                "--no-owner",
+                "--no-privileges",
+                "--dbname",
+                self.build_postgres_conninfo(),
+            ]
+            try:
+                completed = subprocess.run(
+                    command,
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
+            except FileNotFoundError as exc:
+                raise ValueError(
+                    "pg_dump is not available. Set HR_BACKUP_PG_DUMP_COMMAND to the correct executable path."
+                ) from exc
+            if completed.returncode != 0:
+                stderr_text = (completed.stderr or completed.stdout or "").strip()
+                raise ValueError(f"PostgreSQL backup failed: {stderr_text or 'pg_dump returned a non-zero exit code.'}")
+            if not dump_output_path.exists():
+                raise ValueError("PostgreSQL backup failed: pg_dump did not create the dump file.")
+            return {
+                "path": dump_output_path,
+                "archive_name": "database/postgresql_dump.sql",
+                "manifest_label": "PostgreSQL SQL dump",
+            }
+
+        if self.is_sqlite_database():
+            database_name = str(database_settings.get("NAME") or "").strip()
+            if not database_name:
+                return None
+            sqlite_path = Path(database_name)
+            if not sqlite_path.exists():
+                raise ValueError(f"SQLite database file not found: {sqlite_path}")
+            try:
+                sqlite_path.relative_to(settings.BASE_DIR)
+                return None
+            except ValueError:
+                return {
+                    "path": sqlite_path,
+                    "archive_name": "database/sqlite_backup.sqlite3",
+                    "manifest_label": "SQLite database file",
+                }
+
+        return None
 
     def should_skip_dir(self, dir_name):
         excluded = set(getattr(settings, "HR_BACKUP_EXCLUDE_DIR_NAMES", set()))
@@ -909,10 +1098,12 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
             filename = f"{filename}_{safe_note}"
         return f"{filename}.zip", safe_note
 
-    def write_backup_zip(self, zip_handle, archive_label, safe_note, backup_root_label):
+    def write_backup_zip(self, zip_handle, archive_label, safe_note, backup_root_label, database_backup_file=None):
         include_paths = self.get_include_paths()
         if not include_paths:
             raise ValueError("No valid backup include paths were found in settings.py.")
+        recent_update_items = self.get_backup_recent_update_items()
+        next_focus_items = self.get_backup_next_focus_items()
 
         manifest_lines = [
             "NourAxis Backup Manifest",
@@ -922,10 +1113,34 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
             f"Backup root: {backup_root_label}",
             f"Note: {safe_note or '—'}",
             "",
-            "Included paths:",
+            "Database backup:",
         ]
+        if database_backup_file:
+            manifest_lines.append(
+                f"- Included: {database_backup_file['manifest_label']} -> {database_backup_file['archive_name']}"
+            )
+        else:
+            manifest_lines.append("- Included: project-level database file only (if already part of include paths)")
+        manifest_lines.extend([
+            "",
+            "Included paths:",
+        ])
         for include_path in include_paths:
             manifest_lines.append(f"- {include_path.relative_to(settings.BASE_DIR)}")
+        manifest_lines.extend([
+            "",
+            "Recent implementation snapshot:",
+        ])
+        for update_item in recent_update_items:
+            manifest_lines.append(f"- {update_item['title']}: {update_item['summary']}")
+            for path in update_item["paths"]:
+                manifest_lines.append(f"  * {path}")
+        manifest_lines.extend([
+            "",
+            "Recommended next focus:",
+        ])
+        for item in next_focus_items:
+            manifest_lines.append(f"- {item}")
 
         for include_path in include_paths:
             if include_path.is_file():
@@ -937,6 +1152,12 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
                 archive_name = child_file.relative_to(settings.BASE_DIR)
                 zip_handle.write(child_file, arcname=str(archive_name))
 
+        if database_backup_file:
+            zip_handle.write(
+                database_backup_file["path"],
+                arcname=database_backup_file["archive_name"],
+            )
+
         zip_handle.writestr("backup_manifest.txt", "\n".join(manifest_lines))
 
     def create_backup(self, note=""):
@@ -944,13 +1165,16 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
         filename, safe_note = self.build_backup_filename(note=note)
         backup_file = backup_root / filename
 
-        with zipfile.ZipFile(backup_file, "w", compression=zipfile.ZIP_DEFLATED) as zip_handle:
-            self.write_backup_zip(
-                zip_handle=zip_handle,
-                archive_label=backup_file.name,
-                safe_note=safe_note,
-                backup_root_label=str(backup_root),
-            )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            database_backup_file = self.build_database_backup_file(temp_dir)
+            with zipfile.ZipFile(backup_file, "w", compression=zipfile.ZIP_DEFLATED) as zip_handle:
+                self.write_backup_zip(
+                    zip_handle=zip_handle,
+                    archive_label=backup_file.name,
+                    safe_note=safe_note,
+                    backup_root_label=str(backup_root),
+                    database_backup_file=database_backup_file,
+                )
 
         return backup_file
 
@@ -958,33 +1182,106 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
         filename, safe_note = self.build_backup_filename(note=note)
         buffer = io.BytesIO()
 
-        with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as zip_handle:
-            self.write_backup_zip(
-                zip_handle=zip_handle,
-                archive_label=filename,
-                safe_note=safe_note,
-                backup_root_label="Downloaded to browser",
-            )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            database_backup_file = self.build_database_backup_file(temp_dir)
+            with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as zip_handle:
+                self.write_backup_zip(
+                    zip_handle=zip_handle,
+                    archive_label=filename,
+                    safe_note=safe_note,
+                    backup_root_label="Downloaded to browser",
+                    database_backup_file=database_backup_file,
+                )
 
         buffer.seek(0)
         response = HttpResponse(buffer.getvalue(), content_type="application/zip")
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
 
+    def format_size_label(self, size_bytes):
+        if size_bytes in {None, ""}:
+            return "—"
+        size_value = float(size_bytes)
+        for unit in ["B", "KB", "MB", "GB", "TB"]:
+            if size_value < 1024 or unit == "TB":
+                if unit == "B":
+                    return f"{int(size_value)} {unit}"
+                return f"{size_value:.2f} {unit}"
+            size_value /= 1024
+        return f"{int(size_bytes)} B"
+
+    def get_database_archive_candidates(self):
+        database_backup_status = self.get_database_backup_status()
+        archive_name = str(database_backup_status.get("archive_name") or "").strip()
+        candidates = []
+        if archive_name:
+            candidates.append(archive_name)
+        if self.is_sqlite_database():
+            candidates.extend(["db.sqlite3", "database/sqlite_backup.sqlite3"])
+        return list(dict.fromkeys(candidates))
+
+    def inspect_backup_database_payload(self, backup_path):
+        candidates = set(self.get_database_archive_candidates())
+        if not candidates:
+            return {
+                "database_entry_name": "",
+                "database_included": False,
+                "database_status_label": "Not configured",
+                "database_status_class": "backup-status-muted",
+                "database_size_bytes": None,
+                "database_size_label": "—",
+                "database_inspection_error": "",
+            }
+
+        try:
+            with zipfile.ZipFile(backup_path, "r") as archive:
+                for zip_info in archive.infolist():
+                    normalized_name = zip_info.filename.rstrip("/")
+                    if normalized_name in candidates:
+                        return {
+                            "database_entry_name": normalized_name,
+                            "database_included": True,
+                            "database_status_label": "Included",
+                            "database_status_class": "backup-status-success",
+                            "database_size_bytes": zip_info.file_size,
+                            "database_size_label": self.format_size_label(zip_info.file_size),
+                            "database_inspection_error": "",
+                        }
+        except (FileNotFoundError, OSError, zipfile.BadZipFile) as exc:
+            return {
+                "database_entry_name": "",
+                "database_included": False,
+                "database_status_label": "Unreadable ZIP",
+                "database_status_class": "backup-status-danger",
+                "database_size_bytes": None,
+                "database_size_label": "—",
+                "database_inspection_error": str(exc),
+            }
+
+        return {
+            "database_entry_name": "",
+            "database_included": False,
+            "database_status_label": "Missing from ZIP",
+            "database_status_class": "backup-status-warning",
+            "database_size_bytes": None,
+            "database_size_label": "—",
+            "database_inspection_error": "",
+        }
+
     def get_latest_backups(self):
         backup_root = self.get_backup_root()
         backups = []
         for path in backup_root.glob("*.zip"):
             stat = path.stat()
-            backups.append(
-                {
-                    "name": path.name,
-                    "path": str(path),
-                    "modified_at": datetime.fromtimestamp(stat.st_mtime, tz=timezone.get_current_timezone()),
-                    "size_bytes": stat.st_size,
-                    "size_mb": f"{stat.st_size / (1024 * 1024):.2f}",
-                }
-            )
+            backup_item = {
+                "name": path.name,
+                "path": str(path),
+                "modified_at": datetime.fromtimestamp(stat.st_mtime, tz=timezone.get_current_timezone()),
+                "size_bytes": stat.st_size,
+                "size_mb": f"{stat.st_size / (1024 * 1024):.2f}",
+            }
+            backup_item.update(self.inspect_backup_database_payload(path))
+            backups.append(backup_item)
         backups.sort(key=lambda item: item["modified_at"], reverse=True)
         return backups
 
@@ -1272,12 +1569,23 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
         workbook = Workbook()
         worksheet = workbook.active
         worksheet.title = "Backup Audit"
+        recent_updates_label = " | ".join(
+            f"{item['title']}: {item['summary']}" for item in self.get_backup_recent_update_items()
+        )
+        next_focus_label = " | ".join(self.get_backup_next_focus_items())
 
         headers = [
             "Backup File Name",
             "Created At",
             "Size (Bytes)",
             "Size (MB)",
+            "Database Included",
+            "Database Entry",
+            "Database Size (Bytes)",
+            "Database Size",
+            "ZIP Inspection",
+            "Recent Updates Snapshot",
+            "Recommended Next Focus",
             "Save Path",
         ]
         worksheet.append(headers)
@@ -1288,6 +1596,13 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
                 backup["modified_at"].strftime("%Y-%m-%d %H:%M:%S"),
                 backup["size_bytes"],
                 backup["size_mb"],
+                "Yes" if backup["database_included"] else "No",
+                backup["database_entry_name"],
+                backup["database_size_bytes"] if backup["database_size_bytes"] is not None else "",
+                backup["database_size_label"],
+                backup["database_status_label"],
+                recent_updates_label,
+                next_focus_label,
                 backup["path"],
             ])
 
@@ -1299,10 +1614,14 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         include_paths = self.get_include_paths()
         latest_backups = self.get_latest_backups()
+        database_backup_status = self.get_database_backup_status()
         context.update(
             {
                 "backup_root": self.get_backup_root(),
                 "include_paths": [str(path.relative_to(settings.BASE_DIR)) for path in include_paths],
+                "database_backup_status": database_backup_status,
+                "backup_recent_update_items": self.get_backup_recent_update_items(),
+                "backup_next_focus_items": self.get_backup_next_focus_items(),
                 "latest_backups": latest_backups[: self.backup_table_limit],
                 "backup_count": len(latest_backups),
                 "has_backups": bool(latest_backups),

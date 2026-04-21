@@ -272,6 +272,19 @@
             </div>
 
             <div class="topbar-account">
+                {% if user.is_authenticated %}
+                <a href="{{ nav_notifications_url }}" class="topbar-notification-link" aria-label="Open notifications">
+                    <span class="topbar-notification-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                            <path d="M12 4.75a4.25 4.25 0 0 0-4.25 4.25v2.04c0 .74-.22 1.46-.64 2.07l-1.1 1.62a1.25 1.25 0 0 0 1.03 1.95h9.92a1.25 1.25 0 0 0 1.03-1.95l-1.1-1.62a3.6 3.6 0 0 1-.64-2.07V9A4.25 4.25 0 0 0 12 4.75Z"></path>
+                            <path d="M9.75 18.25a2.25 2.25 0 0 0 4.5 0"></path>
+                        </svg>
+                    </span>
+                    {% if nav_notification_unread_total %}
+                    <span class="topbar-notification-badge">{{ nav_notification_unread_total }}</span>
+                    {% endif %}
+                </a>
+                {% endif %}
                 <div class="topbar-theme-switcher" aria-label="Theme mode switcher">
                     <button type="button" class="theme-switcher-btn topbar-theme-btn" data-theme-choice="premium-dark"
                         aria-label="Use dark theme" title="Dark theme">

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payslip</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 18mm;
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            color: #172033;
+            font-size: 11px;
+            line-height: 1.45;
+        }
+        .header {
+            border-bottom: 2px solid #1e3a5f;
+            padding-bottom: 12px;
+            margin-bottom: 18px;
+        }
+        .kicker {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #5b6f8a;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 4px 0 6px;
+            color: #10233d;
+        }
+        .meta {
+            margin: 2px 0;
+            color: #40526a;
+        }
+        .section {
+            margin-bottom: 18px;
+        }
+        .section h2 {
+            font-size: 14px;
+            margin: 0 0 8px;
+            color: #163153;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            text-align: left;
+            background: #e9eff7;
+            color: #163153;
+            font-size: 10px;
+            padding: 8px;
+            border: 1px solid #d4deea;
+        }
+        td {
+            padding: 8px;
+            border: 1px solid #d4deea;
+            vertical-align: top;
+        }
+        .amount {
+            text-align: right;
+            white-space: nowrap;
+        }
+        .summary-box {
+            background: #f6f9fc;
+            border: 1px solid #d4deea;
+            padding: 10px 12px;
+            margin-top: 8px;
+        }
+        .summary-label {
+            color: #5b6f8a;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+        .summary-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #10233d;
+        }
+        .muted {
+            color: #667892;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="kicker">Employee Payslip</div>
+        <div class="title">{% if use_snapshot %}{{ payslip_employee.full_name }}{% else %}{{ payroll_line.employee.full_name }}{% endif %}</div>
+        <div class="meta">
+            {% if use_snapshot %}{{ payslip_period.title }}{% else %}{{ payroll_line.payroll_period.title }}{% endif %}
+            |
+            {% if use_snapshot %}{{ payslip_period.period_start }} to {{ payslip_period.period_end }}{% else %}{{ payroll_line.payroll_period.period_start|date:"F j, Y" }} to {{ payroll_line.payroll_period.period_end|date:"F j, Y" }}{% endif %}
+        </div>
+        <div class="meta">Employee ID: {% if use_snapshot %}{{ payslip_employee.employee_id|default:"-" }}{% else %}{{ payroll_line.employee.employee_id|default:"-" }}{% endif %}</div>
+        <div class="meta">Company: {% if use_snapshot %}{{ payslip_period.company_name }}{% else %}{{ payroll_line.payroll_period.company.name }}{% endif %}</div>
+        <div class="meta">Status: {% if use_snapshot %}{{ payslip_period.status_label }}{% else %}{{ payroll_line.payroll_period.get_status_display }}{% endif %}</div>
+        {% if snapshot_taken_at %}
+            <div class="meta">Frozen At: {{ snapshot_taken_at|date:"Y-m-d H:i" }}</div>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h2>Employee Details</h2>
+        <table>
+            <tr>
+                <th>Job Title</th>
+                <th>Branch</th>
+                <th>Pay Date</th>
+            </tr>
+            <tr>
+                <td>{% if use_snapshot %}{{ payslip_employee.job_title|default:"-" }}{% else %}{% if payroll_line.employee.job_title %}{{ payroll_line.employee.job_title.name }}{% else %}-{% endif %}{% endif %}</td>
+                <td>{% if use_snapshot %}{{ payslip_employee.branch|default:"-" }}{% else %}{% if payroll_line.employee.branch %}{{ payroll_line.employee.branch.name }}{% else %}-{% endif %}{% endif %}</td>
+                <td>{% if use_snapshot %}{% if payslip_period.pay_date %}{{ payslip_period.pay_date }}{% else %}Pending{% endif %}{% else %}{% if payroll_line.payroll_period.pay_date %}{{ payroll_line.payroll_period.pay_date|date:"F j, Y" }}{% else %}Pending{% endif %}{% endif %}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Calculation Trace</h2>
+        <table>
+            <tr>
+                <th>Component</th>
+                <th class="amount">Amount</th>
+            </tr>
+            <tr><td>Base Salary</td><td class="amount">{{ breakdown.base_salary }}</td></tr>
+            <tr><td>Profile Allowances</td><td class="amount">{{ breakdown.allowances }}</td></tr>
+            <tr><td>Overtime Amount</td><td class="amount">{{ breakdown.overtime_amount }}</td></tr>
+            <tr><td>Adjustment Allowances</td><td class="amount">{{ breakdown.adjustment_allowances_total }}</td></tr>
+            <tr><td>Gross Total</td><td class="amount">{{ breakdown.gross_total }}</td></tr>
+            <tr><td>Fixed Deductions</td><td class="amount">{{ breakdown.fixed_deductions }}</td></tr>
+            <tr><td>Adjustment Deductions</td><td class="amount">{{ breakdown.adjustment_deductions_total }}</td></tr>
+            <tr><td>Total Deductions</td><td class="amount">{{ breakdown.total_deductions_value }}</td></tr>
+            <tr><td><strong>Net Pay</strong></td><td class="amount"><strong>{{ breakdown.net_pay }}</strong></td></tr>
+        </table>
+        <div class="summary-box">
+            <div class="summary-label">Formula</div>
+            <div>{{ breakdown.formula_label }}</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Payroll Note</h2>
+        <div class="summary-box">
+            {% if use_snapshot %}
+                {% if payslip_line.notes %}{{ payslip_line.notes }}{% else %}<span class="muted">No notes were added to this payslip yet.</span>{% endif %}
+            {% else %}
+                {% if payroll_line.notes %}{{ payroll_line.notes }}{% else %}<span class="muted">No notes were added to this payslip yet.</span>{% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Adjustments And Installments</h2>
+        {% if payslip_adjustments %}
+            <table>
+                <tr>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Notes</th>
+                    <th class="amount">Amount</th>
+                </tr>
+                {% for adjustment in payslip_adjustments %}
+                    <tr>
+                        <td>{{ adjustment.title }}</td>
+                        <td>
+                            {% if use_snapshot %}
+                                {{ adjustment.adjustment_type_label }}
+                            {% else %}
+                                {{ adjustment.get_adjustment_type_display }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if use_snapshot %}
+                                {% if adjustment.bonus_type_label %}{{ adjustment.bonus_type_label }} bonus. {% endif %}
+                                {% if adjustment.obligation_type_label %}{{ adjustment.obligation_type_label }} installment. {% endif %}
+                                {{ adjustment.notes }}
+                            {% else %}
+                                {% if adjustment.payroll_bonus %}{{ adjustment.payroll_bonus.get_bonus_type_display }} bonus. {% endif %}
+                                {% if adjustment.payroll_obligation %}{{ adjustment.payroll_obligation.get_obligation_type_display }} installment. {% endif %}
+                                {{ adjustment.notes }}
+                            {% endif %}
+                        </td>
+                        <td class="amount">{{ adjustment.amount }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <div class="summary-box muted">This payroll line does not contain additional bonuses, deductions, loans, or advances.</div>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h2>Summary</h2>
+        <div class="summary-box">
+            <div class="summary-label">Final Net Pay</div>
+            <div class="summary-value">{{ breakdown.net_pay }}</div>
+            <div class="meta">Remaining Bonus Balance: {{ outstanding_bonus_balance|default:"0.00" }}</div>
+        </div>
+    </div>
+</body>
+</html>

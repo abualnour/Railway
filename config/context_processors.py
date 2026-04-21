@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.db.utils import OperationalError, ProgrammingError
 
 from employees.access import (
     get_user_scope_branch as get_user_scope_branch_for_nav,
@@ -10,6 +11,7 @@ from employees.access import (
     is_supervisor_user as is_supervisor_user_role,
 )
 from employees.models import Employee
+from notifications.models import InAppNotification
 from .session_timeout import (
     format_session_remaining_seconds,
     get_session_remaining_seconds,
@@ -66,6 +68,8 @@ def navbar_context(request):
             "session_timeout_ping_url": "",
             "session_timeout_expire_url": "",
             "session_timeout_login_url": reverse("login"),
+            "nav_notifications_url": "",
+            "nav_notification_unread_total": 0,
         }
 
     is_admin_compatible = is_admin_compatible_role(user)
@@ -148,6 +152,14 @@ def navbar_context(request):
             nav_self_service_branch_url = reverse("employees:self_service_branch")
             nav_self_service_weekly_schedule_url = reverse("employees:self_service_weekly_schedule")
 
+    try:
+        nav_notification_unread_total = InAppNotification.objects.filter(
+            recipient=user,
+            is_read=False,
+        ).count()
+    except (OperationalError, ProgrammingError):
+        nav_notification_unread_total = 0
+
     return {
         "nav_is_authenticated": True,
         "nav_can_access_dashboard": can_access_dashboard,
@@ -216,6 +228,8 @@ def navbar_context(request):
         "nav_payroll_workspace_url": reverse("payroll:home"),
         "nav_work_calendar_url": reverse("workcalendar:home"),
         "nav_branch_schedule_overview_url": reverse("employees:branch_schedule_overview"),
+        "nav_notifications_url": reverse("notifications:home"),
+        "nav_notification_unread_total": nav_notification_unread_total,
         "session_timeout_enabled": True,
         "session_timeout_remaining_seconds": session_timeout_remaining_seconds,
         "session_timeout_remaining_label": format_session_remaining_seconds(session_timeout_remaining_seconds),

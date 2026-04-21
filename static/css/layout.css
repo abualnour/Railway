@@ -202,6 +202,66 @@
     gap: 12px;
 }
 
+.topbar-notification-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    min-height: 48px;
+    min-width: 48px;
+    padding: 0;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: var(--surface-gradient-3);
+    background: color-mix(in srgb, var(--color-surface-3) 84%, transparent);
+    color: var(--color-text);
+    text-decoration: none;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.topbar-notification-link:hover {
+    transform: translateY(-1px);
+    border-color: var(--color-hover-border);
+    background: var(--color-hover-surface);
+}
+
+.topbar-notification-icon {
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.topbar-notification-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.topbar-notification-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 6px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    box-shadow: 0 10px 24px rgba(249, 115, 22, 0.3);
+}
+
 .topbar-session-timer {
     display: inline-grid;
     gap: 2px;
@@ -524,6 +584,11 @@ html[data-theme="dark-accent"] .theme-switcher-btn[data-theme-choice="dark-accen
     .topbar-session-timer {
         width: 100%;
         min-width: 0;
+    }
+
+    .topbar-notification-link {
+        width: 48px;
+        align-self: center;
     }
 
     .topbar-theme-switcher {

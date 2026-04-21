@@ -1,18 +1,59 @@
 import os
+from sys import argv
 from pathlib import Path
 from urllib.parse import urlparse
+from django.core.exceptions import ImproperlyConfigured
 
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    os.environ.get("SECRET_KEY", "django-insecure-change-this-in-production"),
-)
+
+def _load_env_file(env_path: Path) -> None:
+    if not env_path.exists():
+        return
+
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        os.environ.setdefault(key, value)
+
+
+_load_env_file(BASE_DIR / ".env")
+
+def _get_env_bool(name: str, default: bool = False) -> bool:
+    raw_value = os.environ.get(name)
+    if raw_value is None:
+        return default
+    return raw_value.strip().lower() in {"1", "true", "yes", "on"}
 
 railway_host = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "").strip()
-DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in {"1", "true", "yes", "on"}
+explicit_public_url = os.environ.get("DJANGO_PUBLIC_BASE_URL", "").strip()
+argv_text = " ".join(argv).lower()
+is_local_command = ("pytest" in argv_text or "py.test" in argv_text) or any(
+    command in argv
+    for command in {"runserver", "shell", "migrate", "makemigrations", "check", "test", "pytest", "py.test"}
+)
+is_test_run = "pytest" in argv_text or "py.test" in argv_text or " test" in f" {argv_text}"
+DEBUG = _get_env_bool("DJANGO_DEBUG", default=not railway_host and not explicit_public_url and is_local_command)
+
+SECRET_KEY = (
+    os.environ.get("DJANGO_SECRET_KEY", "").strip()
+    or os.environ.get("SECRET_KEY", "").strip()
+)
+if not SECRET_KEY:
+    if DEBUG or (not railway_host and not explicit_public_url):
+        SECRET_KEY = "django-insecure-local-development-key"
+    else:
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY must be set when DJANGO_DEBUG is disabled. "
+            "Create a local .env from .env.example or set the environment variable explicitly."
+        )
 
 def _split_env_list(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
@@ -29,8 +70,6 @@ def _normalize_origin(value: str) -> str:
         return f"{parsed.scheme}://{parsed.netloc}"
     return ""
 
-
-explicit_public_url = os.environ.get("DJANGO_PUBLIC_BASE_URL", "").strip()
 
 allowed_hosts = set(_split_env_list(os.environ.get("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost")))
 for derived_host in (railway_host, _extract_host_from_url(explicit_public_url)):
@@ -64,6 +103,7 @@ INSTALLED_APPS = [
     "operations",
     "hr",
     "payroll",
+    "notifications",
     "workcalendar",
 ]
 
@@ -117,12 +157,20 @@ database_url = (
     or _build_local_postgres_url()
 )
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=database_url,
-        conn_max_age=600,
-    )
-}
+if is_test_run and not os.environ.get("DJANGO_TEST_DATABASE_URL", "").strip():
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": str(BASE_DIR / "test_db.sqlite3"),
+        }
+    }
+else:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=os.environ.get("DJANGO_TEST_DATABASE_URL", "").strip() or database_url,
+            conn_max_age=600,
+        )
+    }
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -182,6 +230,74 @@ SESSION_SAVE_EVERY_REQUEST = False
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+X_FRAME_OPTIONS = "DENY"
+
+EMAIL_BACKEND = os.environ.get(
+    "DJANGO_EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend",
+).strip()
+EMAIL_HOST = os.environ.get("DJANGO_EMAIL_HOST", "localhost").strip()
+EMAIL_PORT = int(os.environ.get("DJANGO_EMAIL_PORT", "25"))
+EMAIL_HOST_USER = os.environ.get("DJANGO_EMAIL_HOST_USER", "").strip()
+EMAIL_HOST_PASSWORD = os.environ.get("DJANGO_EMAIL_HOST_PASSWORD", "").strip()
+EMAIL_USE_TLS = _get_env_bool("DJANGO_EMAIL_USE_TLS", default=False)
+EMAIL_USE_SSL = _get_env_bool("DJANGO_EMAIL_USE_SSL", default=False)
+EMAIL_TIMEOUT = int(os.environ.get("DJANGO_EMAIL_TIMEOUT", "10"))
+DEFAULT_FROM_EMAIL = os.environ.get("DJANGO_DEFAULT_FROM_EMAIL", "NourAxis <no-reply@nouraxis.local>").strip()
+SERVER_EMAIL = os.environ.get("DJANGO_SERVER_EMAIL", DEFAULT_FROM_EMAIL).strip()
+
+LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "INFO").strip().upper()
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "%(asctime)s %(levelname)s %(name)s %(message)s",
+        },
+        "simple": {
+            "format": "%(levelname)s %(name)s %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose" if not DEBUG else "simple",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": LOG_LEVEL,
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "core": {
+            "handlers": ["console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "employees": {
+            "handlers": ["console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "payroll": {
+            "handlers": ["console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "django.utils.autoreload": {
+            "handlers": ["console"],
+            "level": os.environ.get("DJANGO_AUTORELOAD_LOG_LEVEL", "WARNING").strip().upper(),
+            "propagate": False,
+        },
+    },
+}
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
@@ -207,14 +323,27 @@ else:
 # Only these project items will be included in the generated zip.
 HR_BACKUP_INCLUDE_PATHS = [
     "manage.py",
+    "build.sh",
+    "Procfile",
+    "gunicorn.conf.py",
+    ".env.example",
+    ".gitignore",
+    "POSTGRES_MIGRATION.md",
+    "RAILWAY_DEPLOY.md",
+    "requirements.txt",
+    "pytest.ini",
+    "nixpacks.toml",
+    "backup_manifest.txt",
     "media",
     "employees",
+    "notifications",
     "operations",
     "organization",
     "accounts",
     "core",
     "hr",
     "payroll",
+    "workcalendar",
     "templates",
     "static",
     "config",
@@ -251,3 +380,26 @@ HR_BACKUP_EXCLUDE_FILE_SUFFIXES = {
 }
 
 HR_BACKUP_MAX_LISTED_FILES = 12
+
+
+def _detect_pg_dump_command() -> str:
+    explicit = os.environ.get("HR_BACKUP_PG_DUMP_COMMAND", "").strip()
+    if explicit:
+        return explicit
+
+    common_windows_candidates = [
+        r"C:\Program Files\PostgreSQL\18\bin\pg_dump.exe",
+        r"C:\Program Files\PostgreSQL\17\bin\pg_dump.exe",
+        r"C:\Program Files\PostgreSQL\16\bin\pg_dump.exe",
+        r"C:\Program Files\PostgreSQL\15\bin\pg_dump.exe",
+        r"C:\Program Files\PostgreSQL\14\bin\pg_dump.exe",
+        r"C:\Program Files\PostgreSQL\13\bin\pg_dump.exe",
+    ]
+    for candidate in common_windows_candidates:
+        if Path(candidate).exists():
+            return candidate
+
+    return "pg_dump"
+
+
+HR_BACKUP_PG_DUMP_COMMAND = _detect_pg_dump_command()

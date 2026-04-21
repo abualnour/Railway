@@ -171,6 +171,11 @@
             <h2>Payroll Lines</h2>
             <p>Edit salary values, overtime, deductions, and notes directly from this period.</p>
         </div>
+        {% if not can_edit_payroll_period %}
+            <div class="platform-empty-inline">
+                This payroll period is frozen for edits while it is in {{ payroll_period.get_status_display }} status. Reopen it to review if you need to change lines, adjustments, or bonus applications.
+            </div>
+        {% endif %}
         {% if lines %}
             <div class="platform-list payroll-edit-list">
                 {% for row in line_editor_rows %}
@@ -189,7 +194,7 @@
                                 <a href="{% url 'payroll:line_payslip' line.pk %}" class="btn btn-light btn-sm">Open Payslip</a>
                             </div>
                         </div>
-                        {% if can_prepare_payroll %}
+                        {% if can_edit_payroll_period %}
                         <form method="post" class="platform-form-grid payroll-line-form">
                             {% csrf_token %}
                             <input type="hidden" name="payroll_action" value="update_line">
@@ -225,15 +230,61 @@
                             </div>
                             <div class="form-group platform-form-span">
                                 <label>Formula</label>
-                                <div class="platform-calculated-note">Net Pay = Base Salary + Allowances + Overtime - Deductions</div>
+                                <div class="platform-calculated-note">{{ row.breakdown.formula_label }}</div>
                             </div>
                             <div class="platform-form-actions">
                                 <button type="submit" class="btn btn-primary">Save Line</button>
                             </div>
                         </form>
+                        {% elif can_prepare_payroll %}
+                        <div class="platform-empty-inline">This payroll period is locked for editing because it has already been approved or paid.</div>
                         {% else %}
                         <div class="platform-empty-inline">This payroll period is visible to you for review, but only HR, Operations, or Admin can edit payroll line values.</div>
                         {% endif %}
+                        <div class="platform-subsection">
+                            <div class="platform-subsection-head">
+                                <h3>Calculation Trace</h3>
+                                <p>Use this breakdown to audit how the final net pay was assembled for this employee.</p>
+                            </div>
+                            <div class="platform-list payroll-adjustment-list">
+                                <div class="platform-list-item">
+                                    <div><strong>Base Salary</strong></div>
+                                    <span class="badge badge-light">{{ row.breakdown.base_salary }}</span>
+                                </div>
+                                <div class="platform-list-item">
+                                    <div><strong>Profile Allowances</strong></div>
+                                    <span class="badge badge-light">{{ row.breakdown.allowances }}</span>
+                                </div>
+                                <div class="platform-list-item">
+                                    <div><strong>Overtime Amount</strong></div>
+                                    <span class="badge badge-light">{{ row.breakdown.overtime_amount }}</span>
+                                </div>
+                                <div class="platform-list-item">
+                                    <div><strong>Adjustment Allowances</strong></div>
+                                    <span class="badge badge-primary">{{ row.breakdown.adjustment_allowances_total }}</span>
+                                </div>
+                                <div class="platform-list-item">
+                                    <div><strong>Gross Total</strong></div>
+                                    <span class="badge badge-success">{{ row.breakdown.gross_total }}</span>
+                                </div>
+                                <div class="platform-list-item">
+                                    <div><strong>Fixed Deductions</strong></div>
+                                    <span class="badge badge-warning">{{ row.breakdown.fixed_deductions }}</span>
+                                </div>
+                                <div class="platform-list-item">
+                                    <div><strong>Adjustment Deductions</strong></div>
+                                    <span class="badge badge-warning">{{ row.breakdown.adjustment_deductions_total }}</span>
+                                </div>
+                                <div class="platform-list-item">
+                                    <div><strong>Total Deductions</strong></div>
+                                    <span class="badge badge-warning">{{ row.breakdown.total_deductions_value }}</span>
+                                </div>
+                                <div class="platform-list-item">
+                                    <div><strong>Net Pay</strong></div>
+                                    <span class="badge badge-success">{{ row.breakdown.net_pay }}</span>
+                                </div>
+                            </div>
+                        </div>
                         <div class="platform-subsection">
                             <div class="platform-subsection-head">
                                 <h3>Adjustments</h3>
@@ -254,7 +305,7 @@
                             {% else %}
                                 <div class="platform-empty-inline">No adjustments added yet.</div>
                             {% endif %}
-                            {% if can_prepare_payroll %}
+                            {% if can_edit_payroll_period %}
                             <form method="post" class="platform-form-grid payroll-adjustment-form">
                                 {% csrf_token %}
                                 <input type="hidden" name="payroll_action" value="add_adjustment">
@@ -299,6 +350,8 @@
                                     <button type="submit" class="btn btn-light">Apply Bonus Balance</button>
                                 </div>
                             </form>
+                            {% elif can_prepare_payroll %}
+                                <div class="platform-empty-inline">Adjustments and bonus balances are locked while this payroll period remains approved or paid.</div>
                             {% endif %}
                         </div>
                     </div>

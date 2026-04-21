@@ -1,6 +1,7 @@
 from datetime import date
 
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
@@ -11,6 +12,7 @@ from django.views.decorators.http import require_POST
 from employees.models import get_schedule_week_start
 from employees.views import build_branch_weekly_schedule_summary
 from organization.models import Branch
+from notifications.models import InAppNotification, build_in_app_notification
 
 from .forms import BranchPostForm, BranchPostReplyForm
 from .models import BranchPost, BranchPostAcknowledgement, BranchTaskAction
@@ -28,6 +30,110 @@ from .services import (
     ensure_branch_access,
     get_user_employee_profile,
 )
+
+
+def get_branch_notification_users(branch, *excluded_users):
+    excluded_user_ids = {user.pk for user in excluded_users if user and getattr(user, "pk", None)}
+    return list(
+        get_user_model().objects.filter(
+            is_active=True,
+            employee_profile__branch=branch,
+            employee_profile__is_active=True,
+        )
+        .exclude(pk__in=excluded_user_ids)
+        .distinct()
+        .order_by("email")
+    )
+
+
+def create_operation_notifications(users, *, title, body, action_url, level=InAppNotification.LEVEL_INFO):
+    notifications = []
+    seen_user_ids = set()
+    for user in users:
+        if not user or not getattr(user, "is_active", False) or user.pk in seen_user_ids:
+            continue
+        seen_user_ids.add(user.pk)
+        notifications.append(
+            build_in_app_notification(
+                recipient=user,
+                title=title,
+                body=body,
+                category=InAppNotification.CATEGORY_OPERATIONS,
+                level=level,
+                action_url=action_url,
+            )
+        )
+    notifications = [notification for notification in notifications if notification is not None]
+    if notifications:
+        InAppNotification.objects.bulk_create(notifications)
+    return len(notifications)
+
+
+def notify_branch_post_created(post, actor_user):
+    detail_url = reverse("operations:branch_post_detail", kwargs={"post_id": post.id})
+    if post.post_type == BranchPost.POST_TYPE_ANNOUNCEMENT:
+        create_operation_notifications(
+            get_branch_notification_users(post.branch, actor_user),
+            title=f"New branch announcement: {post.title}",
+            body=f"A new announcement was published for {post.branch.name}.",
+            action_url=detail_url,
+            level=InAppNotification.LEVEL_INFO,
+        )
+        return
+
+    if post.assignee_id and getattr(post.assignee, "user_id", None) and post.assignee.user_id != getattr(actor_user, "pk", None):
+        create_operation_notifications(
+            [post.assignee.user],
+            title=f"Branch item assigned: {post.title}",
+            body=f"You were assigned a {post.get_post_type_display().lower()} in {post.branch.name}.",
+            action_url=detail_url,
+            level=InAppNotification.LEVEL_WARNING,
+        )
+
+
+def notify_branch_post_reply(post, reply):
+    detail_url = reverse("operations:branch_post_detail", kwargs={"post_id": post.id})
+    recipients = []
+    if getattr(post.author_user, "is_active", False) and post.author_user_id != reply.author_user_id:
+        recipients.append(post.author_user)
+    if post.assignee_id and getattr(post.assignee, "user_id", None) and post.assignee.user_id != reply.author_user_id:
+        recipients.append(post.assignee.user)
+    create_operation_notifications(
+        recipients,
+        title=f"New reply on branch item: {post.title}",
+        body=f"{reply.author_display} added a new reply in {post.branch.name}.",
+        action_url=detail_url,
+        level=InAppNotification.LEVEL_INFO,
+    )
+
+
+def notify_branch_post_status_change(post, actor_user=None, actor_employee=None):
+    detail_url = reverse("operations:branch_post_detail", kwargs={"post_id": post.id})
+    recipients = []
+    actor_user_id = getattr(actor_user, "pk", None) or getattr(getattr(actor_employee, "user", None), "pk", None)
+    if getattr(post.author_user, "is_active", False) and post.author_user_id != actor_user_id:
+        recipients.append(post.author_user)
+    if post.assignee_id and getattr(post.assignee, "user_id", None) and post.assignee.user_id != actor_user_id:
+        recipients.append(post.assignee.user)
+    create_operation_notifications(
+        recipients,
+        title=f"Branch item status updated: {post.title}",
+        body=f"The status is now {post.get_status_display()} in {post.branch.name}.",
+        action_url=detail_url,
+        level=InAppNotification.LEVEL_SUCCESS if post.status in {BranchPost.STATUS_APPROVED, BranchPost.STATUS_CLOSED} else InAppNotification.LEVEL_INFO,
+    )
+
+
+def notify_branch_post_acknowledged(post, employee):
+    if not getattr(post.author_user, "is_active", False) or post.author_user_id == getattr(employee, "user_id", None):
+        return
+    create_operation_notifications(
+        [post.author_user],
+        title=f"Announcement acknowledged: {post.title}",
+        body=f"{employee.full_name} acknowledged this announcement.",
+        action_url=reverse("operations:branch_post_detail", kwargs={"post_id": post.id}),
+        level=InAppNotification.LEVEL_SUCCESS,
+    )
 
 
 def _get_selected_week_start(request):
@@ -120,6 +226,7 @@ def branch_post_create(request, branch_id):
                 employee=employee,
                 note="Post pinned in branch workspace.",
             )
+        notify_branch_post_created(post, request.user)
         messages.success(request, "Branch post created successfully.")
     else:
         messages.error(request, "Please correct the branch post form and try again.")
@@ -183,6 +290,7 @@ def branch_post_reply_create(request, post_id):
             employee=employee,
             note="Reply added to branch post.",
         )
+        notify_branch_post_reply(post, reply)
         messages.success(request, "Reply added successfully.")
     else:
         messages.error(request, "Reply text is required.")
@@ -238,6 +346,7 @@ def branch_post_status_update(request, post_id):
         to_status=target_status,
         note=note,
     )
+    notify_branch_post_status_change(post, actor_user=request.user, actor_employee=employee)
     messages.success(request, "Branch workflow status updated.")
     return redirect("operations:branch_post_detail", post_id=post.id)
 
@@ -259,6 +368,7 @@ def branch_post_acknowledge(request, post_id):
             employee=employee,
             note="Announcement acknowledged.",
         )
+        notify_branch_post_acknowledged(post, employee)
         messages.success(request, "Announcement acknowledged.")
     else:
         messages.info(request, "This announcement was already acknowledged.")

@@ -178,6 +178,7 @@ class PayrollPeriod(models.Model):
     pay_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
     notes = models.TextField(blank=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -215,6 +216,8 @@ class PayrollLine(models.Model):
     overtime_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     net_pay = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     notes = models.CharField(max_length=255, blank=True)
+    snapshot_payload = models.JSONField(null=True, blank=True)
+    snapshot_taken_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -264,6 +267,10 @@ class PayrollLine(models.Model):
 
     def calculate_net_pay(self):
         return self.gross_total - self.total_deductions_value
+
+    @property
+    def has_snapshot(self):
+        return bool(self.snapshot_payload and self.snapshot_taken_at)
 
 
 class PayrollAdjustment(models.Model):

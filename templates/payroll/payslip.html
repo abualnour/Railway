@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Payslip | {{ payroll_line.employee.full_name }}{% endblock %}
+{% block title %}Payslip | {% if use_snapshot %}{{ payslip_employee.full_name }}{% else %}{{ payroll_line.employee.full_name }}{% endif %}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/platform.css' %}">
@@ -12,31 +12,35 @@
     <section class="platform-hero payroll-hero">
         <div class="platform-hero-copy">
             <span class="platform-kicker">Employee Payslip</span>
-            <h1>{{ payroll_line.employee.full_name }}</h1>
+            <h1>{% if use_snapshot %}{{ payslip_employee.full_name }}{% else %}{{ payroll_line.employee.full_name }}{% endif %}</h1>
             <p>
-                {{ payroll_line.payroll_period.title }} |
-                {{ payroll_line.payroll_period.period_start|date:"F j, Y" }} to {{ payroll_line.payroll_period.period_end|date:"F j, Y" }}
+                {% if use_snapshot %}{{ payslip_period.title }}{% else %}{{ payroll_line.payroll_period.title }}{% endif %} |
+                {% if use_snapshot %}{{ payslip_period.period_start }} to {{ payslip_period.period_end }}{% else %}{{ payroll_line.payroll_period.period_start|date:"F j, Y" }} to {{ payroll_line.payroll_period.period_end|date:"F j, Y" }}{% endif %}
             </p>
             <div class="platform-hero-meta">
-                <span class="platform-hero-chip">Employee ID: {{ payroll_line.employee.employee_id|default:"Not Assigned" }}</span>
-                <span class="platform-hero-chip">Period: {{ payroll_line.payroll_period.get_status_display }}</span>
-                <span class="platform-hero-chip">Net Pay: {{ payroll_line.net_pay }}</span>
+                <span class="platform-hero-chip">Employee ID: {% if use_snapshot %}{{ payslip_employee.employee_id|default:"Not Assigned" }}{% else %}{{ payroll_line.employee.employee_id|default:"Not Assigned" }}{% endif %}</span>
+                <span class="platform-hero-chip">Period: {% if use_snapshot %}{{ payslip_period.status_label }}{% else %}{{ payroll_line.payroll_period.get_status_display }}{% endif %}</span>
+                <span class="platform-hero-chip">Net Pay: {% if use_snapshot %}{{ payslip_line.net_pay }}{% else %}{{ payroll_line.net_pay }}{% endif %}</span>
                 <span class="platform-hero-chip">Remaining Bonus Balance: {{ outstanding_bonus_balance|default:"0.00" }}</span>
+                {% if snapshot_taken_at %}
+                    <span class="platform-hero-chip">Frozen At: {{ snapshot_taken_at|date:"Y-m-d H:i" }}</span>
+                {% endif %}
             </div>
         </div>
         <div class="platform-hero-side">
             <div class="platform-side-card">
                 <span>Net Pay</span>
-                <strong>{{ payroll_line.net_pay }}</strong>
+                <strong>{% if use_snapshot %}{{ payslip_line.net_pay }}{% else %}{{ payroll_line.net_pay }}{% endif %}</strong>
                 <small>Final salary for this period</small>
             </div>
             <div class="platform-side-card">
                 <span>Pay Date</span>
-                <strong>{% if payroll_line.payroll_period.pay_date %}{{ payroll_line.payroll_period.pay_date|date:"M j" }}{% else %}Pending{% endif %}</strong>
-                <small>{{ payroll_line.payroll_period.company.name }}</small>
+                <strong>{% if use_snapshot %}{% if payslip_period.pay_date %}{{ payslip_period.pay_date }}{% else %}Pending{% endif %}{% else %}{% if payroll_line.payroll_period.pay_date %}{{ payroll_line.payroll_period.pay_date|date:"M j" }}{% else %}Pending{% endif %}{% endif %}</strong>
+                <small>{% if use_snapshot %}{{ payslip_period.company_name }}{% else %}{{ payroll_line.payroll_period.company.name }}{% endif %}</small>
             </div>
             <div class="platform-inline-actions payslip-actions">
                 <a href="{% url 'payroll:period_detail' payroll_line.payroll_period.pk %}" class="btn btn-light btn-sm">Back To Period</a>
+                <a href="{% url 'payroll:line_payslip_pdf' payroll_line.pk %}" class="btn btn-secondary btn-sm">Download PDF</a>
                 <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">Print Payslip</button>
             </div>
         </div>
@@ -50,15 +54,15 @@
             <div class="platform-feature-grid payslip-detail-grid">
                 <div class="platform-feature-card">
                     <strong>Employee ID</strong>
-                    <span>{{ payroll_line.employee.employee_id|default:"—" }}</span>
+                    <span>{% if use_snapshot %}{{ payslip_employee.employee_id|default:"-" }}{% else %}{{ payroll_line.employee.employee_id|default:"-" }}{% endif %}</span>
                 </div>
                 <div class="platform-feature-card">
                     <strong>Job Title</strong>
-                    <span>{% if payroll_line.employee.job_title %}{{ payroll_line.employee.job_title.name }}{% else %}—{% endif %}</span>
+                    <span>{% if use_snapshot %}{{ payslip_employee.job_title|default:"-" }}{% else %}{% if payroll_line.employee.job_title %}{{ payroll_line.employee.job_title.name }}{% else %}-{% endif %}{% endif %}</span>
                 </div>
                 <div class="platform-feature-card">
                     <strong>Branch</strong>
-                    <span>{% if payroll_line.employee.branch %}{{ payroll_line.employee.branch.name }}{% else %}—{% endif %}</span>
+                    <span>{% if use_snapshot %}{{ payslip_employee.branch|default:"-" }}{% else %}{% if payroll_line.employee.branch %}{{ payroll_line.employee.branch.name }}{% else %}-{% endif %}{% endif %}</span>
                 </div>
             </div>
         </article>
@@ -70,15 +74,15 @@
             <div class="platform-list">
                 <div class="platform-list-item">
                     <div><strong>Base Salary</strong></div>
-                    <span class="badge badge-light">{{ payroll_line.base_salary }}</span>
+                    <span class="badge badge-light">{% if use_snapshot %}{{ payslip_line.base_salary }}{% else %}{{ payroll_line.base_salary }}{% endif %}</span>
                 </div>
                 <div class="platform-list-item">
                     <div><strong>Allowances</strong></div>
-                    <span class="badge badge-light">{{ payroll_line.allowances }}</span>
+                    <span class="badge badge-light">{% if use_snapshot %}{{ payslip_line.allowances }}{% else %}{{ payroll_line.allowances }}{% endif %}</span>
                 </div>
                 <div class="platform-list-item">
                     <div><strong>Overtime</strong></div>
-                    <span class="badge badge-light">{{ payroll_line.overtime_amount }}</span>
+                    <span class="badge badge-light">{% if use_snapshot %}{{ payslip_line.overtime_amount }}{% else %}{{ payroll_line.overtime_amount }}{% endif %}</span>
                 </div>
                 <div class="platform-list-item">
                     <div><strong>Gross Total</strong></div>
@@ -90,7 +94,7 @@
                 </div>
                 <div class="platform-list-item">
                     <div><strong>Net Pay</strong></div>
-                    <span class="badge badge-success">{{ payroll_line.net_pay }}</span>
+                    <span class="badge badge-success">{% if use_snapshot %}{{ payslip_line.net_pay }}{% else %}{{ payroll_line.net_pay }}{% endif %}</span>
                 </div>
             </div>
         </article>
@@ -98,25 +102,77 @@
 
     <section class="platform-panel">
         <div class="platform-panel-head">
-            <h2>Payroll Note</h2>
+            <h2>Calculation Trace</h2>
+            <p>Auditable breakdown of the figures used to reach this payroll net pay.</p>
         </div>
-        <div class="platform-metric-box">
-            <strong>{{ payroll_line.payroll_period.get_status_display }}</strong>
-            <span>{% if payroll_line.notes %}{{ payroll_line.notes }}{% else %}No notes were added to this payslip yet.{% endif %}</span>
+        <div class="platform-list">
+            <div class="platform-list-item">
+                <div><strong>Base Salary</strong></div>
+                <span class="badge badge-light">{{ breakdown.base_salary }}</span>
+            </div>
+            <div class="platform-list-item">
+                <div><strong>Profile Allowances</strong></div>
+                <span class="badge badge-light">{{ breakdown.allowances }}</span>
+            </div>
+            <div class="platform-list-item">
+                <div><strong>Overtime Amount</strong></div>
+                <span class="badge badge-light">{{ breakdown.overtime_amount }}</span>
+            </div>
+            <div class="platform-list-item">
+                <div><strong>Adjustment Allowances</strong></div>
+                <span class="badge badge-primary">{{ breakdown.adjustment_allowances_total }}</span>
+            </div>
+            <div class="platform-list-item">
+                <div><strong>Gross Total</strong></div>
+                <span class="badge badge-success">{{ breakdown.gross_total }}</span>
+            </div>
+            <div class="platform-list-item">
+                <div><strong>Fixed Deductions</strong></div>
+                <span class="badge badge-warning">{{ breakdown.fixed_deductions }}</span>
+            </div>
+            <div class="platform-list-item">
+                <div><strong>Adjustment Deductions</strong></div>
+                <span class="badge badge-warning">{{ breakdown.adjustment_deductions_total }}</span>
+            </div>
+            <div class="platform-list-item">
+                <div><strong>Total Deductions</strong></div>
+                <span class="badge badge-warning">{{ breakdown.total_deductions_value }}</span>
+            </div>
+            <div class="platform-list-item">
+                <div><strong>Net Pay</strong></div>
+                <span class="badge badge-success">{{ breakdown.net_pay }}</span>
+            </div>
+        </div>
+        <div class="platform-empty-inline">
+            {{ breakdown.formula_label }}
         </div>
     </section>
 
     <section class="platform-panel">
-            <div class="platform-panel-head">
-                <h2>Adjustments And Installments</h2>
-            </div>
+        <div class="platform-panel-head">
+            <h2>Payroll Note</h2>
+        </div>
+        <div class="platform-metric-box">
+            <strong>{% if use_snapshot %}{{ payslip_period.status_label }}{% else %}{{ payroll_line.payroll_period.get_status_display }}{% endif %}</strong>
+            <span>{% if use_snapshot %}{% if payslip_line.notes %}{{ payslip_line.notes }}{% else %}No notes were added to this payslip yet.{% endif %}{% else %}{% if payroll_line.notes %}{{ payroll_line.notes }}{% else %}No notes were added to this payslip yet.{% endif %}{% endif %}</span>
+        </div>
+    </section>
+
+    <section class="platform-panel">
+        <div class="platform-panel-head">
+            <h2>Adjustments And Installments</h2>
+        </div>
         {% if payslip_adjustments %}
             <div class="platform-list">
                 {% for adjustment in payslip_adjustments %}
                     <div class="platform-list-item">
                         <div>
                             <strong>{{ adjustment.title }}</strong>
-                            <small>{{ adjustment.get_adjustment_type_display }}{% if adjustment.payroll_bonus %} | {{ adjustment.payroll_bonus.get_bonus_type_display }} bonus{% endif %}{% if adjustment.payroll_obligation %} | {{ adjustment.payroll_obligation.get_obligation_type_display }} installment{% endif %}{% if adjustment.notes %} | {{ adjustment.notes }}{% endif %}</small>
+                            {% if use_snapshot %}
+                                <small>{{ adjustment.adjustment_type_label }}{% if adjustment.bonus_type_label %} | {{ adjustment.bonus_type_label }} bonus{% endif %}{% if adjustment.obligation_type_label %} | {{ adjustment.obligation_type_label }} installment{% endif %}{% if adjustment.notes %} | {{ adjustment.notes }}{% endif %}</small>
+                            {% else %}
+                                <small>{{ adjustment.get_adjustment_type_display }}{% if adjustment.payroll_bonus %} | {{ adjustment.payroll_bonus.get_bonus_type_display }} bonus{% endif %}{% if adjustment.payroll_obligation %} | {{ adjustment.payroll_obligation.get_obligation_type_display }} installment{% endif %}{% if adjustment.notes %} | {{ adjustment.notes }}{% endif %}</small>
+                            {% endif %}
                         </div>
                         <span class="badge {% if adjustment.adjustment_type == 'allowance' %}badge-primary{% else %}badge-warning{% endif %}">{{ adjustment.amount }}</span>
                     </div>

@@ -42,6 +42,14 @@ DJANGO_MEDIA_ROOT=/data/media
 HR_BACKUP_ROOT=/data/backups
 ```
 
+For full PostgreSQL backup ZIP support, Railway also needs the PostgreSQL client tool (`pg_dump`).
+This repository now includes [nixpacks.toml](C:\Users\AbuNour\Desktop\NourAxis\nixpacks.toml) to request the `postgresql` package during Railway build.
+If you prefer an explicit override, you can also set:
+
+```env
+HR_BACKUP_PG_DUMP_COMMAND=pg_dump
+```
+
 If you do not attach a volume, the app will still run, but uploaded media and backup files will be ephemeral.
 
 ## Build And Start Commands
