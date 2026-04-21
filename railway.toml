@@ -1,0 +1,5 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "gunicorn config.wsgi:application -c gunicorn.conf.py"
