@@ -1,5 +1,6 @@
 [phases.setup]
 nixPkgs = [
+    "python312",
     "postgresql",
     "pkg-config",
     "cairo",
@@ -9,4 +10,9 @@ nixPkgs = [
     "fontconfig",
     "freetype",
     "libffi",
+]
+
+[phases.install]
+cmds = [
+    "python3 -m venv /opt/venv && . /opt/venv/bin/activate && pip install -r requirements.txt"
 ]
