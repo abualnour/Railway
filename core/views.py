@@ -849,14 +849,22 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
 
         if action == "export_attendance":
             return self.export_attendance_data(
-                start_date=parse_date((request.POST.get("attendance_start_date") or "").strip()) if (request.POST.get("attendance_start_date") or "").strip() else None,
-                end_date=parse_date((request.POST.get("attendance_end_date") or "").strip()) if (request.POST.get("attendance_end_date") or "").strip() else None,
+                start_date=parse_date((request.POST.get("attendance_start_date") or "").strip())
+                if (request.POST.get("attendance_start_date") or "").strip()
+                else None,
+                end_date=parse_date((request.POST.get("attendance_end_date") or "").strip())
+                if (request.POST.get("attendance_end_date") or "").strip()
+                else None,
             )
 
         if action == "export_leave_records":
             return self.export_leave_data(
-                start_date=parse_date((request.POST.get("leave_start_date") or "").strip()) if (request.POST.get("leave_start_date") or "").strip() else None,
-                end_date=parse_date((request.POST.get("leave_end_date") or "").strip()) if (request.POST.get("leave_end_date") or "").strip() else None,
+                start_date=parse_date((request.POST.get("leave_start_date") or "").strip())
+                if (request.POST.get("leave_start_date") or "").strip()
+                else None,
+                end_date=parse_date((request.POST.get("leave_end_date") or "").strip())
+                if (request.POST.get("leave_end_date") or "").strip()
+                else None,
             )
 
         if action == "export_backup_audit":
@@ -934,11 +942,44 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
 
     def get_include_paths(self):
         include_items = []
-        for relative_item in getattr(settings, "HR_BACKUP_INCLUDE_PATHS", []):
-            candidate = settings.BASE_DIR / relative_item
+
+        for raw_item in getattr(settings, "HR_BACKUP_INCLUDE_PATHS", []):
+            item = str(raw_item).strip()
+            if not item:
+                continue
+
+            if item == "media":
+                candidate = Path(settings.MEDIA_ROOT)
+                archive_root = "media"
+                display_label = "media"
+            else:
+                candidate = Path(item)
+                if not candidate.is_absolute():
+                    candidate = settings.BASE_DIR / item
+                archive_root = item.replace("\\", "/").strip("/")
+                display_label = item
+
             if candidate.exists():
-                include_items.append(candidate)
+                include_items.append(
+                    {
+                        "path": candidate,
+                        "archive_root": archive_root,
+                        "display_label": display_label,
+                    }
+                )
+
         return include_items
+
+    def build_archive_name(self, include_root, archive_root, child_path=None):
+        archive_root = str(archive_root).replace("\\", "/").strip("/")
+
+        if child_path is None:
+            return archive_root
+
+        relative_child = child_path.relative_to(include_root).as_posix()
+        if archive_root:
+            return f"{archive_root}/{relative_child}"
+        return relative_child
 
     def get_database_settings(self):
         return (getattr(settings, "DATABASES", {}) or {}).get("default", {})
@@ -1140,8 +1181,8 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
             "",
             "Included paths:",
         ])
-        for include_path in include_paths:
-            manifest_lines.append(f"- {include_path.relative_to(settings.BASE_DIR)}")
+        for include_item in include_paths:
+            manifest_lines.append(f"- {include_item['display_label']}")
 
         manifest_lines.extend([
             "",
@@ -1159,15 +1200,18 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
         for item in next_focus_items:
             manifest_lines.append(f"- {item}")
 
-        for include_path in include_paths:
+        for include_item in include_paths:
+            include_path = include_item["path"]
+            archive_root = include_item["archive_root"]
+
             if include_path.is_file():
-                archive_name = include_path.relative_to(settings.BASE_DIR)
-                zip_handle.write(include_path, arcname=str(archive_name))
+                archive_name = self.build_archive_name(include_path, archive_root)
+                zip_handle.write(include_path, arcname=archive_name)
                 continue
 
             for child_file in self.iter_backup_files(include_path):
-                archive_name = child_file.relative_to(settings.BASE_DIR)
-                zip_handle.write(child_file, arcname=str(archive_name))
+                archive_name = self.build_archive_name(include_path, archive_root, child_file)
+                zip_handle.write(child_file, arcname=archive_name)
 
         if database_backup_file:
             zip_handle.write(
@@ -1637,7 +1681,7 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
         context.update(
             {
                 "backup_root": self.get_backup_root(),
-                "include_paths": [str(path.relative_to(settings.BASE_DIR)) for path in include_paths],
+                "include_paths": [item["display_label"] for item in include_paths],
                 "database_backup_status": database_backup_status,
                 "backup_recent_update_items": self.get_backup_recent_update_items(),
                 "backup_next_focus_items": self.get_backup_next_focus_items(),
