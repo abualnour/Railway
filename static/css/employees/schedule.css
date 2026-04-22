@@ -382,15 +382,48 @@ body[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .bra
     }
 
     .branch-schedule-overview-page .branch-schedule-overview-filter-actions {
-        flex-direction: column;
+        flex-direction: row;
         align-items: stretch;
+        gap: 8px;
     }
 
     .branch-schedule-overview-page .branch-schedule-overview-filter-actions .btn {
-        width: 100%;
+        width: auto;
+        flex: 1 1 150px;
     }
 
     .branch-schedule-overview-page .branch-schedule-overview-attendance-table {
         min-width: 760px;
+    }
+
+    .branch-schedule-overview-page .branch-schedule-overview-filter-panel,
+    .branch-schedule-overview-page .branch-schedule-overview-branch-card,
+    .branch-schedule-overview-page .branch-schedule-overview-schedule-panel,
+    .branch-schedule-overview-page .branch-schedule-overview-attendance-panel {
+        border-radius: 18px;
+    }
+
+    .branch-schedule-overview-page .branch-schedule-overview-filter-form,
+    .branch-schedule-overview-page .branch-schedule-overview-branch-stats {
+        gap: 12px;
+    }
+
+    .branch-schedule-overview-page .branch-schedule-overview-filter-grid {
+        gap: 12px;
+    }
+
+    .branch-schedule-overview-page .branch-schedule-overview-branch-card {
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .branch-schedule-overview-page .branch-schedule-overview-branch-stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .branch-schedule-overview-page .branch-schedule-overview-holiday-row {
+        gap: 6px;
+        margin-bottom: 12px;
     }
 }

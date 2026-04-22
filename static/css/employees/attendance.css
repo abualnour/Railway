@@ -593,12 +593,14 @@
 
 @media (max-width: 900px) {
     .employee-directory-page .employee-record-row {
-        padding: 16px;
+        padding: 14px;
+        gap: 14px;
+        border-radius: 18px;
     }
 
     .employee-directory-page .employee-record-main {
         grid-template-columns: 1fr;
-        gap: 14px;
+        gap: 12px;
     }
 
     .employee-directory-page .employee-record-status {
@@ -606,7 +608,86 @@
     }
 
     .employee-directory-page .employee-record-actions .table-action-buttons {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .employee-directory-page .employee-records-card .card-body {
+        padding: 14px;
+    }
+
+    .employee-directory-page .employee-records-list {
+        gap: 12px;
+    }
+
+    .employee-directory-page .employee-record-row {
+        padding: 12px;
+        gap: 12px;
+        border-radius: 16px;
+    }
+
+    .employee-directory-page .employee-record-main,
+    .employee-directory-page .employee-record-block,
+    .employee-directory-page .employee-record-actions {
+        gap: 8px;
+    }
+
+    .employee-directory-page .employee-record-label {
+        font-size: 10px;
+        letter-spacing: 0.08em;
+    }
+
+    .employee-directory-page .employee-record-value {
+        font-size: 13px;
+        line-height: 1.35;
+    }
+
+    .employee-directory-page .employee-record-identity {
+        gap: 10px;
+        padding-right: 0;
+    }
+
+    .employee-directory-page .employee-cell-avatar {
+        flex-basis: 52px;
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+        border-radius: 16px;
+    }
+
+    .employee-directory-page .employee-avatar {
+        border-radius: 16px;
+        font-size: 20px;
+    }
+
+    .employee-directory-page .employee-cell-name a {
+        font-size: 14px;
+        line-height: 1.3;
+    }
+
+    .employee-directory-page .employee-cell-meta,
+    .employee-directory-page .employee-record-contact .table-stack,
+    .employee-directory-page .employee-record-role .muted-text,
+    .employee-directory-page .employee-record-status .muted-text {
+        font-size: 11.5px;
+        line-height: 1.4;
+    }
+
+    .employee-directory-page .employee-record-placement .placement-token-wrap {
+        gap: 6px;
+    }
+
+    .employee-directory-page .employee-record-actions {
+        padding-top: 10px;
+    }
+
+    .employee-directory-page .employee-record-actions .table-action-buttons {
+        gap: 6px;
+    }
+
+    .employee-directory-page .employee-record-actions .table-action-buttons .btn {
+        padding: 7px 10px;
     }
 }
 

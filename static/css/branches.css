@@ -1085,7 +1085,6 @@
 .branch-documents-registry-table-wrap,
 .branch-detail-documents-table-wrap {
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
 }
 
 .branch-documents-status-table,
@@ -1177,7 +1176,7 @@
     }
 
     .branch-documents-summary-card {
-        min-height: auto;
+        min-height: 0;
     }
 
     .branch-documents-compact-meta .branch-documents-stat-value,
@@ -1244,7 +1243,7 @@
 
     .org-metric-card,
     .org-detail-metric-card {
-        min-height: auto;
+        min-height: 0;
     }
 
     .org-detail-hero-body {
@@ -1789,7 +1788,7 @@
     .branch-documents-hero-clean,
     .org-detail-hero-body,
     .org-page-header.org-page-header-spacious {
-        padding: 18px 16px;
+        padding: 16px 14px;
         border-radius: 22px;
     }
 
@@ -1808,7 +1807,7 @@
 
     .org-page-header.org-page-header-spacious .page-title {
         margin: 0;
-        font-size: clamp(1.85rem, 8vw, 2.3rem);
+        font-size: clamp(1.7rem, 8vw, 2.15rem);
         line-height: 1.04;
         letter-spacing: -0.04em;
     }
@@ -1817,13 +1816,13 @@
     .org-page-subtitle-wide {
         margin: 0;
         max-width: none;
-        font-size: 14px;
-        line-height: 1.55;
+        font-size: 13px;
+        line-height: 1.5;
     }
 
     .org-form-guide-body,
     .org-form-shell-card .card-body {
-        padding: 18px 16px;
+        padding: 16px 14px;
     }
 
     .org-form-guide-body {
@@ -1836,24 +1835,24 @@
 
     .org-form-guide-title {
         margin: 0 0 8px;
-        font-size: clamp(1.65rem, 7vw, 2.15rem);
+        font-size: clamp(1.55rem, 7vw, 2rem);
         line-height: 1.08;
     }
 
     .org-form-guide-description {
-        font-size: 14px;
-        line-height: 1.55;
+        font-size: 13px;
+        line-height: 1.5;
     }
 
     .org-form-guide-item {
-        padding: 14px 16px;
+        padding: 12px 14px;
         border-radius: 16px;
     }
 
     .org-form-guide-item strong,
     .org-form-guide-item span {
-        font-size: 13px;
-        line-height: 1.55;
+        font-size: 12px;
+        line-height: 1.5;
     }
 
     .org-form-shell-card .employee-form-pro {
@@ -1865,17 +1864,17 @@
     }
 
     .org-form-section-header h2 {
-        font-size: 24px;
+        font-size: 21px;
         line-height: 1.08;
     }
 
     .org-form-section-header p {
-        font-size: 14px;
-        line-height: 1.55;
+        font-size: 13px;
+        line-height: 1.5;
     }
 
     .org-form-field .form-control {
-        min-height: 48px;
+        min-height: 44px;
     }
 
     .org-form-field textarea.form-control {
@@ -1894,6 +1893,8 @@
 
     .branch-overview-record-row {
         gap: 14px;
+        padding: 14px;
+        border-radius: 18px;
     }
 
     .branch-overview-record-main,
@@ -1907,8 +1908,8 @@
 
     .branch-overview-record-actions .table-action-buttons .btn,
     .branch-overview-record-actions .table-action-buttons a {
-        flex: 1 1 100%;
-        width: 100%;
+        flex: 1 1 calc(50% - 4px);
+        width: auto;
     }
 
     .org-name-cell-with-media {
@@ -1935,7 +1936,9 @@
     .table-action-buttons-row .btn,
     .table-action-buttons a,
     .table-action-buttons-row a {
-        width: 100%;
+        width: auto;
+        min-width: 0;
+        flex: 1 1 calc(50% - 4px);
         justify-content: center;
     }
 }
@@ -2174,6 +2177,9 @@
 
     .branch-compliance-row {
         flex-direction: column;
+        gap: 12px;
+        padding: 14px;
+        border-radius: 14px;
     }
 
     .branch-compliance-meta {
@@ -2439,7 +2445,7 @@
     }
 
     .branch-overview-record-row {
-        padding: 16px;
+        padding: 15px;
         border-radius: 22px;
     }
 
@@ -2455,13 +2461,137 @@
     }
 
     .branch-overview-record-actions .table-action-buttons {
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
     }
 
     .branch-overview-record-actions .table-action-buttons .btn,
     .branch-overview-record-actions .table-action-buttons a {
-        width: 100%;
+        width: auto;
         min-width: 0;
+        flex: 1 1 calc(50% - 4px);
+    }
+}
+
+@media (max-width: 640px) {
+    .branches-summary-card,
+    .org-metric-card,
+    .branch-documents-summary-card {
+        min-height: 0;
+        padding: 13px 14px;
+        gap: 8px;
+    }
+
+    .branches-summary-card .summary-value,
+    .org-metric-card .metric-value,
+    .branch-documents-compact-meta .branch-documents-stat-value,
+    .branch-documents-compact-meta .document-meta-item p.document-expiry-value,
+    .branch-documents-compact-meta .document-meta-item p {
+        font-size: 24px;
+    }
+
+    .org-stats-grid-tight,
+    .branch-compliance-summary-grid,
+    .branch-documents-compact-meta,
+    .org-detail-stats-grid {
+        gap: 12px;
+    }
+
+    .org-detail-grid-premium,
+    .branch-documents-filter-grid,
+    .branch-documents-picker-grid,
+    .org-form-guide-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .org-detail-title {
+        font-size: clamp(1.65rem, 8vw, 2rem);
+    }
+
+    .org-detail-item-card {
+        padding: 10px 11px;
+        border-radius: 14px;
+    }
+
+    .org-detail-item-card span,
+    .org-name-cell-premium .org-name-subtitle,
+    .org-name-cell .org-name-subtitle {
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .branch-compliance-summary-grid .metric-card,
+    .branch-compliance-summary-grid .org-metric-card,
+    .branch-compliance-status-stack {
+        padding: 14px;
+        border-radius: 16px;
+    }
+
+    .branch-compliance-summary-grid .metric-value {
+        font-size: 26px;
+        margin-bottom: 8px;
+    }
+
+    .branch-compliance-status-head {
+        gap: 12px;
+        padding-bottom: 12px;
+    }
+
+    .branch-compliance-status-head .card-title {
+        font-size: 22px;
+    }
+
+    .branch-compliance-status-head .card-subtitle,
+    .branch-compliance-main > span,
+    .branch-compliance-main > small,
+    .branch-compliance-meta small {
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .branch-overview-records-list {
+        padding: 12px;
+    }
+
+    .branch-overview-record-main,
+    .branch-overview-record-block {
+        gap: 10px;
+    }
+
+    .branch-overview-record-label,
+    .branch-overview-summary-label {
+        font-size: 10px;
+    }
+
+    .branch-overview-record-identity {
+        gap: 10px;
+    }
+
+    .branch-overview-record-identity .org-list-avatar,
+    .branch-overview-record-identity .org-list-avatar-fallback {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+    }
+
+    .branch-overview-compliance-cell strong {
+        font-size: 28px;
+    }
+
+    .branch-overview-summary-item {
+        min-height: 28px;
+        padding: 4px 7px;
+    }
+
+    .branch-overview-summary-value {
+        font-size: 12px;
+    }
+
+    .org-related-card .empty-state,
+    .org-directory-card .empty-state,
+    .branch-compliance-card-shell .compact-empty-state {
+        padding: 18px 14px;
     }
 }
 

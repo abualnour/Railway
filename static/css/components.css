@@ -16,7 +16,6 @@
     background: color-mix(in srgb, var(--status-success-bg) 78%, transparent);
     color: var(--status-success-text);
     border-color: var(--status-success-border);
-    border-color: color-mix(in srgb, var(--status-success-border) 82%, transparent);
 }
 
 .alert-error,
@@ -25,7 +24,6 @@
     background: color-mix(in srgb, var(--status-danger-bg) 78%, transparent);
     color: var(--status-danger-text);
     border-color: var(--status-danger-border);
-    border-color: color-mix(in srgb, var(--status-danger-border) 82%, transparent);
 }
 
 .alert-warning {
@@ -33,7 +31,6 @@
     background: color-mix(in srgb, var(--status-warning-bg) 78%, transparent);
     color: var(--status-warning-text);
     border-color: var(--status-warning-border);
-    border-color: color-mix(in srgb, var(--status-warning-border) 82%, transparent);
 }
 
 .alert-info {
@@ -54,6 +51,15 @@
     font-weight: 700;
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+}
+
+.btn-sm {
+    padding: 7px 11px;
+    font-size: 12px;
+    border-radius: 9px;
 }
 
 .btn.btn-action-dot {
@@ -165,6 +171,7 @@
     box-shadow: var(--shadow-sm);
     margin-bottom: 22px;
     overflow: hidden;
+    min-width: 0;
 }
 
 .card:hover,
@@ -190,6 +197,7 @@
 
 .card-body {
     padding: 16px 18px;
+    min-width: 0;
 }
 
 .is-collapsible {
@@ -351,6 +359,10 @@
     border-radius: 999px;
     font-size: 11px;
     font-weight: 700;
+    line-height: 1.2;
+    gap: 4px;
+    text-align: center;
+    white-space: normal;
 }
 
 .badge-success {
@@ -370,7 +382,6 @@
     background: color-mix(in srgb, var(--status-info-bg) 60%, transparent);
     color: var(--color-text);
     border: 1px solid var(--status-info-border);
-    border: 1px solid color-mix(in srgb, var(--status-info-border) 72%, transparent);
 }
 
 .badge-light,
@@ -398,6 +409,7 @@
     font-size: 13px;
     font-weight: 700;
     color: var(--text-soft);
+    line-height: 1.35;
 }
 
 .form-help {
@@ -434,6 +446,11 @@ textarea {
     background: var(--color-input-bg);
     color: var(--text);
     font-size: 13px;
+}
+
+textarea {
+    min-height: 108px;
+    resize: vertical;
 }
 
 .form-control:focus,
@@ -524,6 +541,7 @@ textarea::placeholder {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    align-items: center;
 }
 
 .filter-card .card-body {
@@ -550,6 +568,7 @@ textarea::placeholder {
 .table-wrapper {
     width: 100%;
     overflow-x: auto;
+    overflow-y: visible;
 }
 
 .table,
@@ -728,8 +747,8 @@ textarea::placeholder {
 
     .card-body,
     .card-header {
-        padding-left: 18px;
-        padding-right: 18px;
+        padding-left: 16px;
+        padding-right: 16px;
     }
 
     .form-section {
@@ -747,16 +766,132 @@ textarea::placeholder {
 }
 
 @media (max-width: 640px) {
+    .messages-wrapper {
+        margin-bottom: 16px;
+    }
+
+    .alert {
+        padding: 12px 14px;
+        border-radius: 12px;
+    }
+
+    .btn {
+        gap: 6px;
+        padding: 8px 12px;
+        font-size: 12px;
+        border-radius: 9px;
+    }
+
+    .btn.btn-action-dot {
+        gap: 8px;
+    }
+
+    .btn.btn-action-dot::before {
+        width: 8px;
+        height: 8px;
+        flex-basis: 8px;
+    }
+
     .table,
     .data-table {
-        min-width: 680px;
+        min-width: 640px;
     }
 
     .table th,
     .table td,
     .data-table th,
     .data-table td {
-        padding: 14px 12px;
+        padding: 12px 10px;
+    }
+
+    .card,
+    .summary-card,
+    .metric-card,
+    .timeline-card,
+    .filter-card,
+    .table-card,
+    .employee-summary-card,
+    .detail-card,
+    .modern-soft-card,
+    .is-collapsible {
+        margin-bottom: 16px;
+    }
+
+    .card-header,
+    .card-body {
+        padding: 14px;
+    }
+
+    .card-header h2,
+    .card-header h3 {
+        font-size: 15px;
+    }
+
+    .badge {
+        padding: 3px 7px;
+        font-size: 10.5px;
+    }
+
+    .form-group {
+        gap: 6px;
+    }
+
+    .form-group label,
+    .detail-label {
+        font-size: 12px;
+    }
+
+    .form-control,
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="date"],
+    input[type="file"],
+    select,
+    textarea {
+        padding: 9px 11px;
+        font-size: 12.5px;
+        border-radius: 9px;
+    }
+
+    .form-shell-card .card-body {
+        padding: 18px 16px;
+    }
+
+    .employee-form-pro {
+        gap: 18px;
+    }
+
+    .form-section {
+        padding: 14px;
+        border-radius: 14px;
+    }
+
+    .form-section-header {
+        margin-bottom: 14px;
+    }
+
+    .form-section-header h2 {
+        font-size: 17px;
+    }
+
+    .form-section-header p,
+    .form-help {
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .directory-filter-form {
+        gap: 14px;
+    }
+
+    .filter-grid {
+        gap: 12px;
+    }
+
+    .filter-card .card-body {
+        padding-top: 14px;
     }
 
     .detail-grid.two-col,
@@ -775,11 +910,48 @@ textarea::placeholder {
     .pagination {
         width: 100%;
         justify-content: center;
+        gap: 8px;
     }
 
     .form-actions,
     .filter-actions {
-        flex-direction: column;
         align-items: stretch;
+        gap: 8px;
+    }
+
+    .form-actions .btn,
+    .filter-actions .btn {
+        flex: 1 1 160px;
+        min-width: 0;
+    }
+
+    .detail-item {
+        padding: 9px 10px;
+        border-radius: 12px;
+    }
+
+    .detail-value {
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .status-badge-stack,
+    .status-cell-stack {
+        gap: 6px;
+    }
+
+    .empty-state,
+    .compact-empty-state {
+        padding: 18px 16px;
+        border-radius: 16px;
+    }
+
+    .empty-state p,
+    .compact-empty-state p,
+    .pagination-info,
+    .muted-text,
+    .empty-row {
+        font-size: 12px;
+        line-height: 1.5;
     }
 }

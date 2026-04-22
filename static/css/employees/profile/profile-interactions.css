@@ -375,7 +375,7 @@ body.profile-modal-open {
     .profile-modal-header,
     .profile-modal-body,
     .profile-modal-footer {
-        padding: 20px;
+        padding: 18px;
     }
 
     .profile-modal-grid-two,
@@ -385,6 +385,115 @@ body.profile-modal-open {
 
     .profile-modal-grid-span-two {
         grid-column: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .profile-modal-shell {
+        padding: 10px;
+        align-items: flex-end;
+    }
+
+    .profile-modal-backdrop {
+        -webkit-backdrop-filter: blur(2px);
+        backdrop-filter: blur(2px);
+    }
+
+    .profile-modal-dialog {
+        width: 100%;
+        max-height: calc(100vh - 10px);
+        margin: 0;
+    }
+
+    .profile-modal-page {
+        border-radius: 20px 20px 16px 16px;
+    }
+
+    .profile-modal-header,
+    .profile-modal-body,
+    .profile-modal-footer {
+        padding: 14px;
+    }
+
+    .profile-modal-header {
+        gap: 12px;
+    }
+
+    .profile-modal-header h2 {
+        margin: 4px 0 6px;
+        font-size: 18px;
+        line-height: 1.2;
+    }
+
+    .profile-modal-eyebrow {
+        min-height: 24px;
+        padding: 3px 8px;
+        font-size: 10px;
+    }
+
+    .profile-modal-close {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        font-size: 22px;
+    }
+
+    .profile-modal-body {
+        gap: 14px;
+    }
+
+    .profile-modal-grid {
+        gap: 12px;
+    }
+
+    .profile-modal-section-card {
+        gap: 12px;
+        padding: 14px;
+        border-radius: 16px;
+    }
+
+    .profile-modal-section-head h3 {
+        font-size: 15px;
+    }
+
+    .profile-modal-form .form-group {
+        gap: 6px;
+    }
+
+    .profile-modal-form label,
+    .profile-modal-body,
+    .profile-modal-page .page-subtitle,
+    .profile-modal-page .form-help,
+    .profile-modal-page small,
+    .profile-modal-page .muted-text {
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .profile-modal-form .form-control,
+    .employee-profile-page .profile-modal-form input,
+    .employee-profile-page .profile-modal-form select,
+    .profile-modal-form textarea,
+    .profile-modal-form input[type="file"] {
+        min-height: 42px;
+        border-radius: 12px;
+        padding: 9px 11px;
+        font-size: 12.5px;
+    }
+
+    .profile-modal-form textarea {
+        min-height: 100px;
+    }
+
+    .profile-modal-footer {
+        justify-content: stretch;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .profile-modal-footer .btn {
+        flex: 1 1 140px;
+        min-width: 0;
     }
 }
 

@@ -105,7 +105,7 @@
 }
 
 .notification-filter-chip.is-active {
-    border-color: color-mix(in srgb, var(--color-primary, #f59e0b) 34%, var(--surface-interactive-neutral-border));
+    border-color: var(--surface-interactive-neutral-border-hover);
     background:
         linear-gradient(135deg, color-mix(in srgb, var(--color-primary, #f59e0b) 18%, transparent) 0%, transparent 100%),
         var(--surface-interactive-neutral-bg-hover);
@@ -155,10 +155,14 @@
 .notification-row {
     align-items: flex-start;
     gap: 18px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    border: 1px solid var(--surface-soft-border);
+    background: var(--surface-inner);
 }
 
 .notification-row-unread {
-    border-color: color-mix(in srgb, var(--status-warning-border) 70%, transparent);
+    border-color: var(--status-warning-border);
     box-shadow: 0 18px 40px rgba(245, 158, 11, 0.08);
 }
 
@@ -177,19 +181,48 @@
 
 .notification-actions {
     justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 @media (max-width: 768px) {
+    .notifications-page {
+        gap: 18px;
+    }
+
     .notification-preference-group {
-        padding: 16px;
+        padding: 14px;
+        border-radius: 18px;
     }
 
     .notification-preference-toggle {
-        padding: 12px 14px;
+        gap: 12px;
+        padding: 11px 12px;
+        border-radius: 14px;
+    }
+
+    .notification-filter-bar {
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .notification-filter-chip {
+        gap: 8px;
+        padding: 8px 11px;
+        font-size: 12px;
+    }
+
+    .notification-filter-chip strong {
+        min-width: 24px;
+        padding: 2px 6px;
     }
 
     .notification-row {
         flex-direction: column;
+        gap: 12px;
+        padding: 13px 14px;
+        border-radius: 16px;
     }
 
     .notification-category-group-head {
@@ -198,10 +231,32 @@
 
     .notification-actions {
         width: 100%;
-        justify-content: stretch;
+        justify-content: flex-start;
     }
 
     .notification-actions .btn {
-        width: 100%;
+        width: auto;
+        flex: 0 1 auto;
+    }
+
+    .notification-main {
+        gap: 6px;
+    }
+
+    .notification-head {
+        gap: 10px;
+    }
+
+    .notification-head strong {
+        font-size: 14px;
+        line-height: 1.35;
+    }
+
+    .notification-main small,
+    .notification-main span,
+    .notification-category-group-head p,
+    .notification-preference-group-head p {
+        font-size: 12px;
+        line-height: 1.5;
     }
 }

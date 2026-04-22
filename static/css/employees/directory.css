@@ -442,6 +442,24 @@
 }
 
 @media (max-width: 900px) {
+    .employee-directory-page .page-header,
+    .employee-admin-page .page-header {
+        align-items: flex-start;
+    }
+
+    .employee-directory-page .employee-directory-header-tools,
+    .employee-admin-page .employee-admin-header-tools {
+        justify-items: start;
+        min-width: 0;
+    }
+
+    .employee-directory-page .employee-directory-header-meta,
+    .employee-admin-page .employee-admin-header-meta,
+    .employee-directory-page .employee-directory-header-actions,
+    .employee-admin-page .employee-admin-header-actions {
+        justify-content: flex-start;
+    }
+
     .employee-directory-page .employee-stats-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -477,8 +495,65 @@
 @media (max-width: 640px) {
     .employee-directory-page .page-header,
     .employee-admin-page .page-header {
-        padding: 18px 16px;
-        border-radius: 22px;
+        padding: 16px 14px;
+        border-radius: 20px;
+        gap: 12px;
+    }
+
+    .employee-directory-page .employee-directory-header-main,
+    .employee-admin-page .employee-admin-header-main {
+        gap: 4px;
+    }
+
+    .employee-directory-page .page-title,
+    .employee-admin-page .page-title {
+        margin-bottom: 6px;
+        font-size: 19px;
+    }
+
+    .employee-directory-page .page-subtitle,
+    .employee-admin-page .page-subtitle,
+    .employee-directory-page .employee-directory-scope-note {
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .employee-directory-page .employee-directory-header-meta,
+    .employee-admin-page .employee-admin-header-meta {
+        gap: 8px;
+    }
+
+    .employee-directory-page .employee-directory-header-chip,
+    .employee-admin-page .employee-admin-header-chip {
+        min-height: 32px;
+        padding: 5px 10px;
+        font-size: 10.5px;
+        white-space: normal;
+    }
+
+    .employee-directory-page .filter-card .card-body {
+        padding: 14px;
+    }
+
+    .employee-directory-page .directory-filter-form {
+        gap: 12px;
+    }
+
+    .employee-directory-page .filter-grid {
+        gap: 12px;
+    }
+
+    .employee-directory-page .employee-stats-grid .card-body {
+        padding: 13px 14px;
+    }
+
+    .employee-directory-page .employee-stats-grid .stat-label {
+        margin-bottom: 4px;
+        font-size: 11px;
+    }
+
+    .employee-directory-page .employee-stats-grid .stat-value {
+        font-size: 20px;
     }
 
     .employee-directory-page .employee-stats-grid {
@@ -490,7 +565,7 @@
     }
 
     .employee-directory-page .employee-cell {
-        gap: 12px;
+        gap: 10px;
     }
 
     .employee-directory-page .employee-cell-meta {
@@ -503,6 +578,19 @@
 
     .employee-directory-page .pagination-wrap {
         margin: 16px 14px 18px;
+    }
+
+    .employee-directory-page .employee-directory-pagination,
+    .employee-directory-page .employee-directory-pagination-meta,
+    .employee-directory-page .employee-directory-pagination-numbers {
+        gap: 8px;
+    }
+
+    .employee-directory-page .employee-directory-page-number {
+        min-width: 34px;
+        min-height: 34px;
+        font-size: 12px;
+        border-radius: 10px;
     }
 }
 

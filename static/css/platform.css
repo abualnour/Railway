@@ -394,12 +394,22 @@
     }
 
     .platform-hero {
-        padding: 22px;
+        padding: 20px;
         border-radius: 24px;
+        gap: 16px;
     }
 
     .platform-hero-copy h1 {
         font-size: clamp(1.8rem, 7vw, 2.55rem);
+    }
+
+    .platform-hero-copy p,
+    .platform-panel-head p,
+    .platform-feature-card span,
+    .platform-list-item small,
+    .platform-list-item span,
+    .platform-subsection-head p {
+        line-height: 1.6;
     }
 
     .platform-panel-head h2 {
@@ -423,13 +433,15 @@
 @media (max-width: 700px) {
     .platform-hero,
     .platform-panel {
-        padding: 18px;
+        padding: 16px;
         border-radius: 22px;
     }
 
     .platform-list-item {
         align-items: flex-start;
         flex-direction: column;
+        padding: 13px 14px;
+        border-radius: 16px;
     }
 
     .platform-line-header {
@@ -438,15 +450,16 @@
 
     .platform-hero-meta,
     .platform-hero-actions {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
     }
 
     .platform-hero-chip,
     .platform-form-actions .btn,
     .platform-inline-actions .btn,
     .platform-hero-actions .btn {
-        width: 100%;
+        width: auto;
         justify-content: center;
     }
 
@@ -455,6 +468,109 @@
     .platform-feature-card,
     .platform-metric-box {
         padding: 16px;
+    }
+
+    .platform-panel-head {
+        margin-bottom: 14px;
+    }
+
+    .platform-panel-head h2 {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 640px) {
+    .platform-page {
+        gap: 16px;
+    }
+
+    .platform-hero {
+        padding: 15px;
+        border-radius: 20px;
+    }
+
+    .platform-kicker {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    .platform-hero-copy h1 {
+        margin: 8px 0 10px;
+        font-size: clamp(1.55rem, 8vw, 2rem);
+        line-height: 1.02;
+    }
+
+    .platform-hero-copy p {
+        font-size: 13px;
+        line-height: 1.55;
+    }
+
+    .platform-hero-meta {
+        gap: 8px;
+        margin-top: 16px;
+    }
+
+    .platform-hero-chip {
+        min-height: 32px;
+        padding: 6px 10px;
+        font-size: 10.5px;
+        letter-spacing: 0.04em;
+    }
+
+    .platform-side-card,
+    .platform-stat-card,
+    .platform-feature-card,
+    .platform-metric-box,
+    .platform-panel {
+        border-radius: 18px;
+    }
+
+    .platform-side-card,
+    .platform-stat-card,
+    .platform-feature-card,
+    .platform-metric-box {
+        padding: 14px;
+    }
+
+    .platform-side-card strong,
+    .platform-stat-card strong,
+    .platform-metric-box strong {
+        font-size: 22px;
+    }
+
+    .platform-side-card span,
+    .platform-stat-card span {
+        font-size: 10px;
+    }
+
+    .platform-panel-head h2 {
+        font-size: 18px;
+    }
+
+    .platform-panel-head p {
+        font-size: 13px;
+        line-height: 1.55;
+    }
+
+    .platform-focus-card {
+        padding: 14px;
+        border-radius: 18px;
+    }
+
+    .platform-focus-card strong {
+        font-size: 1.05rem;
+    }
+
+    .platform-inline-actions,
+    .platform-form-actions,
+    .platform-hero-actions {
+        gap: 8px;
+    }
+
+    .platform-inline-actions .btn,
+    .platform-form-actions .btn,
+    .platform-hero-actions .btn {
+        flex: 0 1 auto;
     }
 }
 
