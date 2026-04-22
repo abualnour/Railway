@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Overtime | {{ employee.full_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/employees.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="employee-profile-page self-service-hub-page">
+    <div class="page-header employee-profile-header">
+        <div class="employee-page-header-main">
+            <h1 class="page-title">{{ self_service_home_label }} Overtime</h1>
+            <p class="page-subtitle">Submit overtime hours, keep a clean request trail, and review approvals from one focused self-service page.</p>
+        </div>
+        <div class="employee-page-header-tools">
+            <div class="employee-header-meta">
+                <span class="employee-header-chip">Employee: {{ employee.full_name|default:"Not Assigned" }}</span>
+                <span class="employee-header-chip">Branch: {{ employee_display_branch|default:"Not Assigned" }}</span>
+            </div>
+            <div class="page-actions employee-header-actions">
+                <a href="{{ self_service_profile_url }}" class="btn btn-light">Profile</a>
+                <a href="{{ self_service_leave_url }}" class="btn btn-secondary">Leave</a>
+                <a href="{{ self_service_documents_url }}" class="btn btn-secondary">Documents</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="self-service-shell">
+        <div class="card detail-card modern-soft-card">
+            <div class="card-header">
+                <div class="section-heading">
+                    <div>
+                        <h2>Submit Overtime Request</h2>
+                        <p class="page-subtitle">Record the date, total hours, and business reason so management can review the request clearly.</p>
+                    </div>
+                    <span class="badge badge-primary">{{ overtime_request_total }} Request{{ overtime_request_total|pluralize }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="{% url 'employees:overtime_request_create' %}" class="employee-sidebar-form" method="post">
+                    {% csrf_token %}
+                    <div class="detail-grid two-col">
+                        {% for field in overtime_request_form %}
+                            <div class="form-group {% if field.name == 'reason' %}full-width{% endif %}">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <small class="muted-text">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <div class="form-error">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn btn-primary" type="submit">Submit Overtime Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card detail-card modern-soft-card self-service-request-status-card">
+            <div class="card-header">
+                <div class="section-heading">
+                    <div>
+                        <h2>My Overtime Status</h2>
+                        <p class="page-subtitle">Track request status and review notes without leaving the self-service workspace.</p>
+                    </div>
+                    <span class="badge badge-light">{{ overtime_request_total }} Total</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="detail-grid self-service-summary-grid" style="margin-bottom: 18px;">
+                    <div class="detail-item"><span class="detail-label">Pending</span><span class="detail-value">{{ overtime_pending_count }}</span></div>
+                    <div class="detail-item"><span class="detail-label">Approved</span><span class="detail-value">{{ overtime_approved_count }}</span></div>
+                    <div class="detail-item"><span class="detail-label">Rejected</span><span class="detail-value">{{ overtime_rejected_count }}</span></div>
+                </div>
+
+                {% if overtime_requests %}
+                    <div class="summary-list document-list modern-list-gap">
+                        {% for overtime_request in overtime_requests %}
+                            <div class="summary-list-item document-card-item {% if overtime_request.status == 'approved' %}document-card-item-success{% elif overtime_request.status == 'rejected' %}document-card-item-danger{% else %}document-card-item-warning{% endif %}">
+                                <div class="table-stack document-card-stack">
+                                    <div class="status-badge-stack document-card-head">
+                                        <strong class="document-card-title">{{ overtime_request.date|date:"F j, Y" }}</strong>
+                                        <span class="badge {{ overtime_request.status_badge_class }}">{{ overtime_request.get_status_display }}</span>
+                                    </div>
+                                    <small>{{ overtime_request.hours_requested }} hour(s) requested</small>
+                                    <div class="document-description"><strong>Reason:</strong> {{ overtime_request.reason|linebreaksbr }}</div>
+                                    {% if overtime_request.review_note %}
+                                        <div class="document-description"><strong>Review Note:</strong> {{ overtime_request.review_note|linebreaksbr }}</div>
+                                    {% endif %}
+                                    <small>
+                                        Submitted {{ overtime_request.created_at|date:"F j, Y - g:i A" }}
+                                        {% if overtime_request.reviewed_at %}
+                                            • Reviewed {{ overtime_request.reviewed_at|date:"F j, Y - g:i A" }}
+                                        {% endif %}
+                                        {% if overtime_request.reviewed_by %}
+                                            • By {{ overtime_request.reviewed_by }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <h3>No overtime requests yet</h3>
+                        <p>Your submitted overtime requests and review outcomes will appear here.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

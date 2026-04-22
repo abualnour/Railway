@@ -1961,6 +1961,128 @@
                         {% endif %}
                     </div>
                 </div>
+
+                <div class="card detail-card modern-soft-card" id="employee-contracts-section">
+                    <div class="card-header">
+                        <div class="section-heading">
+                            <div>
+                                <h2>Contracts</h2>
+                                <p class="section-subtitle">Track active, expiring, and historical employee contract terms from the same profile workspace.</p>
+                            </div>
+                            <span class="badge badge-light">{{ contract_total }} Contract{{ contract_total|pluralize }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="employee-360-overview-grid employee-360-documents-stats" style="margin-bottom: 18px;">
+                            <div class="employee-360-stat-card tone-neutral">
+                                <span class="employee-360-stat-label">All Contracts</span>
+                                <strong class="employee-360-stat-value">{{ contract_total }}</strong>
+                                <span class="employee-360-stat-meta">All recorded contract periods for this employee.</span>
+                            </div>
+                            <div class="employee-360-stat-card tone-good">
+                                <span class="employee-360-stat-label">Active Contracts</span>
+                                <strong class="employee-360-stat-value">{{ active_contract_count }}</strong>
+                                <span class="employee-360-stat-meta">Contracts currently marked active.</span>
+                            </div>
+                            <div class="employee-360-stat-card tone-warning">
+                                <span class="employee-360-stat-label">Expiring Soon</span>
+                                <strong class="employee-360-stat-value">{{ expiring_contract_count }}</strong>
+                                <span class="employee-360-stat-meta">Contracts ending within the next 30 days.</span>
+                            </div>
+                            <div class="employee-360-stat-card tone-danger">
+                                <span class="employee-360-stat-label">Expired</span>
+                                <strong class="employee-360-stat-value">{{ expired_contract_count }}</strong>
+                                <span class="employee-360-stat-meta">Contracts already past their end date.</span>
+                            </div>
+                        </div>
+
+                        {% if can_manage_contracts %}
+                            <form action="{% url 'employees:employee_contract_create' employee.pk %}" class="employee-sidebar-form" method="post" style="margin-bottom: 18px;">
+                                {% csrf_token %}
+                                <div class="detail-grid two-col">
+                                    {% for field in contract_form %}
+                                        <div class="form-group {% if field.name == 'notes' %}full-width{% endif %}">
+                                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                            {{ field }}
+                                            {% if field.help_text %}<small class="muted-text">{{ field.help_text }}</small>{% endif %}
+                                            {% for error in field.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="page-actions" style="margin-top: 16px;">
+                                    <button class="btn btn-primary" type="submit">Add Contract</button>
+                                </div>
+                            </form>
+                        {% endif %}
+
+                        {% if contract_records %}
+                            <div class="summary-list modern-list-gap">
+                                {% for contract in contract_records %}
+                                    <div class="summary-list-item employee-360-timeline-item {% if contract.days_until_expiry is not None and contract.days_until_expiry < 0 %}tone-danger{% elif contract.days_until_expiry is not None and contract.days_until_expiry <= 30 %}tone-warning{% else %}tone-neutral{% endif %}">
+                                        <div class="employee-360-timeline-topline">
+                                            <strong>{{ contract.get_contract_type_display }}</strong>
+                                            {% if contract.is_active %}
+                                                <span class="badge badge-success">Active</span>
+                                            {% else %}
+                                                <span class="badge badge-light">Inactive</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="detail-grid two-col employee-org-grid" style="margin-top: 12px;">
+                                            <div class="detail-item">
+                                                <span class="detail-label">Start Date</span>
+                                                <span class="detail-value">{{ contract.start_date|date:"F j, Y" }}</span>
+                                            </div>
+                                            <div class="detail-item">
+                                                <span class="detail-label">End Date</span>
+                                                <span class="detail-value">{% if contract.end_date %}{{ contract.end_date|date:"F j, Y" }}{% else %}Open-ended{% endif %}</span>
+                                            </div>
+                                            <div class="detail-item">
+                                                <span class="detail-label">Probation End</span>
+                                                <span class="detail-value">{% if contract.probation_end_date %}{{ contract.probation_end_date|date:"F j, Y" }}{% else %}—{% endif %}</span>
+                                            </div>
+                                            <div class="detail-item">
+                                                <span class="detail-label">Days Until Expiry</span>
+                                                <span class="detail-value">{% if contract.days_until_expiry is not None %}{{ contract.days_until_expiry }}{% else %}—{% endif %}</span>
+                                            </div>
+                                        </div>
+                                        {% if contract.notes %}
+                                            <div class="document-description">{{ contract.notes|linebreaksbr }}</div>
+                                        {% endif %}
+
+                                        {% if can_manage_contracts %}
+                                            <form action="{% url 'employees:employee_contract_update' employee.pk contract.pk %}" method="post" class="employee-sidebar-form" style="margin-top: 14px;">
+                                                {% csrf_token %}
+                                                <div class="detail-grid two-col">
+                                                    {% for field in contract.edit_form %}
+                                                        <div class="form-group {% if field.name == 'notes' %}full-width{% endif %}">
+                                                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                                            {{ field }}
+                                                            {% for error in field.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                                <div class="page-actions document-actions-row" style="margin-top: 12px;">
+                                                    <button class="btn btn-light btn-sm" type="submit">Save Contract</button>
+                                                </div>
+                                            </form>
+                                            <div class="page-actions document-actions-row" style="margin-top: 12px;">
+                                                <form action="{% url 'employees:employee_contract_delete' employee.pk contract.pk %}" method="post" onsubmit="return confirm('Delete this contract record?');" style="margin: 0;">
+                                                    {% csrf_token %}
+                                                    <button class="btn btn-secondary btn-sm" type="submit">Delete Contract</button>
+                                                </form>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty-state compact-empty-state">
+                                <h3>No employee contracts yet</h3>
+                                <p>Permanent, fixed-term, and probation contract records will appear here once added.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
                 </div>
 
 

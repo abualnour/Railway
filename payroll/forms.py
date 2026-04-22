@@ -15,6 +15,8 @@ class PayrollProfileForm(forms.ModelForm):
             "housing_allowance",
             "transport_allowance",
             "fixed_deduction",
+            "pifss_employee_rate",
+            "pifss_employer_rate",
             "bank_name",
             "iban",
             "status",

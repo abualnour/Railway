@@ -361,6 +361,10 @@ body[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .bra
     min-width: 980px;
 }
 
+.branch-schedule-overview-mobile-list {
+    display: none;
+}
+
 @media (max-width: 1200px) {
     .branch-schedule-overview-page .branch-schedule-overview-filter-grid,
     .branch-schedule-overview-page .branch-schedule-overview-branch-grid {
@@ -379,6 +383,78 @@ body[data-theme="premium-dark"] .employee-profile-page.branch-schedule-page .bra
 @media (max-width: 640px) {
     .branch-schedule-overview-page {
         gap: 16px;
+    }
+
+    .branch-schedule-overview-mobile-list {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .branch-schedule-overview-mobile-card {
+        display: grid;
+        gap: 12px;
+        padding: 14px;
+        border: 1px solid var(--surface-soft-border);
+        border-radius: 16px;
+        background: var(--surface-inner);
+        box-shadow: none;
+    }
+
+    .branch-schedule-overview-mobile-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .branch-schedule-overview-mobile-days,
+    .branch-schedule-overview-mobile-details {
+        display: grid;
+        gap: 10px;
+    }
+
+    .branch-schedule-overview-mobile-day,
+    .branch-schedule-overview-mobile-detail {
+        display: grid;
+        gap: 4px;
+        padding: 10px 11px;
+        border: 1px solid var(--surface-soft-border);
+        border-radius: 12px;
+        background: var(--surface-elevated);
+    }
+
+    .branch-schedule-overview-mobile-day-label,
+    .branch-schedule-overview-mobile-detail-label {
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        line-height: 1.2;
+    }
+
+    .branch-schedule-overview-mobile-day-value {
+        color: var(--text);
+        font-size: 13px;
+        line-height: 1.4;
+        font-weight: 700;
+    }
+
+    .branch-schedule-overview-mobile-detail strong,
+    .branch-schedule-overview-mobile-detail span,
+    .branch-schedule-overview-mobile-detail small {
+        line-height: 1.45;
+    }
+
+    .branch-schedule-overview-mobile-detail-full {
+        grid-column: 1 / -1;
+    }
+
+    .branch-schedule-overview-page .branch-schedule-published-wrap,
+    .branch-schedule-overview-page .branch-schedule-overview-attendance-wrap {
+        display: none;
     }
 
     .branch-schedule-overview-page .branch-schedule-overview-filter-actions {

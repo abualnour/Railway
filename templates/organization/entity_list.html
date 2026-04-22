@@ -163,7 +163,76 @@
             </div>
         </div>
 
-        <div class="table-responsive org-directory-table">
+        <div class="org-mobile-directory-list">
+            {% for row in organization_directory_rows %}
+                <article class="org-mobile-record-card">
+                    <div class="org-mobile-record-main">
+                        <div class="org-name-cell org-name-cell-premium org-name-cell-with-media">
+                            <div class="org-list-avatar-shell">
+                                {% if row.object.logo %}
+                                    <img src="{{ row.object.logo.url }}" alt="{{ row.object }}" class="org-list-avatar">
+                                {% elif row.object.image %}
+                                    <img src="{{ row.object.image.url }}" alt="{{ row.object }}" class="org-list-avatar">
+                                {% else %}
+                                    <div class="org-list-avatar org-list-avatar-fallback">
+                                        {{ row.object|stringformat:'s'|first|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="org-name-copy">
+                                <div class="org-name-title">
+                                    {% if detail_url_name %}
+                                        <a href="{% url detail_url_name row.object.pk %}" class="org-name-link">
+                                            {{ row.object }}
+                                        </a>
+                                    {% elif update_url_name %}
+                                        <a href="{% url update_url_name row.object.pk %}" class="org-name-link">
+                                            {{ row.object }}
+                                        </a>
+                                    {% else %}
+                                        {{ row.object }}
+                                    {% endif %}
+                                </div>
+                                <div class="org-name-subtitle">
+                                    {{ row.summary }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="org-mobile-record-status">
+                            {% if row.object.is_active %}
+                                <span class="badge badge-success">Active</span>
+                            {% else %}
+                                <span class="badge badge-danger">Inactive</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="table-action-buttons table-action-buttons-premium table-action-buttons-row table-action-buttons-compact org-mobile-record-actions">
+                        {% if detail_url_name %}
+                            <a href="{% url detail_url_name row.object.pk %}" class="btn btn-sm btn-light btn-action-dot btn-action-view">View</a>
+                        {% endif %}
+                        {% if update_url_name %}
+                            <a href="{% url update_url_name row.object.pk %}" class="btn btn-sm btn-outline btn-action-dot btn-action-edit">Edit</a>
+                        {% endif %}
+                        {% if delete_url_name %}
+                            <a href="{% url delete_url_name row.object.pk %}" class="btn btn-sm btn-danger btn-action-dot btn-action-delete">Delete</a>
+                        {% endif %}
+                    </div>
+                </article>
+            {% empty %}
+                <div class="empty-state">
+                    <h3>{{ organization_list_meta.empty_title|default:"No records found" }}</h3>
+                    <p>There are no {{ page_title|lower }} to display right now.</p>
+                    {% if create_url %}
+                        <a href="{{ create_url }}" class="btn btn-primary">{{ organization_list_meta.empty_action_label|default:"Add First Record" }}</a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="table-responsive org-directory-table org-desktop-table">
             <table class="table org-standard-list-table">
                 <thead>
                     <tr>

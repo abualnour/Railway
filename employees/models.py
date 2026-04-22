@@ -129,6 +129,8 @@ class Employee(models.Model):
     civil_id_reference_number = models.CharField(max_length=100, blank=True, default="")
     civil_id_issue_date = models.DateField(null=True, blank=True)
     civil_id_expiry_date = models.DateField(null=True, blank=True)
+    is_kuwaiti_national = models.BooleanField(default=False)
+    pifss_registration_number = models.CharField(max_length=50, blank=True)
     salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     notes = models.TextField(blank=True)
     employment_status = models.CharField(
@@ -181,6 +183,9 @@ class Employee(models.Model):
             if self.civil_id_issue_date > self.civil_id_expiry_date:
                 errors["civil_id_expiry_date"] = "Civil ID expiry date must be on or after the Civil ID issue date."
 
+        if self.is_kuwaiti_national and not (self.pifss_registration_number or "").strip():
+            errors["pifss_registration_number"] = "PIFSS registration number is required for Kuwaiti nationals."
+
         if self.user_id:
             existing_employee = Employee.objects.filter(user_id=self.user_id)
             if self.pk:
@@ -223,6 +228,8 @@ class Employee(models.Model):
 
             self.employee_id = candidate
 
+        self.pifss_registration_number = (self.pifss_registration_number or "").strip()
+
         if self.employment_status == self.EMPLOYMENT_STATUS_INACTIVE:
             self.is_active = False
 
@@ -258,6 +265,27 @@ class Employee(models.Model):
     def working_time_summary(self):
         return build_employee_working_time_summary(self)
 
+    def calculate_end_of_service_gratuity(self, final_salary):
+        if final_salary in [None, ""]:
+            return Decimal("0.00")
+
+        final_salary = Decimal(final_salary)
+        if final_salary <= Decimal("0.00") or not self.hire_date:
+            return Decimal("0.00")
+
+        today = timezone.localdate()
+        completed_service_years = today.year - self.hire_date.year
+        if (today.month, today.day) < (self.hire_date.month, self.hire_date.day):
+            completed_service_years -= 1
+        completed_service_years = max(completed_service_years, 0)
+
+        if completed_service_years < 5:
+            gratuity_amount = final_salary * Decimal(completed_service_years) * (Decimal("15") / Decimal("30"))
+        else:
+            gratuity_amount = final_salary * Decimal(completed_service_years)
+
+        return gratuity_amount.quantize(Decimal("0.01"))
+
 
 WORKING_HOURS_PER_DAY = Decimal("8.00")
 WEEKLY_OFF_WEEKDAYS = {4}  # Company policy default: Friday only
@@ -283,6 +311,10 @@ class EmployeeWorkingTimeSummary:
     unpaid_leave_days: int
     annual_leave_days: int
     sick_leave_days: int
+    maternity_leave_days: int
+    paternity_leave_days: int
+    hajj_leave_days: int
+    lieu_leave_days: int
     emergency_leave_days: int
     other_leave_days: int
     absence_days: int
@@ -423,6 +455,10 @@ class EmployeeLeave(models.Model):
     LEAVE_TYPE_ANNUAL = "annual"
     LEAVE_TYPE_SICK = "sick"
     LEAVE_TYPE_UNPAID = "unpaid"
+    LEAVE_TYPE_MATERNITY = "maternity"
+    LEAVE_TYPE_PATERNITY = "paternity"
+    LEAVE_TYPE_HAJJ = "hajj"
+    LEAVE_TYPE_LIEU = "lieu"
     LEAVE_TYPE_EMERGENCY = "emergency"
     LEAVE_TYPE_OTHER = "other"
 
@@ -430,6 +466,10 @@ class EmployeeLeave(models.Model):
         (LEAVE_TYPE_ANNUAL, "Annual Leave"),
         (LEAVE_TYPE_SICK, "Sick Leave"),
         (LEAVE_TYPE_UNPAID, "Unpaid Leave"),
+        (LEAVE_TYPE_MATERNITY, "Maternity Leave"),
+        (LEAVE_TYPE_PATERNITY, "Paternity Leave"),
+        (LEAVE_TYPE_HAJJ, "Hajj Leave"),
+        (LEAVE_TYPE_LIEU, "Lieu Leave"),
         (LEAVE_TYPE_EMERGENCY, "Emergency Leave"),
         (LEAVE_TYPE_OTHER, "Other"),
     ]
@@ -692,6 +732,145 @@ class EmployeeLeave(models.Model):
                 "note": self.hr_review_note,
             },
         ]
+
+
+class EmployeeContract(models.Model):
+    CONTRACT_TYPE_PERMANENT = "permanent"
+    CONTRACT_TYPE_FIXED_TERM = "fixed_term"
+    CONTRACT_TYPE_PROBATION = "probation"
+
+    CONTRACT_TYPE_CHOICES = [
+        (CONTRACT_TYPE_PERMANENT, "Permanent"),
+        (CONTRACT_TYPE_FIXED_TERM, "Fixed Term"),
+        (CONTRACT_TYPE_PROBATION, "Probation"),
+    ]
+
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="contracts",
+    )
+    contract_type = models.CharField(
+        max_length=20,
+        choices=CONTRACT_TYPE_CHOICES,
+        default=CONTRACT_TYPE_PERMANENT,
+    )
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    probation_end_date = models.DateField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-is_active", "-start_date", "-id"]
+
+    def __str__(self):
+        return f"{self.employee.full_name} | {self.get_contract_type_display()} | {self.start_date}"
+
+    def clean(self):
+        errors = {}
+
+        if self.end_date and self.start_date and self.end_date <= self.start_date:
+            errors["end_date"] = "End date must be after the start date."
+
+        if self.probation_end_date and self.end_date and self.probation_end_date > self.end_date:
+            errors["probation_end_date"] = "Probation end date must be on or before the contract end date."
+
+        if errors:
+            raise ValidationError(errors)
+
+    @property
+    def days_until_expiry(self):
+        if not self.end_date:
+            return None
+        return (self.end_date - timezone.localdate()).days
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+
+class OvertimeRequest(models.Model):
+    STATUS_PENDING = "pending"
+    STATUS_APPROVED = "approved"
+    STATUS_REJECTED = "rejected"
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "Pending"),
+        (STATUS_APPROVED, "Approved"),
+        (STATUS_REJECTED, "Rejected"),
+    ]
+
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="overtime_requests",
+    )
+    date = models.DateField()
+    hours_requested = models.DecimalField(max_digits=4, decimal_places=2)
+    reason = models.TextField()
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING,
+    )
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="reviewed_overtime_requests",
+        null=True,
+        blank=True,
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    review_note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date", "-created_at", "-id"]
+
+    def __str__(self):
+        return f"{self.employee.full_name} | {self.date} | {self.hours_requested} hour(s)"
+
+    def clean(self):
+        errors = {}
+
+        if self.hours_requested is None or self.hours_requested <= Decimal("0.00"):
+            errors["hours_requested"] = "Requested hours must be greater than zero."
+
+        if not (self.reason or "").strip():
+            errors["reason"] = "Reason is required for overtime requests."
+
+        if self.status == self.STATUS_PENDING:
+            if self.reviewed_by_id:
+                errors["reviewed_by"] = "Pending overtime requests cannot have a reviewer yet."
+            if self.reviewed_at:
+                errors["reviewed_at"] = "Pending overtime requests cannot have a review timestamp yet."
+        else:
+            if not self.reviewed_by_id:
+                errors["reviewed_by"] = "Reviewed by is required when the request is approved or rejected."
+            if not self.reviewed_at:
+                errors["reviewed_at"] = "Reviewed at is required when the request is approved or rejected."
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.reason = (self.reason or "").strip()
+        self.review_note = (self.review_note or "").strip()
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    @property
+    def status_badge_class(self):
+        mapping = {
+            self.STATUS_PENDING: "badge-warning",
+            self.STATUS_APPROVED: "badge-success",
+            self.STATUS_REJECTED: "badge-danger",
+        }
+        return mapping.get(self.status, "badge")
 
 
 class EmployeeActionRecord(models.Model):
@@ -2920,6 +3099,10 @@ def build_employee_working_time_summary(employee):
             unpaid_leave_days=0,
             annual_leave_days=0,
             sick_leave_days=0,
+            maternity_leave_days=0,
+            paternity_leave_days=0,
+            hajj_leave_days=0,
+            lieu_leave_days=0,
             emergency_leave_days=0,
             other_leave_days=0,
             absence_days=0,
@@ -2956,6 +3139,10 @@ def build_employee_working_time_summary(employee):
     unpaid_leave_days = 0
     annual_leave_days = 0
     sick_leave_days = 0
+    maternity_leave_days = 0
+    paternity_leave_days = 0
+    hajj_leave_days = 0
+    lieu_leave_days = 0
     emergency_leave_days = 0
     other_leave_days = 0
     approved_leave_dates = set()
@@ -2983,6 +3170,14 @@ def build_employee_working_time_summary(employee):
                 annual_leave_days += leave_policy_days
             elif leave_record.leave_type == EmployeeLeave.LEAVE_TYPE_SICK:
                 sick_leave_days += leave_policy_days
+            elif leave_record.leave_type == EmployeeLeave.LEAVE_TYPE_MATERNITY:
+                maternity_leave_days += leave_policy_days
+            elif leave_record.leave_type == EmployeeLeave.LEAVE_TYPE_PATERNITY:
+                paternity_leave_days += leave_policy_days
+            elif leave_record.leave_type == EmployeeLeave.LEAVE_TYPE_HAJJ:
+                hajj_leave_days += leave_policy_days
+            elif leave_record.leave_type == EmployeeLeave.LEAVE_TYPE_LIEU:
+                lieu_leave_days += leave_policy_days
             elif leave_record.leave_type == EmployeeLeave.LEAVE_TYPE_EMERGENCY:
                 emergency_leave_days += leave_policy_days
             elif leave_record.leave_type == EmployeeLeave.LEAVE_TYPE_OTHER:
@@ -3068,6 +3263,10 @@ def build_employee_working_time_summary(employee):
             unpaid_leave_days=unpaid_leave_days,
             annual_leave_days=annual_leave_days,
             sick_leave_days=sick_leave_days,
+            maternity_leave_days=maternity_leave_days,
+            paternity_leave_days=paternity_leave_days,
+            hajj_leave_days=hajj_leave_days,
+            lieu_leave_days=lieu_leave_days,
             emergency_leave_days=emergency_leave_days,
             other_leave_days=other_leave_days,
             absence_days=absence_days,
@@ -3158,6 +3357,10 @@ def build_employee_working_time_summary(employee):
         unpaid_leave_days=unpaid_leave_days,
         annual_leave_days=annual_leave_days,
         sick_leave_days=sick_leave_days,
+        maternity_leave_days=maternity_leave_days,
+        paternity_leave_days=paternity_leave_days,
+        hajj_leave_days=hajj_leave_days,
+        lieu_leave_days=lieu_leave_days,
         emergency_leave_days=emergency_leave_days,
         other_leave_days=other_leave_days,
         absence_days=absence_days,

@@ -360,6 +360,35 @@
                                         </tbody>
                                     </table>
                                 </div>
+                                <div class="branch-mobile-schedule-list branch-mobile-schedule-list-edit" aria-label="Manual schedule mobile view">
+                                    {% for row in manual_schedule_rows %}
+                                        <article class="branch-mobile-schedule-card">
+                                            <div class="branch-mobile-schedule-card-head">
+                                                <div>
+                                                    <strong>{{ row.employee.full_name }}</strong>
+                                                    <span>{{ row.employee.job_title.name|default:"-" }}</span>
+                                                </div>
+                                                <label class="branch-mobile-pending-off">
+                                                    <span>Pending Off</span>
+                                                    <input type="number" min="0" name="{{ row.pending_off_field_name }}" value="{{ row.pending_off_total }}" class="form-control">
+                                                </label>
+                                            </div>
+                                            <div class="branch-mobile-schedule-days">
+                                                {% for cell in row.cells %}
+                                                    <label class="branch-mobile-schedule-day">
+                                                        <span class="branch-mobile-schedule-day-label">{{ cell.date|date:"D, M j" }}</span>
+                                                        <select name="{{ cell.field_name }}" class="form-control branch-manual-duty-select">
+                                                            <option value="">-</option>
+                                                            {% for option in manual_duty_options %}
+                                                                <option value="{{ option.id }}"{% if cell.selected_duty_option_id == option.id|stringformat:'s' %} selected{% endif %}>{{ option.label }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </label>
+                                                {% endfor %}
+                                            </div>
+                                        </article>
+                                    {% endfor %}
+                                </div>
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">Save Manual Schedule</button>
                                 </div>
@@ -424,6 +453,35 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                    </div>
+                    <div class="branch-mobile-schedule-list" aria-label="Published schedule mobile view">
+                        {% for row in team_schedule_rows %}
+                            <article class="branch-mobile-schedule-card branch-mobile-schedule-card-readonly">
+                                <div class="branch-mobile-schedule-card-head">
+                                    <div>
+                                        <strong>{{ row.employee.full_name }}</strong>
+                                        <span>{{ row.employee.job_title.name|default:"-" }}</span>
+                                    </div>
+                                    <div class="branch-mobile-schedule-summary">
+                                        <span class="badge badge-light">Pending Off: {{ row.pending_off_total }}</span>
+                                    </div>
+                                </div>
+                                <div class="branch-mobile-schedule-days branch-mobile-schedule-days-readonly">
+                                    {% for cell in row.cells %}
+                                        <div class="branch-mobile-schedule-day branch-mobile-schedule-day-readonly">
+                                            <span class="branch-mobile-schedule-day-label">{{ cell.date|date:"D, M j" }}</span>
+                                            {% if cell.entry %}
+                                                <div class="branch-schedule-public-cell" {% if cell.entry.inline_color_style %}style="{{ cell.entry.inline_color_style }}"{% endif %}>
+                                                    <strong>{{ cell.entry.primary_schedule_label }}</strong>
+                                                </div>
+                                            {% else %}
+                                                <div class="free-grid-readonly">-</div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </article>
+                        {% endfor %}
                     </div>
                 {% else %}
                     <div class="empty-state">

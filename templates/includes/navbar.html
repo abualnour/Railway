@@ -7,7 +7,7 @@
                 <img src="{% static 'brand/nouraxis-logo.png' %}" alt="NourAxis logo" class="topbar-brand-logo">
                 <span class="topbar-brand-text">
                     <strong>NourAxis</strong>
-                    <small>NourAxis Systems</small>
+                    <small>Operations</small>
                 </span>
             </a>
             {% else %}
@@ -15,7 +15,7 @@
                 <img src="{% static 'brand/nouraxis-logo.png' %}" alt="NourAxis logo" class="topbar-brand-logo">
                 <span class="topbar-brand-text">
                     <strong>NourAxis</strong>
-                    <small>NourAxis Systems</small>
+                    <small>Operations</small>
                 </span>
             </a>
             {% endif %}
@@ -45,6 +45,7 @@
                     <div class="topbar-group-menu" data-dropdown-menu>
                         {% if nav_can_view_hr_workspace %}
                         <a href="{{ nav_hr_workspace_url }}" class="topbar-sub-link">HR Workspace</a>
+                        <a href="{% url 'employees:document_expiry_dashboard' %}" class="topbar-sub-link">Document Expiry Dashboard</a>
                         {% endif %}
                         {% if nav_can_view_payroll_workspace %}
                         <a href="{{ nav_payroll_workspace_url }}" class="topbar-sub-link">Payroll Workspace</a>

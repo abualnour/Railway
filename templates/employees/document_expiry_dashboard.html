@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Document Expiry Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/employees.css' %}">
+<style>
+    .document-expiry-table-danger thead th {
+        background: rgba(185, 28, 28, 0.18);
+        color: #fecaca;
+    }
+
+    .document-expiry-table-warning thead th {
+        background: rgba(180, 83, 9, 0.18);
+        color: #fde68a;
+    }
+
+    .document-expiry-table-primary thead th {
+        background: rgba(30, 64, 175, 0.18);
+        color: #bfdbfe;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="attendance-management-page">
+    <div class="page-header">
+        <div class="attendance-management-header-main">
+            <h1 class="page-title">Document Expiry Dashboard</h1>
+            <p class="page-subtitle">Monitor active employee Civil ID and passport expiry windows across the organization.</p>
+        </div>
+        <div class="attendance-management-header-tools">
+            <div class="attendance-management-header-meta">
+                <span class="attendance-management-header-chip">Snapshot: {{ document_expiry_today|date:"M j, Y" }}</span>
+                <span class="attendance-management-header-chip">Tracked Records: {{ document_expiry_total }}</span>
+            </div>
+            <div class="page-actions attendance-management-header-actions">
+                <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">Back to Directory</a>
+            </div>
+        </div>
+    </div>
+
+    {% for group in document_expiry_groups %}
+        <div class="card table-card" style="margin-bottom: 22px;">
+            <div class="card-header attendance-table-header">
+                <div>
+                    <h2>{{ group.title }}</h2>
+                    <p class="page-subtitle">{{ group.subtitle }}</p>
+                </div>
+                <span class="badge {{ group.badge_class }}">{{ group.rows|length }} Records</span>
+            </div>
+            <div class="card-body">
+                {% if group.rows %}
+                    <div class="table-responsive">
+                        <table class="data-table {{ group.table_tone_class }}">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Employee ID</th>
+                                    <th>Branch</th>
+                                    <th>Document</th>
+                                    <th>Expiry Date</th>
+                                    <th>Days</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in group.rows %}
+                                    <tr>
+                                        <td>{{ row.employee_name }}</td>
+                                        <td>{{ row.employee_id }}</td>
+                                        <td>{{ row.branch_name }}</td>
+                                        <td>{{ row.document_label }}</td>
+                                        <td>{{ row.expiry_date|date:"M j, Y" }}</td>
+                                        <td>
+                                            {% if row.days_until_expiry < 0 %}
+                                                {{ row.days_until_expiry }} days
+                                            {% else %}
+                                                {{ row.days_until_expiry }} days
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <h3>No records in this range</h3>
+                        <p>{{ group.title }} is clear for the current monitoring window.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

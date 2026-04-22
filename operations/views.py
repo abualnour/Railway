@@ -13,6 +13,7 @@ from employees.models import get_schedule_week_start
 from employees.views import build_branch_weekly_schedule_summary
 from organization.models import Branch
 from notifications.models import InAppNotification, build_in_app_notification
+from notifications.views import persist_in_app_notifications
 
 from .forms import BranchPostForm, BranchPostReplyForm
 from .models import BranchPost, BranchPostAcknowledgement, BranchTaskAction
@@ -63,10 +64,7 @@ def create_operation_notifications(users, *, title, body, action_url, level=InAp
                 action_url=action_url,
             )
         )
-    notifications = [notification for notification in notifications if notification is not None]
-    if notifications:
-        InAppNotification.objects.bulk_create(notifications)
-    return len(notifications)
+    return len(persist_in_app_notifications(notifications))
 
 
 def notify_branch_post_created(post, actor_user):

@@ -170,11 +170,17 @@
             <a href="{% url 'notifications:home' %}#recent-notifications" class="notification-filter-chip{% if not selected_category %} is-active{% endif %}">
                 <span>All Notifications</span>
                 <strong>{{ all_notifications_total }}</strong>
+                {% if unread_total %}
+                <small>{{ unread_total }} unread</small>
+                {% endif %}
             </a>
             {% for category in category_cards %}
             <a href="{% url 'notifications:home' %}?category={{ category.key }}#recent-notifications" class="notification-filter-chip{% if selected_category == category.key %} is-active{% endif %}">
                 <span>{{ category.label }}</span>
                 <strong>{{ category.total }}</strong>
+                {% if category.unread_total %}
+                <small>{{ category.unread_total }} unread</small>
+                {% endif %}
             </a>
             {% endfor %}
         </div>
@@ -230,6 +236,17 @@
         <div class="empty-state">
             <h3>No notifications in {{ selected_category_label|lower }}</h3>
             <p>Try another category filter or wait for the next tracked update to arrive.</p>
+        </div>
+        {% endif %}
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="page-actions" style="margin-top: 18px;">
+            {% if page_obj.has_previous %}
+            <a class="btn btn-light btn-sm" href="{% url 'notifications:home' %}?{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ page_obj.previous_page_number }}#recent-notifications">Previous</a>
+            {% endif %}
+            <span class="badge badge-light">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+            <a class="btn btn-light btn-sm" href="{% url 'notifications:home' %}?{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ page_obj.next_page_number }}#recent-notifications">Next</a>
+            {% endif %}
         </div>
         {% endif %}
         {% if selected_category and not notifications %}

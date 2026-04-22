@@ -177,6 +177,31 @@
         </div>
         {% endif %}
         {% if team_schedule_rows %}
+        <div class="branch-schedule-overview-mobile-list">
+            {% for row in team_schedule_rows %}
+            <article class="branch-schedule-overview-mobile-card">
+                <div class="branch-schedule-overview-mobile-head">
+                    <div class="table-stack">
+                        <strong><a class="org-name-link" href="{% url 'employees:employee_detail' row.employee.pk %}">{{ row.employee.full_name }}</a></strong>
+                        <span>{{ row.employee.employee_id }}</span>
+                        <small>{{ row.employee.job_title.name|default:"-" }} | Pending Off {{ row.pending_off_total }}</small>
+                    </div>
+                </div>
+                <div class="branch-schedule-overview-mobile-days">
+                    {% for cell in row.cells %}
+                    <div class="branch-schedule-overview-mobile-day">
+                        <span class="branch-schedule-overview-mobile-day-label">{{ cell.date|date:"D j M" }}</span>
+                        {% if cell.entry %}
+                        <strong class="branch-schedule-overview-mobile-day-value">{{ cell.entry.primary_schedule_label }}</strong>
+                        {% else %}
+                        <span class="branch-schedule-overview-mobile-day-value muted-text">No duty</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
         <div class="table-responsive branch-schedule-published-wrap">
             <table class="free-schedule-grid-table free-schedule-grid-table-roster branch-schedule-published-table">
                 <thead>
@@ -230,7 +255,55 @@
             <p>Attendance ledger rows for the same branch and week so management can compare the published roster with actual recorded outcomes.</p>
         </div>
         {% if attendance_records %}
-        <div class="table-responsive">
+        <div class="branch-schedule-overview-mobile-list branch-schedule-overview-mobile-list-attendance">
+            {% for record in attendance_records %}
+            <article class="branch-schedule-overview-mobile-card branch-schedule-overview-mobile-card-attendance">
+                <div class="branch-schedule-overview-mobile-head">
+                    <div class="table-stack">
+                        <strong><a class="org-name-link" href="{% url 'employees:employee_detail' record.employee.pk %}?tab=performance#employee-timeline-section">{{ record.employee.full_name }}</a></strong>
+                        <span>{{ record.employee.employee_id }}</span>
+                        <small>{{ record.attendance_date|date:"M j, Y" }} | {{ record.attendance_date|date:"l" }}</small>
+                    </div>
+                    <span class="badge {{ record.day_status_badge_class }}">{{ record.get_day_status_display }}</span>
+                </div>
+                <div class="branch-schedule-overview-mobile-details">
+                    <div class="branch-schedule-overview-mobile-detail">
+                        <span class="branch-schedule-overview-mobile-detail-label">Shift</span>
+                        <strong>{{ record.get_shift_display|default:"-" }}</strong>
+                        {% if record.clock_in_time or record.clock_out_time %}
+                        <small>
+                            {% if record.clock_in_time %}In {{ record.clock_in_time|time:"H:i" }}{% endif %}
+                            {% if record.clock_out_time %} | Out {{ record.clock_out_time|time:"H:i" }}{% endif %}
+                        </small>
+                        {% endif %}
+                    </div>
+                    <div class="branch-schedule-overview-mobile-detail">
+                        <span class="branch-schedule-overview-mobile-detail-label">Hours</span>
+                        <strong>{{ record.worked_hours_display }}</strong>
+                        <small>Scheduled {{ record.scheduled_hours_display }}</small>
+                    </div>
+                    <div class="branch-schedule-overview-mobile-detail">
+                        <span class="branch-schedule-overview-mobile-detail-label">Punctuality</span>
+                        <strong>Late {{ record.late_minutes_display }}</strong>
+                        <small>Early {{ record.early_departure_minutes_display }} | Overtime {{ record.overtime_minutes_display }}</small>
+                    </div>
+                    <div class="branch-schedule-overview-mobile-detail">
+                        <span class="branch-schedule-overview-mobile-detail-label">Source</span>
+                        <span class="badge {{ record.source_badge_class }}">{{ record.get_source_display }}</span>
+                    </div>
+                    <div class="branch-schedule-overview-mobile-detail branch-schedule-overview-mobile-detail-full">
+                        <span class="branch-schedule-overview-mobile-detail-label">Notes</span>
+                        {% if record.notes %}
+                        <span>{{ record.notes }}</span>
+                        {% else %}
+                        <span class="muted-text">No notes</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        <div class="table-responsive branch-schedule-overview-attendance-wrap">
             <table class="table attendance-table branch-schedule-overview-attendance-table">
                 <thead>
                     <tr>

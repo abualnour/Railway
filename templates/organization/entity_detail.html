@@ -291,7 +291,21 @@
 
             <div class="card-body">
                 {% if block.rows %}
-                    <div class="table-responsive org-directory-table">
+                    <div class="org-mobile-related-list">
+                        {% for row in block.rows %}
+                            <article class="org-mobile-related-card">
+                                {% for cell in row %}
+                                    {% if forloop.first %}
+                                        <strong class="org-mobile-related-title">{{ cell }}</strong>
+                                    {% else %}
+                                        <span class="org-mobile-related-meta">{{ cell }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </article>
+                        {% endfor %}
+                    </div>
+
+                    <div class="table-responsive org-directory-table org-desktop-table">
                         <table class="table org-related-table">
                             <thead>
                                 <tr>

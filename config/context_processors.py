@@ -70,6 +70,7 @@ def navbar_context(request):
             "session_timeout_login_url": reverse("login"),
             "nav_notifications_url": "",
             "nav_notification_unread_total": 0,
+            "nav_notification_category_unread_counts": {},
         }
 
     is_admin_compatible = is_admin_compatible_role(user)
@@ -157,8 +158,17 @@ def navbar_context(request):
             recipient=user,
             is_read=False,
         ).count()
+        nav_notification_category_unread_counts = {
+            category: InAppNotification.objects.filter(
+                recipient=user,
+                category=category,
+                is_read=False,
+            ).count()
+            for category, _label in InAppNotification.CATEGORY_CHOICES
+        }
     except (OperationalError, ProgrammingError):
         nav_notification_unread_total = 0
+        nav_notification_category_unread_counts = {}
 
     return {
         "nav_is_authenticated": True,
@@ -230,6 +240,7 @@ def navbar_context(request):
         "nav_branch_schedule_overview_url": reverse("employees:branch_schedule_overview"),
         "nav_notifications_url": reverse("notifications:home"),
         "nav_notification_unread_total": nav_notification_unread_total,
+        "nav_notification_category_unread_counts": nav_notification_category_unread_counts,
         "session_timeout_enabled": True,
         "session_timeout_remaining_seconds": session_timeout_remaining_seconds,
         "session_timeout_remaining_label": format_session_remaining_seconds(session_timeout_remaining_seconds),

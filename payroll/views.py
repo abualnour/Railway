@@ -19,7 +19,7 @@ except ImportError:
     pisa = None
 
 from employees.access import is_admin_compatible as is_admin_compatible_role
-from employees.models import Employee, EmployeeAttendanceLedger
+from employees.models import Employee, EmployeeAttendanceLedger, OvertimeRequest
 from notifications.models import InAppNotification, get_notification_preferences_for_user
 
 from .forms import (
@@ -135,6 +135,8 @@ def build_payroll_line_breakdown(payroll_line):
     allowances = payroll_line.allowances or Decimal("0.00")
     overtime_amount = payroll_line.overtime_amount or Decimal("0.00")
     fixed_deductions = payroll_line.deductions or Decimal("0.00")
+    pifss_employee_deduction = payroll_line.pifss_employee_deduction or Decimal("0.00")
+    pifss_employer_contribution = payroll_line.pifss_employer_contribution or Decimal("0.00")
     adjustment_allowances_total = payroll_line.adjustment_allowances_total
     adjustment_deductions_total = payroll_line.adjustment_deductions_total
     gross_total = payroll_line.gross_total
@@ -148,10 +150,12 @@ def build_payroll_line_breakdown(payroll_line):
         "adjustment_allowances_total": decimal_to_display(adjustment_allowances_total),
         "gross_total": decimal_to_display(gross_total),
         "fixed_deductions": decimal_to_display(fixed_deductions),
+        "pifss_employee_deduction": decimal_to_display(pifss_employee_deduction),
+        "pifss_employer_contribution": decimal_to_display(pifss_employer_contribution),
         "adjustment_deductions_total": decimal_to_display(adjustment_deductions_total),
         "total_deductions_value": decimal_to_display(total_deductions_value),
         "net_pay": decimal_to_display(net_pay),
-        "formula_label": "Net Pay = Base Salary + Allowances + Overtime + Adjustment Allowances - Deductions - Adjustment Deductions",
+        "formula_label": "Net Pay = Base Salary + Allowances + Overtime + Adjustment Allowances - Deductions - PIFSS Employee Deduction - Adjustment Deductions",
     }
 
 
@@ -410,7 +414,18 @@ def build_payroll_lines_for_period(payroll_period):
                 attendance_date__lte=payroll_period.period_end,
             ).order_by("attendance_date", "id")
         )
-        overtime_minutes = sum(entry.overtime_minutes or 0 for entry in attendance_entries)
+        attendance_overtime_minutes = sum(entry.overtime_minutes or 0 for entry in attendance_entries)
+        approved_overtime_hours = (
+            OvertimeRequest.objects.filter(
+                employee=profile.employee,
+                status=OvertimeRequest.STATUS_APPROVED,
+                date__gte=payroll_period.period_start,
+                date__lte=payroll_period.period_end,
+            ).aggregate(total_hours=Sum("hours_requested"))["total_hours"]
+            or Decimal("0.00")
+        )
+        approved_overtime_minutes = approved_overtime_hours * Decimal("60")
+        overtime_minutes = Decimal(attendance_overtime_minutes) + approved_overtime_minutes
         unpaid_leave_hours = sum(
             entry.scheduled_hours or Decimal("0.00")
             for entry in attendance_entries
@@ -428,11 +443,20 @@ def build_payroll_lines_for_period(payroll_period):
         payroll_note_parts = [f"Generated from payroll profile for {profile.employee.full_name}."]
         if attendance_entries:
             payroll_note_parts.append(f"Attendance rows linked: {len(attendance_entries)} day(s).")
+        if attendance_overtime_minutes:
+            attendance_overtime_hours = (Decimal(attendance_overtime_minutes) / Decimal("60")).quantize(Decimal("0.01"))
+            payroll_note_parts.append(
+                f"Attendance overtime logged: {attendance_overtime_hours} hour(s)."
+            )
+        if approved_overtime_hours:
+            payroll_note_parts.append(
+                f"Approved overtime requests: {approved_overtime_hours.quantize(Decimal('0.01'))} hour(s)."
+            )
         if overtime_minutes:
             overtime_hours = (Decimal(overtime_minutes) / Decimal("60")).quantize(Decimal("0.01"))
             overtime_amount = calculate_overtime_amount(profile.base_salary, overtime_minutes)
             payroll_note_parts.append(
-                f"Overtime logged: {overtime_hours} hour(s)."
+                f"Total overtime included: {overtime_hours} hour(s)."
             )
             payroll_note_parts.append(
                 f"Overtime amount calculated from base salary: {overtime_amount}."
@@ -446,6 +470,21 @@ def build_payroll_lines_for_period(payroll_period):
 
         allowances = (profile.housing_allowance or Decimal("0.00")) + (profile.transport_allowance or Decimal("0.00"))
         fixed_deduction = profile.fixed_deduction or Decimal("0.00")
+        pifss_employee_deduction = Decimal("0.00")
+        pifss_employer_contribution = Decimal("0.00")
+        if profile.employee.is_kuwaiti_national:
+            pifss_employee_deduction = (
+                (profile.base_salary or Decimal("0.00")) * (profile.pifss_employee_rate or Decimal("0.0000"))
+            ).quantize(Decimal("0.01"))
+            pifss_employer_contribution = (
+                (profile.base_salary or Decimal("0.00")) * (profile.pifss_employer_rate or Decimal("0.0000"))
+            ).quantize(Decimal("0.01"))
+            payroll_note_parts.append(
+                f"PIFSS employee deduction applied: {pifss_employee_deduction}."
+            )
+            payroll_note_parts.append(
+                f"PIFSS employer contribution tracked: {pifss_employer_contribution}."
+            )
         unpaid_leave_deduction = calculate_unpaid_leave_deduction(profile.base_salary, unpaid_leave_hours)
         if unpaid_leave_hours:
             unpaid_leave_days = (unpaid_leave_hours / Decimal("8.00")).quantize(Decimal("0.01"))
@@ -456,7 +495,13 @@ def build_payroll_lines_for_period(payroll_period):
                 f"Unpaid leave deduction calculated from base salary: {unpaid_leave_deduction}."
             )
         deductions = fixed_deduction + unpaid_leave_deduction
-        net_pay = (profile.base_salary or Decimal("0.00")) + allowances + overtime_amount - deductions
+        net_pay = (
+            (profile.base_salary or Decimal("0.00"))
+            + allowances
+            + overtime_amount
+            - deductions
+            - pifss_employee_deduction
+        )
 
         payroll_line, created = PayrollLine.objects.update_or_create(
             payroll_period=payroll_period,
@@ -466,6 +511,8 @@ def build_payroll_lines_for_period(payroll_period):
                 "allowances": allowances,
                 "deductions": deductions,
                 "overtime_amount": overtime_amount,
+                "pifss_employee_deduction": pifss_employee_deduction,
+                "pifss_employer_contribution": pifss_employer_contribution,
                 "net_pay": net_pay,
                 "notes": " ".join(payroll_note_parts),
             },
@@ -565,6 +612,8 @@ def build_payroll_line_snapshot(line):
             "overtime_amount": str(line.overtime_amount or Decimal("0.00")),
             "gross_total": str(line.gross_total),
             "deductions": str(line.deductions or Decimal("0.00")),
+            "pifss_employee_deduction": str(line.pifss_employee_deduction or Decimal("0.00")),
+            "pifss_employer_contribution": str(line.pifss_employer_contribution or Decimal("0.00")),
             "adjustment_allowances_total": str(line.adjustment_allowances_total),
             "adjustment_deductions_total": str(line.adjustment_deductions_total),
             "total_deductions_value": str(line.total_deductions_value),

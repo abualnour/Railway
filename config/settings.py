@@ -235,17 +235,23 @@ SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
 
 EMAIL_BACKEND = os.environ.get(
-    "DJANGO_EMAIL_BACKEND",
-    "django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend",
+    "EMAIL_BACKEND",
+    os.environ.get(
+        "DJANGO_EMAIL_BACKEND",
+        "django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend",
+    ),
 ).strip()
-EMAIL_HOST = os.environ.get("DJANGO_EMAIL_HOST", "localhost").strip()
-EMAIL_PORT = int(os.environ.get("DJANGO_EMAIL_PORT", "25"))
-EMAIL_HOST_USER = os.environ.get("DJANGO_EMAIL_HOST_USER", "").strip()
-EMAIL_HOST_PASSWORD = os.environ.get("DJANGO_EMAIL_HOST_PASSWORD", "").strip()
-EMAIL_USE_TLS = _get_env_bool("DJANGO_EMAIL_USE_TLS", default=False)
-EMAIL_USE_SSL = _get_env_bool("DJANGO_EMAIL_USE_SSL", default=False)
+EMAIL_HOST = os.environ.get("EMAIL_HOST", os.environ.get("DJANGO_EMAIL_HOST", "localhost")).strip()
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", os.environ.get("DJANGO_EMAIL_PORT", "25")))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", os.environ.get("DJANGO_EMAIL_HOST_USER", "")).strip()
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", os.environ.get("DJANGO_EMAIL_HOST_PASSWORD", "")).strip()
+EMAIL_USE_TLS = _get_env_bool("EMAIL_USE_TLS", default=_get_env_bool("DJANGO_EMAIL_USE_TLS", default=False))
+EMAIL_USE_SSL = _get_env_bool("EMAIL_USE_SSL", default=_get_env_bool("DJANGO_EMAIL_USE_SSL", default=False))
 EMAIL_TIMEOUT = int(os.environ.get("DJANGO_EMAIL_TIMEOUT", "10"))
-DEFAULT_FROM_EMAIL = os.environ.get("DJANGO_DEFAULT_FROM_EMAIL", "NourAxis <no-reply@nouraxis.local>").strip()
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL",
+    os.environ.get("DJANGO_DEFAULT_FROM_EMAIL", "NourAxis <no-reply@nouraxis.local>"),
+).strip()
 SERVER_EMAIL = os.environ.get("DJANGO_SERVER_EMAIL", DEFAULT_FROM_EMAIL).strip()
 
 LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "INFO").strip().upper()

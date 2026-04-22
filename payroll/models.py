@@ -25,6 +25,8 @@ class PayrollProfile(models.Model):
     housing_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     transport_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     fixed_deduction = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    pifss_employee_rate = models.DecimalField(max_digits=5, decimal_places=4, default=Decimal("0.0800"))
+    pifss_employer_rate = models.DecimalField(max_digits=5, decimal_places=4, default=Decimal("0.1150"))
     bank_name = models.CharField(max_length=120, blank=True)
     iban = models.CharField(max_length=64, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
@@ -45,7 +47,12 @@ class PayrollProfile(models.Model):
 
     @property
     def estimated_net_salary(self):
-        return self.gross_salary - (self.fixed_deduction or Decimal("0.00"))
+        pifss_employee_deduction = Decimal("0.00")
+        if getattr(self.employee, "is_kuwaiti_national", False):
+            pifss_employee_deduction = (
+                (self.base_salary or Decimal("0.00")) * (self.pifss_employee_rate or Decimal("0.0000"))
+            ).quantize(Decimal("0.01"))
+        return self.gross_salary - (self.fixed_deduction or Decimal("0.00")) - pifss_employee_deduction
 
 
 class PayrollObligation(models.Model):
@@ -214,6 +221,8 @@ class PayrollLine(models.Model):
     allowances = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     deductions = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     overtime_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    pifss_employee_deduction = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    pifss_employer_contribution = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     net_pay = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     notes = models.CharField(max_length=255, blank=True)
     snapshot_payload = models.JSONField(null=True, blank=True)
@@ -263,7 +272,11 @@ class PayrollLine(models.Model):
 
     @property
     def total_deductions_value(self):
-        return (self.deductions or Decimal("0.00")) + self.adjustment_deductions_total
+        return (
+            (self.deductions or Decimal("0.00"))
+            + (self.pifss_employee_deduction or Decimal("0.00"))
+            + self.adjustment_deductions_total
+        )
 
     def calculate_net_pay(self):
         return self.gross_total - self.total_deductions_value

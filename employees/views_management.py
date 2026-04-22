@@ -203,6 +203,62 @@ def employee_status_update(request, pk):
 
 
 @login_required
+def end_of_service_estimate(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+
+    if not can_view_employee_profile(request.user, employee):
+        return JsonResponse(
+            {"error": "You do not have permission to view this employee."},
+            status=403,
+        )
+
+    final_salary_raw = (request.GET.get("final_salary") or "").strip()
+    if not final_salary_raw:
+        salary_value = employee.salary
+    else:
+        try:
+            salary_value = Decimal(final_salary_raw)
+        except Exception:
+            return JsonResponse(
+                {"error": "Final salary must be a valid decimal amount."},
+                status=400,
+            )
+
+    if salary_value in [None, ""] or Decimal(salary_value) <= Decimal("0.00"):
+        return JsonResponse(
+            {"error": "A positive final salary is required for gratuity estimation."},
+            status=400,
+        )
+
+    today = timezone.localdate()
+    completed_service_years = 0
+    if employee.hire_date:
+        completed_service_years = today.year - employee.hire_date.year
+        if (today.month, today.day) < (employee.hire_date.month, employee.hire_date.day):
+            completed_service_years -= 1
+        completed_service_years = max(completed_service_years, 0)
+
+    gratuity_amount = employee.calculate_end_of_service_gratuity(salary_value)
+    formula_applied = (
+        "15 days salary per completed year"
+        if completed_service_years < 5
+        else "1 month salary per completed year"
+    )
+
+    return JsonResponse(
+        {
+            "employee_id": employee.pk,
+            "employee_name": employee.full_name,
+            "hire_date": employee.hire_date.isoformat() if employee.hire_date else None,
+            "final_salary": str(Decimal(salary_value).quantize(Decimal("0.01"))),
+            "completed_service_years": completed_service_years,
+            "formula_applied": formula_applied,
+            "gratuity_amount": str(gratuity_amount),
+        }
+    )
+
+
+@login_required
 def employee_document_view(request, employee_pk, document_pk):
     employee = get_object_or_404(Employee, pk=employee_pk)
     document = get_object_or_404(EmployeeDocument, pk=document_pk, employee=employee)
@@ -333,6 +389,128 @@ def employee_document_update(request, employee_pk, document_pk):
             )
             messages.success(request, "Document updated successfully.")
     return redirect("employees:employee_detail", pk=employee.pk)
+
+
+@login_required
+@require_POST
+def employee_contract_create(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+
+    if not can_create_or_edit_employees(request.user):
+        return deny_employee_access(
+            request,
+            "You do not have permission to create employee contracts.",
+            employee=employee,
+        )
+
+    form = EmployeeContractForm(request.POST)
+    if form.is_valid():
+        contract = form.save(commit=False)
+        contract.employee = employee
+        contract.save()
+
+        create_employee_history(
+            employee=employee,
+            title=f"Contract added: {contract.get_contract_type_display()}",
+            description=(
+                f"Start Date: {contract.start_date:%B %d, %Y}. "
+                + (
+                    f"End Date: {contract.end_date:%B %d, %Y}. "
+                    if contract.end_date
+                    else "No contract end date. "
+                )
+                + (
+                    f"Probation Ends: {contract.probation_end_date:%B %d, %Y}. "
+                    if contract.probation_end_date
+                    else ""
+                )
+                + (f"Notes: {contract.notes}" if contract.notes else "")
+            ).strip(),
+            event_type=EmployeeHistory.EVENT_PROFILE,
+            created_by=get_actor_label(request.user),
+            is_system_generated=True,
+            event_date=contract.start_date,
+        )
+        messages.success(request, "Employee contract added successfully.")
+    else:
+        messages.error(request, "Please review the contract form and try again.")
+
+    return redirect(f"{reverse('employees:employee_detail', kwargs={'pk': employee.pk})}#employee-contracts-section")
+
+
+@login_required
+@require_POST
+def employee_contract_update(request, employee_pk, contract_pk):
+    employee = get_object_or_404(Employee, pk=employee_pk)
+    contract = get_object_or_404(EmployeeContract, pk=contract_pk, employee=employee)
+
+    if not can_create_or_edit_employees(request.user):
+        return deny_employee_access(
+            request,
+            "You do not have permission to update employee contracts.",
+            employee=employee,
+        )
+
+    form = EmployeeContractForm(request.POST, instance=contract)
+    if form.is_valid():
+        contract = form.save()
+        create_employee_history(
+            employee=employee,
+            title=f"Contract updated: {contract.get_contract_type_display()}",
+            description=(
+                f"Start Date: {contract.start_date:%B %d, %Y}. "
+                + (
+                    f"End Date: {contract.end_date:%B %d, %Y}. "
+                    if contract.end_date
+                    else "No contract end date. "
+                )
+                + (
+                    f"Probation Ends: {contract.probation_end_date:%B %d, %Y}. "
+                    if contract.probation_end_date
+                    else ""
+                )
+                + (f"Notes: {contract.notes}" if contract.notes else "")
+            ).strip(),
+            event_type=EmployeeHistory.EVENT_PROFILE,
+            created_by=get_actor_label(request.user),
+            is_system_generated=True,
+            event_date=timezone.localdate(),
+        )
+        messages.success(request, "Employee contract updated successfully.")
+    else:
+        messages.error(request, "Please review the contract update form and try again.")
+
+    return redirect(f"{reverse('employees:employee_detail', kwargs={'pk': employee.pk})}#employee-contracts-section")
+
+
+@login_required
+@require_POST
+def employee_contract_delete(request, employee_pk, contract_pk):
+    employee = get_object_or_404(Employee, pk=employee_pk)
+    contract = get_object_or_404(EmployeeContract, pk=contract_pk, employee=employee)
+
+    if not can_create_or_edit_employees(request.user):
+        return deny_employee_access(
+            request,
+            "You do not have permission to delete employee contracts.",
+            employee=employee,
+        )
+
+    contract_label = contract.get_contract_type_display()
+    contract_date_label = contract.start_date.strftime("%B %d, %Y")
+    contract.delete()
+
+    create_employee_history(
+        employee=employee,
+        title=f"Contract deleted: {contract_label}",
+        description=f"Employee contract starting on {contract_date_label} was deleted from the employee profile.",
+        event_type=EmployeeHistory.EVENT_PROFILE,
+        created_by=get_actor_label(request.user),
+        is_system_generated=True,
+        event_date=timezone.localdate(),
+    )
+    messages.success(request, "Employee contract deleted successfully.")
+    return redirect(f"{reverse('employees:employee_detail', kwargs={'pk': employee.pk})}#employee-contracts-section")
 
 
 @login_required
@@ -857,6 +1035,94 @@ def employee_leave_create(request, pk):
         messages.success(request, "Leave request submitted successfully.")
     else:
         first_error = "Please review the leave request form and try again."
+        if form.errors:
+            first_field_errors = next(iter(form.errors.values()))
+            if first_field_errors:
+                first_error = first_field_errors[0]
+        messages.error(request, first_error)
+
+    return redirect("employees:employee_detail", pk=employee.pk)
+
+
+@login_required
+@require_POST
+def overtime_request_review(request, request_pk):
+    overtime_request = get_object_or_404(
+        OvertimeRequest.objects.select_related("employee", "employee__user"),
+        pk=request_pk,
+    )
+    employee = overtime_request.employee
+
+    if not can_review_leave(request.user):
+        return deny_employee_access(
+            request,
+            "You do not have permission to review overtime requests.",
+            employee=employee,
+        )
+
+    if is_branch_scoped_supervisor(request.user) and not can_supervisor_view_employee(request.user, employee):
+        return deny_employee_access(
+            request,
+            "You do not have permission to review overtime requests outside your branch.",
+            employee=employee,
+        )
+
+    if overtime_request.status != OvertimeRequest.STATUS_PENDING:
+        messages.error(request, "Only pending overtime requests can be reviewed.")
+        return redirect("employees:employee_detail", pk=employee.pk)
+
+    form = OvertimeRequestReviewForm(request.POST, instance=overtime_request)
+    if form.is_valid():
+        reviewed_request = form.save(commit=False)
+        reviewed_request.reviewed_by = request.user
+        reviewed_request.reviewed_at = timezone.now()
+        reviewed_request.save()
+
+        create_employee_history(
+            employee=employee,
+            title=f"Overtime request {reviewed_request.get_status_display().lower()}",
+            description=(
+                f"Overtime request for {reviewed_request.hours_requested} hour(s) on "
+                f"{reviewed_request.date:%B %d, %Y} was marked as "
+                f"{reviewed_request.get_status_display().lower()}."
+                + (
+                    f" Review note: {reviewed_request.review_note}"
+                    if reviewed_request.review_note
+                    else ""
+                )
+            ),
+            event_type=EmployeeHistory.EVENT_STATUS,
+            created_by=get_actor_label(request.user),
+            is_system_generated=True,
+            event_date=reviewed_request.date,
+        )
+
+        if reviewed_request.status == OvertimeRequest.STATUS_APPROVED:
+            employee_user = get_employee_notification_user(employee)
+            notification = build_in_app_notification(
+                recipient=employee_user,
+                title="Overtime request approved",
+                body=(
+                    f"Your overtime request for {reviewed_request.hours_requested} hour(s) on "
+                    f"{reviewed_request.date.strftime('%B %d, %Y')} was approved."
+                    + (
+                        f" Note: {reviewed_request.review_note}"
+                        if reviewed_request.review_note
+                        else ""
+                    )
+                ),
+                category=InAppNotification.CATEGORY_REQUEST,
+                level=InAppNotification.LEVEL_SUCCESS,
+                action_url=reverse("employees:overtime_request_list"),
+            )
+            persist_in_app_notifications([notification])
+
+        messages.success(
+            request,
+            f"Overtime request {reviewed_request.get_status_display().lower()} successfully.",
+        )
+    else:
+        first_error = "Please review the overtime request decision and try again."
         if form.errors:
             first_field_errors = next(iter(form.errors.values()))
             if first_field_errors:
@@ -1790,6 +2056,88 @@ def attendance_management(request):
 
     context = build_attendance_history_management_context(request, supervisor_history_only=False)
     return render(request, "employees/attendance_management.html", context)
+
+
+@login_required
+def document_expiry_dashboard(request):
+    if not (is_admin_compatible(request.user) or is_hr_user(request.user) or is_operations_manager_user(request.user)):
+        return deny_employee_access(
+            request,
+            "You do not have permission to access document expiry monitoring.",
+        )
+
+    today = timezone.localdate()
+    expiring_soon_end = today + timedelta(days=30)
+    expiring_warning_end = today + timedelta(days=90)
+
+    grouped_documents = {
+        "expired": [],
+        "expiring_soon": [],
+        "expiring_warning": [],
+    }
+
+    active_employees = Employee.objects.select_related("branch").filter(is_active=True).order_by("full_name", "employee_id")
+
+    for employee in active_employees:
+        document_entries = [
+            ("Civil ID", employee.civil_id_expiry_date),
+            ("Passport", employee.passport_expiry_date),
+        ]
+
+        for document_label, expiry_date in document_entries:
+            if not expiry_date:
+                continue
+
+            document_row = {
+                "employee_name": employee.full_name,
+                "employee_id": employee.employee_id,
+                "branch_name": employee.branch.name if employee.branch_id else "-",
+                "document_label": document_label,
+                "expiry_date": expiry_date,
+                "days_until_expiry": (expiry_date - today).days,
+            }
+
+            if expiry_date < today:
+                grouped_documents["expired"].append(document_row)
+            elif expiry_date <= expiring_soon_end:
+                grouped_documents["expiring_soon"].append(document_row)
+            elif expiry_date <= expiring_warning_end:
+                grouped_documents["expiring_warning"].append(document_row)
+
+    for rows in grouped_documents.values():
+        rows.sort(key=lambda row: (row["expiry_date"], row["employee_name"], row["document_label"]))
+
+    context = {
+        "document_expiry_groups": [
+            {
+                "key": "expired",
+                "title": "Expired Documents",
+                "subtitle": "Documents that already passed their expiry date.",
+                "badge_class": "badge-danger",
+                "table_tone_class": "document-expiry-table-danger",
+                "rows": grouped_documents["expired"],
+            },
+            {
+                "key": "expiring_soon",
+                "title": "Expiring Within 30 Days",
+                "subtitle": "Highest-priority follow-up window for active employee documents.",
+                "badge_class": "badge-warning",
+                "table_tone_class": "document-expiry-table-warning",
+                "rows": grouped_documents["expiring_soon"],
+            },
+            {
+                "key": "expiring_warning",
+                "title": "Expiring In 31-90 Days",
+                "subtitle": "Early warning range for HR planning and document renewal follow-up.",
+                "badge_class": "badge-primary",
+                "table_tone_class": "document-expiry-table-primary",
+                "rows": grouped_documents["expiring_warning"],
+            },
+        ],
+        "document_expiry_today": today,
+        "document_expiry_total": sum(len(rows) for rows in grouped_documents.values()),
+    }
+    return render(request, "employees/document_expiry_dashboard.html", context)
 
 
 @login_required

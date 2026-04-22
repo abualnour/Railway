@@ -31,6 +31,7 @@ from operations.forms import BranchPostForm
 from operations.services import build_branch_workspace_context, build_employee_schedule_snapshot
 from openpyxl import Workbook, load_workbook
 from notifications.models import InAppNotification, build_in_app_notification
+from notifications.views import persist_in_app_notifications
 
 from .access import (
     get_user_scope_branch as get_user_scope_branch_for_role,
@@ -58,15 +59,18 @@ from .forms import (
     EmployeeAttendanceCorrectionForm,
     EmployeeSelfServiceAttendanceForm,
     EmployeeAttendanceLedgerForm,
+    EmployeeContractForm,
     EmployeeDocumentForm,
     EmployeeForm,
     EmployeeHistoryForm,
     EmployeeLeaveForm,
+    EmployeeOvertimeRequestForm,
     EmployeeRequiredSubmissionCreateForm,
     EmployeeRequiredSubmissionResponseForm,
     EmployeeRequiredSubmissionReviewForm,
     EmployeeDocumentRequestCreateForm,
     EmployeeDocumentRequestReviewForm,
+    OvertimeRequestReviewForm,
     EmployeeSelfServiceLeaveRequestForm,
     EmployeeTransferForm,
 )
@@ -86,6 +90,7 @@ from .models import (
     EmployeeDocument,
     EmployeeHistory,
     EmployeeLeave,
+    OvertimeRequest,
     EmployeeRequiredSubmission,
     EmployeeDocumentRequest,
     WORKING_HOURS_PER_DAY,
@@ -303,10 +308,7 @@ def dispatch_request_notifications(notifications):
         seen_keys.add(notification_key)
         deduped_notifications.append(notification)
 
-    if deduped_notifications:
-        InAppNotification.objects.bulk_create(deduped_notifications)
-
-    return len(deduped_notifications)
+    return len(persist_in_app_notifications(deduped_notifications))
 
 
 def get_leave_stage_reviewer_users(leave_record):
@@ -644,6 +646,7 @@ def build_self_service_page_context(request, employee, *, current_section):
     context["self_service_documents_url"] = reverse("employees:self_service_documents")
     context["self_service_attendance_url"] = reverse("employees:self_service_attendance")
     context["self_service_working_time_url"] = reverse("employees:self_service_working_time")
+    context["self_service_overtime_url"] = reverse("employees:overtime_request_list")
     context["self_service_branch_url"] = reverse("employees:self_service_branch")
     context["self_service_weekly_schedule_url"] = reverse("employees:self_service_weekly_schedule")
     context["self_service_my_schedule_url"] = reverse("employees:self_service_my_schedule")

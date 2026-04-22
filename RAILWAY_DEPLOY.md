@@ -104,6 +104,26 @@ python manage.py collectstatic --no-input
 python manage.py createsuperuser
 ```
 
+## Scheduled Tasks
+
+Railway scheduled jobs can be used for recurring compliance and expiry checks.
+
+Recommended daily contract expiry job:
+
+```bash
+python manage.py check_contract_expiry
+```
+
+Suggested cadence:
+
+- once per day in the early morning Kuwait time
+
+What it does:
+
+- checks active employee contracts with an `end_date` within the next 60 days
+- creates in-app notifications for active HR-role users under the `contract` category
+- sends notification emails through the existing notification delivery flow
+
 ## Important Storage Note
 
 Railway containers are ephemeral by default.

@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from employees.access import is_admin_compatible as is_admin_compatible_role, is_hr_user as is_hr_user_role
 from notifications.models import InAppNotification, build_in_app_notification
+from notifications.views import persist_in_app_notifications
 
 from .forms import RegionalHolidayForm, RegionalWorkCalendarForm
 from .models import RegionalHoliday, RegionalWorkCalendar
@@ -41,7 +42,7 @@ def dispatch_calendar_notifications(*, title, body, level=InAppNotification.LEVE
         )
     notifications = [notification for notification in notifications if notification is not None]
     if notifications:
-        InAppNotification.objects.bulk_create(notifications)
+        persist_in_app_notifications(notifications)
 
 
 @login_required

@@ -628,6 +628,11 @@
     overflow: hidden;
 }
 
+.org-mobile-directory-list,
+.org-mobile-related-list {
+    display: none;
+}
+
 .org-standard-list-table thead th,
 .org-related-table thead th,
 .branch-overview-table thead th {
@@ -2474,6 +2479,54 @@
 }
 
 @media (max-width: 640px) {
+    .org-mobile-directory-list,
+    .org-mobile-related-list {
+        display: grid;
+        gap: 12px;
+    }
+
+    .org-desktop-table {
+        display: none;
+    }
+
+    .org-mobile-record-card,
+    .org-mobile-related-card {
+        display: grid;
+        gap: 12px;
+        padding: 14px;
+        border: 1px solid var(--surface-soft-border);
+        border-radius: 16px;
+        background: var(--surface-inner);
+        box-shadow: none;
+    }
+
+    .org-mobile-record-main {
+        display: grid;
+        gap: 10px;
+    }
+
+    .org-mobile-record-status {
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .org-mobile-record-actions {
+        width: 100%;
+    }
+
+    .org-mobile-related-title {
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.35;
+        font-weight: 800;
+    }
+
+    .org-mobile-related-meta {
+        color: var(--text-soft);
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
     .branches-summary-card,
     .org-metric-card,
     .branch-documents-summary-card {

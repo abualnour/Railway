@@ -93,6 +93,14 @@
                     <span class="badge badge-warning">{{ total_deductions_value }}</span>
                 </div>
                 <div class="platform-list-item">
+                    <div><strong>PIFSS Employee Deduction</strong></div>
+                    <span class="badge badge-warning">{% if use_snapshot %}{{ payslip_line.pifss_employee_deduction|default:"0.00" }}{% else %}{{ payroll_line.pifss_employee_deduction }}{% endif %}</span>
+                </div>
+                <div class="platform-list-item">
+                    <div><strong>PIFSS Employer Contribution</strong></div>
+                    <span class="badge badge-light">{% if use_snapshot %}{{ payslip_line.pifss_employer_contribution|default:"0.00" }}{% else %}{{ payroll_line.pifss_employer_contribution }}{% endif %}</span>
+                </div>
+                <div class="platform-list-item">
                     <div><strong>Net Pay</strong></div>
                     <span class="badge badge-success">{% if use_snapshot %}{{ payslip_line.net_pay }}{% else %}{{ payroll_line.net_pay }}{% endif %}</span>
                 </div>
@@ -129,6 +137,14 @@
             <div class="platform-list-item">
                 <div><strong>Fixed Deductions</strong></div>
                 <span class="badge badge-warning">{{ breakdown.fixed_deductions }}</span>
+            </div>
+            <div class="platform-list-item">
+                <div><strong>PIFSS Employee Deduction</strong></div>
+                <span class="badge badge-warning">{{ breakdown.pifss_employee_deduction }}</span>
+            </div>
+            <div class="platform-list-item">
+                <div><strong>PIFSS Employer Contribution</strong></div>
+                <span class="badge badge-light">{{ breakdown.pifss_employer_contribution }}</span>
             </div>
             <div class="platform-list-item">
                 <div><strong>Adjustment Deductions</strong></div>

@@ -1,10 +1,16 @@
+from datetime import timedelta
+
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
+from .email_sender import send_notification_email
 from .forms import NotificationPreferenceForm
-from .models import InAppNotification, get_notification_preferences_for_user
+from .models import InAppNotification, build_in_app_notification, get_notification_preferences_for_user
 
 
 NOTIFICATION_CATEGORY_ORDER = [
@@ -14,8 +20,190 @@ NOTIFICATION_CATEGORY_ORDER = [
     InAppNotification.CATEGORY_SCHEDULE,
     InAppNotification.CATEGORY_EMPLOYEE,
     InAppNotification.CATEGORY_HR,
+    InAppNotification.CATEGORY_CONTRACT,
     InAppNotification.CATEGORY_CALENDAR,
 ]
+
+
+def trigger_document_expiry_notifications(reference_date=None):
+    from employees.models import Employee
+
+    user_model = get_user_model()
+    reference_date = reference_date or timezone.localdate()
+    notification_cutoff = reference_date + timedelta(days=30)
+
+    hr_recipients = list(
+        user_model.objects.filter(
+            is_active=True,
+            role=user_model.ROLE_HR,
+        ).order_by("email", "id")
+    )
+    if not hr_recipients:
+        return []
+
+    employee_queryset = Employee.objects.select_related("branch").filter(is_active=True).order_by("full_name", "employee_id")
+    pending_notifications = []
+
+    for employee in employee_queryset:
+        document_entries = [
+            ("Civil ID", employee.civil_id_expiry_date),
+            ("Passport", employee.passport_expiry_date),
+        ]
+
+        for document_label, expiry_date in document_entries:
+            if not expiry_date or expiry_date < reference_date or expiry_date > notification_cutoff:
+                continue
+
+            days_until_expiry = (expiry_date - reference_date).days
+            title = f"{document_label} expiring soon for {employee.full_name}"
+            body = (
+                f"{employee.full_name} ({employee.employee_id}) in "
+                f"{employee.branch.name if employee.branch_id else 'No Branch'} has a {document_label.lower()} "
+                f"expiring on {expiry_date.strftime('%B %d, %Y')} "
+                f"({days_until_expiry} days remaining)."
+            )
+            action_url = reverse("employees:employee_detail", kwargs={"pk": employee.pk})
+
+            for recipient in hr_recipients:
+                already_exists = InAppNotification.objects.filter(
+                    recipient=recipient,
+                    category=InAppNotification.CATEGORY_HR,
+                    title=title,
+                    action_url=action_url,
+                    created_at__date=reference_date,
+                ).exists()
+                if already_exists:
+                    continue
+
+                notification = build_in_app_notification(
+                    recipient=recipient,
+                    title=title,
+                    body=body,
+                    category=InAppNotification.CATEGORY_HR,
+                    action_url=action_url,
+                    level=InAppNotification.LEVEL_WARNING,
+                )
+                if notification is None:
+                    continue
+
+                pending_notifications.append(notification)
+
+    return persist_in_app_notifications(pending_notifications)
+
+
+def trigger_contract_expiry_notifications(reference_date=None):
+    from employees.models import EmployeeContract
+
+    user_model = get_user_model()
+    reference_date = reference_date or timezone.localdate()
+    notification_cutoff = reference_date + timedelta(days=60)
+
+    hr_recipients = list(
+        user_model.objects.filter(
+            is_active=True,
+            role=user_model.ROLE_HR,
+        ).order_by("email", "id")
+    )
+    if not hr_recipients:
+        return []
+
+    contract_queryset = (
+        EmployeeContract.objects.select_related("employee", "employee__branch", "employee__company")
+        .filter(
+            is_active=True,
+            end_date__isnull=False,
+            end_date__gte=reference_date,
+            end_date__lte=notification_cutoff,
+        )
+        .order_by("end_date", "employee__full_name", "id")
+    )
+    pending_notifications = []
+
+    for contract in contract_queryset:
+        employee = contract.employee
+        days_until_expiry = (contract.end_date - reference_date).days
+        title = f"Contract expiring soon for {employee.full_name}"
+        body = (
+            f"{employee.full_name} ({employee.employee_id}) has an active "
+            f"{contract.get_contract_type_display().lower()} contract ending on "
+            f"{contract.end_date.strftime('%B %d, %Y')} "
+            f"({days_until_expiry} days remaining)"
+            f" in {employee.branch.name if employee.branch_id else 'No Branch'}."
+        )
+        action_url = reverse("employees:employee_detail", kwargs={"pk": employee.pk})
+
+        for recipient in hr_recipients:
+            already_exists = InAppNotification.objects.filter(
+                recipient=recipient,
+                category=InAppNotification.CATEGORY_CONTRACT,
+                title=title,
+                action_url=action_url,
+                created_at__date=reference_date,
+            ).exists()
+            if already_exists:
+                continue
+
+            notification = build_in_app_notification(
+                recipient=recipient,
+                title=title,
+                body=body,
+                category=InAppNotification.CATEGORY_CONTRACT,
+                action_url=action_url,
+                level=InAppNotification.LEVEL_WARNING,
+            )
+            if notification is None:
+                continue
+
+            pending_notifications.append(notification)
+
+    return persist_in_app_notifications(pending_notifications)
+
+
+def persist_in_app_notifications(notifications):
+    deduped_notifications = []
+    seen_keys = set()
+
+    for notification in notifications:
+        if notification is None:
+            continue
+        notification_key = (
+            notification.recipient_id,
+            notification.title,
+            notification.body,
+            notification.category,
+            notification.action_url,
+        )
+        if notification_key in seen_keys:
+            continue
+        seen_keys.add(notification_key)
+        deduped_notifications.append(notification)
+
+    saved_notifications = []
+    for notification in deduped_notifications:
+        notification.save()
+
+        preferences = get_notification_preferences_for_user(notification.recipient)
+        allow_email = bool(
+            preferences
+            and getattr(preferences, "email_enabled", True)
+            and getattr(notification.recipient, "email", "").strip()
+        )
+        if allow_email:
+            try:
+                send_notification_email(
+                    recipient_email=notification.recipient.email,
+                    subject=notification.title,
+                    body_text=notification.body,
+                )
+            except Exception:
+                pass
+            else:
+                notification.email_sent = True
+                notification.save(update_fields=["email_sent"])
+
+        saved_notifications.append(notification)
+
+    return saved_notifications
 
 
 def build_notification_category_cards(notifications):
@@ -36,6 +224,23 @@ def build_notification_category_cards(notifications):
     return cards
 
 
+def build_notification_category_summary(recipient):
+    category_label_map = dict(InAppNotification.CATEGORY_CHOICES)
+    base_queryset = InAppNotification.objects.filter(recipient=recipient)
+    cards = []
+    for category in NOTIFICATION_CATEGORY_ORDER:
+        category_queryset = base_queryset.filter(category=category)
+        cards.append(
+            {
+                "key": category,
+                "label": category_label_map.get(category, category.title()),
+                "total": category_queryset.count(),
+                "unread_total": category_queryset.filter(is_read=False).count(),
+            }
+        )
+    return cards
+
+
 def filter_visible_category_cards(category_cards, selected_category):
     if selected_category:
         return [
@@ -48,32 +253,40 @@ def filter_visible_category_cards(category_cards, selected_category):
 
 @login_required
 def notification_center(request):
-    all_notifications = list(InAppNotification.objects.filter(recipient=request.user)[:120])
-    unread_total = sum(1 for notification in all_notifications if not notification.is_read)
+    base_queryset = InAppNotification.objects.filter(recipient=request.user)
+    unread_total = base_queryset.filter(is_read=False).count()
     preferences = get_notification_preferences_for_user(request.user)
     selected_category = (request.GET.get("category") or "").strip()
     valid_categories = {choice[0] for choice in InAppNotification.CATEGORY_CHOICES}
     if selected_category and selected_category not in valid_categories:
         selected_category = ""
 
-    filtered_notifications = [
-        notification
-        for notification in all_notifications
-        if not selected_category or notification.category == selected_category
-    ]
-    category_cards = build_notification_category_cards(all_notifications)
+    filtered_queryset = base_queryset
+    if selected_category:
+        filtered_queryset = filtered_queryset.filter(category=selected_category)
+
+    paginator = Paginator(filtered_queryset, 25)
+    page_obj = paginator.get_page(request.GET.get("page"))
+    notifications = list(page_obj.object_list)
+    category_cards = build_notification_category_summary(request.user)
+    visible_category_cards = filter_visible_category_cards(
+        build_notification_category_cards(notifications),
+        selected_category,
+    )
     selected_category_label = dict(InAppNotification.CATEGORY_CHOICES).get(selected_category, "All Notifications")
 
     context = {
-        "notifications": filtered_notifications[:40],
-        "all_notifications_total": len(all_notifications),
+        "notifications": notifications,
+        "all_notifications_total": base_queryset.count(),
         "unread_total": unread_total,
         "preference_form": NotificationPreferenceForm(instance=preferences),
         "category_cards": category_cards,
-        "visible_category_cards": filter_visible_category_cards(category_cards, selected_category),
+        "visible_category_cards": visible_category_cards,
         "selected_category": selected_category,
         "selected_category_label": selected_category_label,
         "notification_categories": InAppNotification.CATEGORY_CHOICES,
+        "page_obj": page_obj,
+        "paginator": paginator,
     }
     return render(request, "notifications/center.html", context)
 
@@ -90,7 +303,7 @@ def mark_notification_read(request, pk):
 
 
 @login_required
-def mark_all_notifications_read(request):
+def mark_all_read(request):
     if request.method == "POST":
         unread_notifications = InAppNotification.objects.filter(recipient=request.user, is_read=False)
         unread_notifications.update(is_read=True, read_at=timezone.now())
@@ -99,7 +312,7 @@ def mark_all_notifications_read(request):
 
 
 @login_required
-def mark_notification_category_read(request, category):
+def mark_category_read(request, category):
     valid_categories = {choice[0] for choice in InAppNotification.CATEGORY_CHOICES}
     if request.method == "POST" and category in valid_categories:
         InAppNotification.objects.filter(

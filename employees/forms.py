@@ -18,9 +18,11 @@ from .models import (
     EmployeeAttendanceCorrection,
     EmployeeAttendanceEvent,
     EmployeeAttendanceLedger,
+    EmployeeContract,
     EmployeeDocument,
     EmployeeHistory,
     EmployeeLeave,
+    OvertimeRequest,
     EmployeeRequiredSubmission,
     EmployeeDocumentRequest,
 )
@@ -91,6 +93,8 @@ class EmployeeForm(forms.ModelForm):
             "civil_id_reference_number",
             "civil_id_issue_date",
             "civil_id_expiry_date",
+            "is_kuwaiti_national",
+            "pifss_registration_number",
             "salary",
             "is_active",
             "notes",
@@ -232,6 +236,9 @@ class EmployeeForm(forms.ModelForm):
         if civil_id_issue_date and civil_id_expiry_date and civil_id_issue_date > civil_id_expiry_date:
             self.add_error("civil_id_expiry_date", "Civil ID expiry date must be on or after the Civil ID issue date.")
 
+        if cleaned_data.get("is_kuwaiti_national") and not (cleaned_data.get("pifss_registration_number") or "").strip():
+            self.add_error("pifss_registration_number", "PIFSS registration number is required for Kuwaiti nationals.")
+
         if self._wants_login_account(cleaned_data):
             if not employee_email:
                 self.add_error("email", "Employee email is required when creating or updating a login account.")
@@ -261,6 +268,7 @@ class EmployeeForm(forms.ModelForm):
         employee_full_name = (cleaned_data.get("full_name") or "").strip()
         employee.email = employee_email
         employee.full_name = employee_full_name
+        employee.pifss_registration_number = (cleaned_data.get("pifss_registration_number") or "").strip()
         password1 = cleaned_data.get("password1")
         login_is_active = cleaned_data.get("login_is_active", True)
 
@@ -457,6 +465,117 @@ class EmployeeDocumentForm(forms.ModelForm):
     def clean_reference_number(self):
         reference_number = self.cleaned_data.get("reference_number", "")
         return reference_number.strip()
+
+
+class EmployeeContractForm(forms.ModelForm):
+    class Meta:
+        model = EmployeeContract
+        fields = [
+            "contract_type",
+            "start_date",
+            "end_date",
+            "probation_end_date",
+            "is_active",
+            "notes",
+        ]
+        widgets = {
+            "start_date": forms.DateInput(attrs={"type": "date"}),
+            "end_date": forms.DateInput(attrs={"type": "date"}),
+            "probation_end_date": forms.DateInput(attrs={"type": "date"}),
+            "notes": forms.Textarea(
+                attrs={
+                    "rows": 3,
+                    "placeholder": "Optional contract notes, renewal comments, or special terms...",
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for field_name, field in self.fields.items():
+            widget = field.widget
+            if isinstance(widget, forms.CheckboxInput):
+                widget.attrs["class"] = "form-check-input"
+            else:
+                existing = widget.attrs.get("class", "")
+                widget.attrs["class"] = f"{existing} form-control".strip()
+
+        self.fields["notes"].required = False
+
+    def clean_notes(self):
+        return (self.cleaned_data.get("notes") or "").strip()
+
+
+class EmployeeOvertimeRequestForm(forms.ModelForm):
+    class Meta:
+        model = OvertimeRequest
+        fields = [
+            "date",
+            "hours_requested",
+            "reason",
+        ]
+        widgets = {
+            "date": forms.DateInput(attrs={"type": "date"}),
+            "reason": forms.Textarea(
+                attrs={
+                    "rows": 3,
+                    "placeholder": "Explain why the overtime was needed and what work was completed...",
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for field_name, field in self.fields.items():
+            widget = field.widget
+            if isinstance(widget, forms.CheckboxInput):
+                widget.attrs["class"] = "form-check-input"
+            else:
+                existing = widget.attrs.get("class", "")
+                widget.attrs["class"] = f"{existing} form-control".strip()
+
+    def clean_reason(self):
+        reason = (self.cleaned_data.get("reason") or "").strip()
+        if not reason:
+            raise forms.ValidationError("Reason is required.")
+        return reason
+
+
+class OvertimeRequestReviewForm(forms.ModelForm):
+    class Meta:
+        model = OvertimeRequest
+        fields = [
+            "status",
+            "review_note",
+        ]
+        widgets = {
+            "review_note": forms.Textarea(
+                attrs={
+                    "rows": 3,
+                    "placeholder": "Optional approval note or rejection reason...",
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["status"].choices = [
+            (OvertimeRequest.STATUS_APPROVED, "Approve"),
+            (OvertimeRequest.STATUS_REJECTED, "Reject"),
+        ]
+        for field_name, field in self.fields.items():
+            widget = field.widget
+            if isinstance(widget, forms.CheckboxInput):
+                widget.attrs["class"] = "form-check-input"
+            else:
+                existing = widget.attrs.get("class", "")
+                widget.attrs["class"] = f"{existing} form-control".strip()
+        self.fields["review_note"].required = False
+
+    def clean_review_note(self):
+        return (self.cleaned_data.get("review_note") or "").strip()
 
 
 class EmployeeRequiredSubmissionCreateForm(forms.ModelForm):

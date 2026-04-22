@@ -1938,6 +1938,21 @@ class EmployeeDetailView(LoginRequiredMixin, DetailView):
         required_document_count = sum(1 for document in documents if document.is_required)
         expired_document_count = sum(1 for document in documents if document.is_expired)
         expiring_soon_count = sum(1 for document in documents if document.is_expiring_soon)
+        contract_records = list(employee.contracts.all())
+        contract_form = kwargs.get("contract_form") or EmployeeContractForm()
+        active_contract_count = sum(1 for contract in contract_records if contract.is_active)
+        expiring_contract_count = sum(
+            1
+            for contract in contract_records
+            if contract.days_until_expiry is not None and 0 <= contract.days_until_expiry <= 30
+        )
+        expired_contract_count = sum(
+            1
+            for contract in contract_records
+            if contract.days_until_expiry is not None and contract.days_until_expiry < 0
+        )
+        for contract in contract_records:
+            contract.edit_form = EmployeeContractForm(instance=contract)
 
         leave_records = list(employee.leave_records.all())
         for leave_record in leave_records:
@@ -2042,6 +2057,12 @@ class EmployeeDetailView(LoginRequiredMixin, DetailView):
         context["required_document_count"] = required_document_count
         context["expired_document_count"] = expired_document_count
         context["expiring_soon_count"] = expiring_soon_count
+        context["contract_records"] = contract_records
+        context["contract_form"] = contract_form
+        context["contract_total"] = len(contract_records)
+        context["active_contract_count"] = active_contract_count
+        context["expiring_contract_count"] = expiring_contract_count
+        context["expired_contract_count"] = expired_contract_count
         context["identity_document_statuses"] = identity_document_statuses
 
         context["required_submission_create_form"] = required_submission_create_form
@@ -2149,6 +2170,7 @@ class EmployeeDetailView(LoginRequiredMixin, DetailView):
         context["can_change_status"] = can_change_status
         context["employee_status_choices"] = Employee.EMPLOYMENT_STATUS_CHOICES
         context["can_manage_documents"] = can_manage_documents
+        context["can_manage_contracts"] = can_edit_employee
         context["can_manage_employee_required_submissions"] = can_manage_employee_required_submissions(current_user, employee) and not is_self_profile
         context["can_use_profile_section_edit"] = can_edit_employee
         from .views_action_center import EmployeeIdentityModalForm, EmployeeInformationModalForm

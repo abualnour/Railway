@@ -46,6 +46,88 @@ def self_service_leave_page(request):
     return render(request, "employees/self_service_leave.html", context)
 
 
+def build_self_service_overtime_context(request, employee, *, form=None):
+    overtime_requests = list(
+        employee.overtime_requests.select_related("reviewed_by").order_by("-date", "-created_at", "-id")
+    )
+    context = build_self_service_page_context(
+        request,
+        employee,
+        current_section="overtime",
+    )
+    context["overtime_request_form"] = form or EmployeeOvertimeRequestForm(
+        initial={"date": timezone.localdate()}
+    )
+    context["overtime_requests"] = overtime_requests
+    context["overtime_request_total"] = len(overtime_requests)
+    context["overtime_pending_count"] = sum(
+        1 for overtime_request in overtime_requests if overtime_request.status == OvertimeRequest.STATUS_PENDING
+    )
+    context["overtime_approved_count"] = sum(
+        1 for overtime_request in overtime_requests if overtime_request.status == OvertimeRequest.STATUS_APPROVED
+    )
+    context["overtime_rejected_count"] = sum(
+        1 for overtime_request in overtime_requests if overtime_request.status == OvertimeRequest.STATUS_REJECTED
+    )
+    return context
+
+
+@login_required
+def overtime_request_list(request):
+    employee = get_user_employee_profile(request.user)
+    if employee is None:
+        raise PermissionDenied("No employee profile is connected to this account.")
+    if not can_view_employee_profile(request.user, employee):
+        return deny_employee_access(
+            request,
+            "You do not have permission to view this employee overtime workspace.",
+            employee=employee,
+        )
+
+    context = build_self_service_overtime_context(request, employee)
+    return render(request, "employees/self_service_overtime.html", context)
+
+
+@login_required
+@require_POST
+def overtime_request_create(request):
+    employee = get_user_employee_profile(request.user)
+    if employee is None:
+        raise PermissionDenied("No employee profile is connected to this account.")
+    if not can_view_employee_profile(request.user, employee):
+        return deny_employee_access(
+            request,
+            "You do not have permission to submit overtime requests from this account.",
+            employee=employee,
+        )
+
+    form = EmployeeOvertimeRequestForm(request.POST)
+    if form.is_valid():
+        overtime_request = form.save(commit=False)
+        overtime_request.employee = employee
+        overtime_request.status = OvertimeRequest.STATUS_PENDING
+        overtime_request.save()
+
+        create_employee_history(
+            employee=employee,
+            title="Overtime request submitted",
+            description=(
+                f"Submitted overtime request for {overtime_request.hours_requested} hour(s) "
+                f"on {overtime_request.date:%B %d, %Y}. Reason: {overtime_request.reason}"
+            ),
+            event_type=EmployeeHistory.EVENT_STATUS,
+            created_by=get_actor_label(request.user),
+            is_system_generated=True,
+            event_date=overtime_request.date,
+        )
+        messages.success(request, "Overtime request submitted successfully.")
+        return redirect("employees:overtime_request_list")
+
+    messages.error(request, "Please review the overtime request form and try again.")
+    context = build_self_service_overtime_context(request, employee, form=form)
+    return render(request, "employees/self_service_overtime.html", context, status=400)
+
+
 @login_required
 def self_service_documents_page(request):
     employee = get_user_employee_profile(request.user)

@@ -22,6 +22,8 @@ class ActionCenterEmployeeProfileForm(forms.ModelForm):
             "civil_id_reference_number",
             "civil_id_issue_date",
             "civil_id_expiry_date",
+            "is_kuwaiti_national",
+            "pifss_registration_number",
             "salary",
             "notes",
         ]
@@ -83,6 +85,12 @@ class ActionCenterEmployeeProfileForm(forms.ModelForm):
                 "Civil ID expiry date must be on or after the Civil ID issue date.",
             )
 
+        if cleaned_data.get("is_kuwaiti_national") and not (cleaned_data.get("pifss_registration_number") or "").strip():
+            self.add_error(
+                "pifss_registration_number",
+                "PIFSS registration number is required for Kuwaiti nationals.",
+            )
+
         return cleaned_data
 
 
@@ -98,6 +106,8 @@ class EmployeeInformationModalForm(ActionCenterEmployeeProfileForm):
             "marital_status",
             "nationality",
             "hire_date",
+            "is_kuwaiti_national",
+            "pifss_registration_number",
             "salary",
         ]
 
@@ -122,6 +132,8 @@ def build_employee_payroll_modal_summary(old_profile, new_profile):
         ("housing_allowance", "Housing allowance"),
         ("transport_allowance", "Transport allowance"),
         ("fixed_deduction", "Fixed deduction"),
+        ("pifss_employee_rate", "PIFSS employee rate"),
+        ("pifss_employer_rate", "PIFSS employer rate"),
         ("bank_name", "Bank name"),
         ("iban", "IBAN"),
         ("status", "Payroll status"),
@@ -148,6 +160,8 @@ def build_employee_information_modal_summary(old_employee, new_employee):
         ("marital_status", "Marital status"),
         ("nationality", "Nationality"),
         ("hire_date", "Hire date"),
+        ("is_kuwaiti_national", "Kuwaiti national status"),
+        ("pifss_registration_number", "PIFSS registration number"),
         ("salary", "Salary"),
     ]
 

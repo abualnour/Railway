@@ -3,6 +3,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from notifications.models import InAppNotification, build_in_app_notification
+from notifications.views import persist_in_app_notifications
 
 from .models import HRAnnouncement, HRPolicy
 
@@ -53,7 +54,7 @@ def dispatch_hr_notifications(users, *, title, body, level=InAppNotification.LEV
         )
     notifications = [notification for notification in notifications if notification is not None]
     if notifications:
-        InAppNotification.objects.bulk_create(notifications)
+        persist_in_app_notifications(notifications)
 
 
 @receiver(post_save, sender=HRAnnouncement)

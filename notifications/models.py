@@ -20,6 +20,7 @@ class InAppNotification(models.Model):
     CATEGORY_SCHEDULE = "schedule"
     CATEGORY_EMPLOYEE = "employee"
     CATEGORY_HR = "hr"
+    CATEGORY_CONTRACT = "contract"
     CATEGORY_CALENDAR = "calendar"
 
     CATEGORY_CHOICES = [
@@ -29,6 +30,7 @@ class InAppNotification(models.Model):
         (CATEGORY_SCHEDULE, "Schedule"),
         (CATEGORY_EMPLOYEE, "Employee Updates"),
         (CATEGORY_HR, "HR"),
+        (CATEGORY_CONTRACT, "Contract"),
         (CATEGORY_CALENDAR, "Calendar"),
     ]
 
@@ -43,6 +45,7 @@ class InAppNotification(models.Model):
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default=LEVEL_INFO)
     action_url = models.CharField(max_length=255, blank=True)
     is_read = models.BooleanField(default=False)
+    email_sent = models.BooleanField(default=False)
     read_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -73,6 +76,7 @@ class NotificationPreference(models.Model):
     payroll_employee_in_app_enabled = models.BooleanField(default=True)
     payroll_employee_email_enabled = models.BooleanField(default=True)
     payroll_employee_include_pdf_link = models.BooleanField(default=True)
+    email_enabled = models.BooleanField(default=True)
     request_in_app_enabled = models.BooleanField(default=True)
     operations_in_app_enabled = models.BooleanField(default=True)
     schedule_in_app_enabled = models.BooleanField(default=True)
@@ -103,6 +107,7 @@ CATEGORY_PREFERENCE_FIELD_MAP = {
     InAppNotification.CATEGORY_SCHEDULE: "schedule_in_app_enabled",
     InAppNotification.CATEGORY_EMPLOYEE: "employee_in_app_enabled",
     InAppNotification.CATEGORY_HR: "hr_in_app_enabled",
+    InAppNotification.CATEGORY_CONTRACT: "hr_in_app_enabled",
     InAppNotification.CATEGORY_CALENDAR: "calendar_in_app_enabled",
 }
 
