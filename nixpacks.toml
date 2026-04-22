@@ -1,0 +1,27 @@
+[phases.setup]
+aptPkgs = [
+    "python3.12",
+    "python3.12-venv",
+    "python3.12-dev",
+    "python3-pip",
+    "build-essential",
+    "pkg-config",
+    "libcairo2-dev",
+    "libpango1.0-dev",
+    "libgdk-pixbuf-2.0-0",
+    "libgdk-pixbuf2.0-dev",
+    "libglib2.0-dev",
+    "libfontconfig1-dev",
+    "libfreetype6-dev",
+    "libffi-dev",
+    "postgresql-client",
+    "meson",
+    "ninja-build",
+]
+
+[phases.install]
+cmds = [
+    "python3.12 -m venv /opt/venv",
+    ". /opt/venv/bin/activate && python -m pip install --upgrade pip setuptools wheel",
+    ". /opt/venv/bin/activate && pip install -r requirements.txt"
+]

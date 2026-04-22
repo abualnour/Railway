@@ -44,7 +44,7 @@ HR_BACKUP_ROOT=/data/backups
 ```
 
 For full PostgreSQL backup ZIP support, Railway also needs the PostgreSQL client tool (`pg_dump`).
-This repository now includes [nixpacks.toml](C:\Users\AbuNour\Desktop\NourAxis\nixpacks.toml) to request the `postgresql` package during Railway build.
+Railway is configured in [railway.toml](C:\Users\AbuNour\Desktop\NourAxis\railway.toml) to build with Nixpacks, so the active [nixpacks.toml](C:\Users\AbuNour\Desktop\NourAxis\nixpacks.toml) file is what requests the PostgreSQL client during deploy.
 Railway is currently using Railpack with `mise`, so the committed [.python-version](C:\Users\AbuNour\Desktop\NourAxis\.python-version) file is the important Python-version source for deploys.
 If you prefer an explicit override, you can also set:
 

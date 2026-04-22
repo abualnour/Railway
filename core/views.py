@@ -829,11 +829,16 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
         if action in {"create_backup", "create_backup_server"}:
             note = (request.POST.get("backup_note") or "").strip()
             try:
-                backup_file = self.create_backup(note=note)
+                backup_file, database_backup_warning = self.create_backup(note=note)
             except Exception as exc:
                 messages.error(request, f"Backup creation failed: {exc}")
             else:
                 messages.success(request, f"Backup created successfully on server: {backup_file.name}")
+                if database_backup_warning:
+                    messages.warning(
+                        request,
+                        f"Backup was created, but the database dump was not included. {database_backup_warning}",
+                    )
             return redirect("backup_center")
 
         if action == "download_backup_now":
@@ -1238,7 +1243,7 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
                     database_backup_warning=database_backup_warning,
                 )
 
-        return backup_file
+        return backup_file, database_backup_warning
 
     def download_backup_response(self, note=""):
         filename, safe_note = self.build_backup_filename(note=note)
@@ -1259,6 +1264,11 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
         buffer.seek(0)
         response = HttpResponse(buffer.getvalue(), content_type="application/zip")
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        if database_backup_warning:
+            messages.warning(
+                self.request,
+                f"Backup downloaded, but the database dump was not included. {database_backup_warning}",
+            )
         return response
 
     def format_size_label(self, size_bytes):
