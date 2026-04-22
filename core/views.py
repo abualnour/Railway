@@ -849,6 +849,18 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
                 messages.error(request, f"Backup download failed: {exc}")
                 return redirect("backup_center")
 
+        if action == "check_database_backup":
+            try:
+                result = self.run_database_backup_preflight()
+            except Exception as exc:
+                messages.error(request, f"Database backup pre-check failed: {exc}")
+            else:
+                if result.get("ok"):
+                    messages.success(request, result["message"])
+                else:
+                    messages.warning(request, result["message"])
+            return redirect("backup_center")
+
         if action == "export_employee_master":
             return self.export_employee_master_data()
 
@@ -1057,6 +1069,87 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
             "archive_name": "",
             "available": False,
             "help_text": "The current database engine is not configured for automatic backup export yet.",
+        }
+
+    def get_pg_dump_version_text(self):
+        if not self.is_postgres_database():
+            return ""
+
+        pg_dump_command = self.get_pg_dump_command()
+        try:
+            completed = subprocess.run(
+                [pg_dump_command, "--version"],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=20,
+            )
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            return ""
+
+        version_text = (completed.stdout or completed.stderr or "").strip()
+        return version_text
+
+    def run_database_backup_preflight(self):
+        if self.is_postgres_database():
+            pg_dump_command = self.get_pg_dump_command()
+            version_text = self.get_pg_dump_version_text()
+            with tempfile.TemporaryDirectory() as temp_dir:
+                probe_output_path = Path(temp_dir) / "postgresql_preflight.sql"
+                command = [
+                    pg_dump_command,
+                    "--schema-only",
+                    "--file",
+                    str(probe_output_path),
+                    "--format=plain",
+                    "--encoding=UTF8",
+                    "--no-owner",
+                    "--no-privileges",
+                    "--dbname",
+                    self.build_postgres_conninfo(),
+                ]
+                try:
+                    completed = subprocess.run(
+                        command,
+                        check=False,
+                        capture_output=True,
+                        text=True,
+                        timeout=120,
+                    )
+                except FileNotFoundError:
+                    return {
+                        "ok": False,
+                        "message": "Database backup pre-check failed because pg_dump is not installed in this environment.",
+                    }
+                except subprocess.TimeoutExpired:
+                    return {
+                        "ok": False,
+                        "message": "Database backup pre-check timed out while trying to reach PostgreSQL with pg_dump.",
+                    }
+
+            if completed.returncode != 0:
+                stderr_text = (completed.stderr or completed.stdout or "").strip()
+                version_suffix = f" Tool: {version_text}." if version_text else ""
+                return {
+                    "ok": False,
+                    "message": f"Database backup pre-check failed.{version_suffix} {stderr_text or 'pg_dump returned a non-zero exit code.'}".strip(),
+                }
+
+            version_suffix = f" using {version_text}" if version_text else ""
+            return {
+                "ok": True,
+                "message": f"Database backup pre-check passed{version_suffix}. The server can generate a PostgreSQL dump.",
+            }
+
+        if self.is_sqlite_database():
+            return {
+                "ok": True,
+                "message": "This environment uses SQLite, so the database file can be copied directly into the backup ZIP.",
+            }
+
+        return {
+            "ok": False,
+            "message": "This environment is not configured with a supported automatic database backup mode.",
         }
 
     def build_database_backup_file(self, temp_dir):
