@@ -1,10 +1,12 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
+from fileinput import filename
 import io
 import re
 import shutil
 import subprocess
 import tempfile
+from urllib import response
 import zipfile
 from pathlib import Path
 
@@ -1011,62 +1013,70 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
             "help_text": "The current database engine is not configured for automatic backup export yet.",
         }
 
-    def build_database_backup_file(self, temp_dir):
-        database_settings = self.get_database_settings()
-        if self.is_postgres_database():
-            pg_dump_command = self.get_pg_dump_command()
-            dump_output_path = Path(temp_dir) / "postgresql_dump.sql"
-            command = [
-                pg_dump_command,
-                "--file",
-                str(dump_output_path),
-                "--format=plain",
-                "--encoding=UTF8",
-                "--no-owner",
-                "--no-privileges",
-                "--dbname",
-                self.build_postgres_conninfo(),
-            ]
-            try:
-                completed = subprocess.run(
-                    command,
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                )
-            except FileNotFoundError as exc:
-                raise ValueError(
-                    "pg_dump is not available. Set HR_BACKUP_PG_DUMP_COMMAND to the correct executable path."
-                ) from exc
-            if completed.returncode != 0:
-                stderr_text = (completed.stderr or completed.stdout or "").strip()
-                raise ValueError(f"PostgreSQL backup failed: {stderr_text or 'pg_dump returned a non-zero exit code.'}")
-            if not dump_output_path.exists():
-                raise ValueError("PostgreSQL backup failed: pg_dump did not create the dump file.")
+def build_database_backup_file(self, temp_dir):
+    database_settings = self.get_database_settings()
+
+    if self.is_postgres_database():
+        pg_dump_command = self.get_pg_dump_command()
+        dump_output_path = Path(temp_dir) / "postgresql_dump.sql"
+        command = [
+            pg_dump_command,
+            "--file",
+            str(dump_output_path),
+            "--format=plain",
+            "--encoding=UTF8",
+            "--no-owner",
+            "--no-privileges",
+            "--dbname",
+            self.build_postgres_conninfo(),
+        ]
+        try:
+            completed = subprocess.run(
+                command,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+        except FileNotFoundError:
+            return None, (
+                "PostgreSQL dump was skipped because pg_dump is not available in this environment."
+            )
+
+        if completed.returncode != 0:
+            stderr_text = (completed.stderr or completed.stdout or "").strip()
+            return None, (
+                f"PostgreSQL dump was skipped. {stderr_text or 'pg_dump returned a non-zero exit code.'}"
+            )
+
+        if not dump_output_path.exists():
+            return None, (
+                "PostgreSQL dump was skipped because pg_dump did not create the dump file."
+            )
+
+        return {
+            "path": dump_output_path,
+            "archive_name": "database/postgresql_dump.sql",
+            "manifest_label": "PostgreSQL SQL dump",
+        }, ""
+
+    if self.is_sqlite_database():
+        database_name = str(database_settings.get("NAME") or "").strip()
+        if not database_name:
+            return None, ""
+        sqlite_path = Path(database_name)
+        if not sqlite_path.exists():
+            return None, f"SQLite database file not found: {sqlite_path}"
+        try:
+            sqlite_path.relative_to(settings.BASE_DIR)
+            return None, ""
+        except ValueError:
             return {
-                "path": dump_output_path,
-                "archive_name": "database/postgresql_dump.sql",
-                "manifest_label": "PostgreSQL SQL dump",
-            }
+                "path": sqlite_path,
+                "archive_name": "database/sqlite_backup.sqlite3",
+                "manifest_label": "SQLite database file",
+            }, ""
 
-        if self.is_sqlite_database():
-            database_name = str(database_settings.get("NAME") or "").strip()
-            if not database_name:
-                return None
-            sqlite_path = Path(database_name)
-            if not sqlite_path.exists():
-                raise ValueError(f"SQLite database file not found: {sqlite_path}")
-            try:
-                sqlite_path.relative_to(settings.BASE_DIR)
-                return None
-            except ValueError:
-                return {
-                    "path": sqlite_path,
-                    "archive_name": "database/sqlite_backup.sqlite3",
-                    "manifest_label": "SQLite database file",
-                }
-
-        return None
+    return None, ""
 
     def should_skip_dir(self, dir_name):
         excluded = set(getattr(settings, "HR_BACKUP_EXCLUDE_DIR_NAMES", set()))
@@ -1098,67 +1108,80 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
             filename = f"{filename}_{safe_note}"
         return f"{filename}.zip", safe_note
 
-    def write_backup_zip(self, zip_handle, archive_label, safe_note, backup_root_label, database_backup_file=None):
-        include_paths = self.get_include_paths()
-        if not include_paths:
-            raise ValueError("No valid backup include paths were found in settings.py.")
-        recent_update_items = self.get_backup_recent_update_items()
-        next_focus_items = self.get_backup_next_focus_items()
+def write_backup_zip(
+    self,
+    zip_handle,
+    archive_label,
+    safe_note,
+    backup_root_label,
+    database_backup_file=None,
+    database_backup_warning="",
+):
+    include_paths = self.get_include_paths()
+    if not include_paths:
+        raise ValueError("No valid backup include paths were found in settings.py.")
+    recent_update_items = self.get_backup_recent_update_items()
+    next_focus_items = self.get_backup_next_focus_items()
 
-        manifest_lines = [
-            "NourAxis Backup Manifest",
-            f"Created at: {timezone.localtime().strftime('%Y-%m-%d %H:%M:%S %Z')}",
-            f"Created by: {self.request.user.get_username()}",
-            f"Backup file: {archive_label}",
-            f"Backup root: {backup_root_label}",
-            f"Note: {safe_note or '—'}",
-            "",
-            "Database backup:",
-        ]
-        if database_backup_file:
-            manifest_lines.append(
-                f"- Included: {database_backup_file['manifest_label']} -> {database_backup_file['archive_name']}"
-            )
-        else:
-            manifest_lines.append("- Included: project-level database file only (if already part of include paths)")
-        manifest_lines.extend([
-            "",
-            "Included paths:",
-        ])
-        for include_path in include_paths:
-            manifest_lines.append(f"- {include_path.relative_to(settings.BASE_DIR)}")
-        manifest_lines.extend([
-            "",
-            "Recent implementation snapshot:",
-        ])
-        for update_item in recent_update_items:
-            manifest_lines.append(f"- {update_item['title']}: {update_item['summary']}")
-            for path in update_item["paths"]:
-                manifest_lines.append(f"  * {path}")
-        manifest_lines.extend([
-            "",
-            "Recommended next focus:",
-        ])
-        for item in next_focus_items:
-            manifest_lines.append(f"- {item}")
+    manifest_lines = [
+        "NourAxis Backup Manifest",
+        f"Created at: {timezone.localtime().strftime('%Y-%m-%d %H:%M:%S %Z')}",
+        f"Created by: {self.request.user.get_username()}",
+        f"Backup file: {archive_label}",
+        f"Backup root: {backup_root_label}",
+        f"Note: {safe_note or '—'}",
+        "",
+        "Database backup:",
+    ]
+    if database_backup_file:
+        manifest_lines.append(
+            f"- Included: {database_backup_file['manifest_label']} -> {database_backup_file['archive_name']}"
+        )
+    else:
+        manifest_lines.append("- Included: No database dump file was added to this ZIP.")
+    if database_backup_warning:
+        manifest_lines.append(f"- Warning: {database_backup_warning}")
 
-        for include_path in include_paths:
-            if include_path.is_file():
-                archive_name = include_path.relative_to(settings.BASE_DIR)
-                zip_handle.write(include_path, arcname=str(archive_name))
-                continue
+    manifest_lines.extend([
+        "",
+        "Included paths:",
+    ])
+    for include_path in include_paths:
+        manifest_lines.append(f"- {include_path.relative_to(settings.BASE_DIR)}")
 
-            for child_file in self.iter_backup_files(include_path):
-                archive_name = child_file.relative_to(settings.BASE_DIR)
-                zip_handle.write(child_file, arcname=str(archive_name))
+    manifest_lines.extend([
+        "",
+        "Recent implementation snapshot:",
+    ])
+    for update_item in recent_update_items:
+        manifest_lines.append(f"- {update_item['title']}: {update_item['summary']}")
+        for path in update_item["paths"]:
+            manifest_lines.append(f"  * {path}")
 
-        if database_backup_file:
-            zip_handle.write(
-                database_backup_file["path"],
-                arcname=database_backup_file["archive_name"],
-            )
+    manifest_lines.extend([
+        "",
+        "Recommended next focus:",
+    ])
+    for item in next_focus_items:
+        manifest_lines.append(f"- {item}")
 
-        zip_handle.writestr("backup_manifest.txt", "\n".join(manifest_lines))
+    for include_path in include_paths:
+        if include_path.is_file():
+            archive_name = include_path.relative_to(settings.BASE_DIR)
+            zip_handle.write(include_path, arcname=str(archive_name))
+            continue
+
+        for child_file in self.iter_backup_files(include_path):
+            archive_name = child_file.relative_to(settings.BASE_DIR)
+            zip_handle.write(child_file, arcname=str(archive_name))
+
+    if database_backup_file:
+        zip_handle.write(
+            database_backup_file["path"],
+            arcname=database_backup_file["archive_name"],
+        )
+
+    zip_handle.writestr("backup_manifest.txt", "\n".join(manifest_lines))
 
     def create_backup(self, note=""):
         backup_root = self.get_backup_root()
@@ -1166,7 +1189,7 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
         backup_file = backup_root / filename
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            database_backup_file = self.build_database_backup_file(temp_dir)
+            database_backup_file, database_backup_warning = self.build_database_backup_file(temp_dir)
             with zipfile.ZipFile(backup_file, "w", compression=zipfile.ZIP_DEFLATED) as zip_handle:
                 self.write_backup_zip(
                     zip_handle=zip_handle,
@@ -1174,6 +1197,7 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
                     safe_note=safe_note,
                     backup_root_label=str(backup_root),
                     database_backup_file=database_backup_file,
+                    database_backup_warning=database_backup_warning,
                 )
 
         return backup_file
@@ -1183,7 +1207,7 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
         buffer = io.BytesIO()
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            database_backup_file = self.build_database_backup_file(temp_dir)
+            database_backup_file, database_backup_warning = self.build_database_backup_file(temp_dir)
             with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as zip_handle:
                 self.write_backup_zip(
                     zip_handle=zip_handle,
@@ -1191,6 +1215,7 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
                     safe_note=safe_note,
                     backup_root_label="Downloaded to browser",
                     database_backup_file=database_backup_file,
+                    database_backup_warning=database_backup_warning,
                 )
 
         buffer.seek(0)
