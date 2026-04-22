@@ -94,7 +94,8 @@ def mark_all_notifications_read(request):
     if request.method == "POST":
         unread_notifications = InAppNotification.objects.filter(recipient=request.user, is_read=False)
         unread_notifications.update(is_read=True, read_at=timezone.now())
-    return redirect("notifications:home")
+    next_url = (request.POST.get("next") or "").strip() if request.method == "POST" else ""
+    return redirect(next_url or "notifications:home")
 
 
 @login_required
@@ -112,6 +113,7 @@ def mark_notification_category_read(request, category):
 
 @login_required
 def update_notification_preferences(request):
+    next_url = (request.POST.get("next") or "").strip() if request.method == "POST" else ""
     if request.method == "POST":
         preferences = get_notification_preferences_for_user(request.user)
         form = NotificationPreferenceForm(request.POST, instance=preferences)
@@ -123,4 +125,4 @@ def update_notification_preferences(request):
             )
         else:
             messages.error(request, "Please review the notification preference settings.")
-    return redirect("notifications:home")
+    return redirect(next_url or "notifications:home")

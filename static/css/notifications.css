@@ -24,12 +24,10 @@
 }
 
 .notification-preference-group {
-    border: 1px solid color-mix(in srgb, var(--border-color) 78%, white);
+    border: 1px solid var(--border);
     border-radius: 20px;
     padding: 20px;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.7)),
-        var(--surface-gradient-2);
+    background: var(--surface-gradient-3);
     display: grid;
     gap: 14px;
 }
@@ -46,7 +44,7 @@
 
 .notification-preference-group-head p {
     margin: 0;
-    color: var(--text-muted);
+    color: var(--color-text-soft);
 }
 
 .notification-preference-toggle {
@@ -55,8 +53,8 @@
     gap: 14px;
     padding: 14px 16px;
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.75);
-    border: 1px solid color-mix(in srgb, var(--border-color) 72%, white);
+    background: color-mix(in srgb, var(--color-surface-2) 88%, transparent);
+    border: 1px solid var(--border);
 }
 
 .notification-preference-toggle input {
@@ -74,7 +72,7 @@
 }
 
 .notification-preference-toggle small {
-    color: var(--text-muted);
+    color: var(--color-text-soft);
 }
 
 .notification-filter-bar {
@@ -90,10 +88,11 @@
     gap: 10px;
     padding: 10px 14px;
     border-radius: 999px;
-    border: 1px solid color-mix(in srgb, var(--border-color) 76%, white);
-    background: rgba(255, 255, 255, 0.8);
-    color: inherit;
+    border: 1px solid var(--surface-interactive-neutral-border);
+    background: var(--surface-interactive-neutral-bg);
+    color: var(--color-text);
     text-decoration: none;
+    transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
 .notification-filter-chip strong {
@@ -101,12 +100,24 @@
     text-align: center;
     padding: 2px 8px;
     border-radius: 999px;
-    background: rgba(15, 23, 42, 0.08);
+    background: color-mix(in srgb, var(--color-surface-2) 82%, transparent);
+    color: var(--color-text);
 }
 
 .notification-filter-chip.is-active {
-    border-color: color-mix(in srgb, var(--accent-primary) 55%, white);
-    background: color-mix(in srgb, var(--accent-primary) 10%, white);
+    border-color: color-mix(in srgb, var(--color-primary, #f59e0b) 34%, var(--surface-interactive-neutral-border));
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--color-primary, #f59e0b) 18%, transparent) 0%, transparent 100%),
+        var(--surface-interactive-neutral-bg-hover);
+    color: var(--color-text-strong);
+}
+
+.notification-filter-chip:hover,
+.notification-filter-chip:focus-visible {
+    border-color: var(--surface-interactive-neutral-border-hover);
+    background: var(--surface-interactive-neutral-bg-hover);
+    color: var(--color-text-strong);
+    transform: translateY(-1px);
 }
 
 .notification-group-list {
@@ -134,7 +145,7 @@
 
 .notification-category-group-head p {
     margin: 4px 0 0;
-    color: var(--text-muted);
+    color: var(--color-text-soft);
 }
 
 .notification-empty-actions {

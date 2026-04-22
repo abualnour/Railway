@@ -32,6 +32,7 @@
                 {% if unread_total %}
                 <form method="post" action="{% url 'notifications:mark_all_read' %}">
                     {% csrf_token %}
+                    <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#recent-notifications{% else %}{% url 'notifications:home' %}#recent-notifications{% endif %}">
                     <button type="submit" class="btn btn-primary btn-sm">Mark All Read</button>
                 </form>
                 {% endif %}
@@ -39,13 +40,14 @@
         </div>
     </section>
 
-    <section class="platform-panel">
+    <section class="platform-panel" id="notification-preferences">
         <div class="platform-panel-head">
             <h2>Delivery Preferences</h2>
             <p>Choose how payroll delivery and in-app category alerts should reach you across the system.</p>
         </div>
         <form method="post" action="{% url 'notifications:preferences' %}" class="platform-form-grid notification-preferences-form">
             {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'notifications:home' %}#notification-preferences">
             <div class="notification-preference-group platform-form-span">
                 <div class="notification-preference-group-head">
                     <h3>Management Workflow Alerts</h3>
@@ -159,18 +161,18 @@
         </form>
     </section>
 
-    <section class="platform-panel">
+    <section class="platform-panel" id="recent-notifications">
         <div class="platform-panel-head">
             <h2>Recent Notifications</h2>
             <p>Filter by category, review grouped source areas, and clear unread items category by category when needed.</p>
         </div>
         <div class="notification-filter-bar">
-            <a href="{% url 'notifications:home' %}" class="notification-filter-chip{% if not selected_category %} is-active{% endif %}">
+            <a href="{% url 'notifications:home' %}#recent-notifications" class="notification-filter-chip{% if not selected_category %} is-active{% endif %}">
                 <span>All Notifications</span>
                 <strong>{{ all_notifications_total }}</strong>
             </a>
             {% for category in category_cards %}
-            <a href="{% url 'notifications:home' %}?category={{ category.key }}" class="notification-filter-chip{% if selected_category == category.key %} is-active{% endif %}">
+            <a href="{% url 'notifications:home' %}?category={{ category.key }}#recent-notifications" class="notification-filter-chip{% if selected_category == category.key %} is-active{% endif %}">
                 <span>{{ category.label }}</span>
                 <strong>{{ category.total }}</strong>
             </a>
@@ -188,7 +190,7 @@
                     {% if category.unread_total %}
                     <form method="post" action="{% url 'notifications:mark_category_read' category.key %}" class="notification-category-action">
                         {% csrf_token %}
-                        <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}{% else %}{% url 'notifications:home' %}{% endif %}">
+                        <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#recent-notifications{% else %}{% url 'notifications:home' %}#recent-notifications{% endif %}">
                         <button type="submit" class="btn btn-light btn-sm">Mark {{ category.label }} Read</button>
                     </form>
                     {% endif %}
@@ -213,7 +215,7 @@
                             {% if not notification.is_read %}
                             <form method="post" action="{% url 'notifications:mark_read' notification.pk %}">
                                 {% csrf_token %}
-                                <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}{% else %}{% url 'notifications:home' %}{% endif %}">
+                                <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#recent-notifications{% else %}{% url 'notifications:home' %}#recent-notifications{% endif %}">
                                 <button type="submit" class="btn btn-secondary btn-sm">Mark Read</button>
                             </form>
                             {% endif %}
@@ -232,7 +234,7 @@
         {% endif %}
         {% if selected_category and not notifications %}
         <div class="notification-empty-actions">
-            <a href="{% url 'notifications:home' %}" class="btn btn-light btn-sm">Show All Categories</a>
+            <a href="{% url 'notifications:home' %}#recent-notifications" class="btn btn-light btn-sm">Show All Categories</a>
         </div>
         {% endif %}
     </section>

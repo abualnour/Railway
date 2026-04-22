@@ -18,6 +18,17 @@
     align-items: start;
 }
 
+.employee-profile-page.self-service-hub-page .self-service-balance-grid {
+    align-items: start !important;
+}
+
+.employee-profile-page.self-service-hub-page .self-service-balance-grid > .self-service-balance-card {
+    align-self: start !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin-bottom: 0;
+}
+
 .employee-profile-page .self-service-summary-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;

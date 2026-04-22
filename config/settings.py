@@ -333,7 +333,6 @@ HR_BACKUP_INCLUDE_PATHS = [
     "requirements.txt",
     "pytest.ini",
     "nixpacks.toml",
-    "backup_manifest.txt",
     "media",
     "employees",
     "notifications",

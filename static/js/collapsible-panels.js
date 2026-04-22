@@ -1,6 +1,8 @@
 (function () {
     document.addEventListener("DOMContentLoaded", function () {
         const COLLAPSIBLE_SCOPE = document.querySelector(".main-content");
+        const PAGE_STATE_KEY = "collapsible-state:" + window.location.pathname;
+        const SCROLL_STATE_KEY = "collapsible-scroll-restore";
 
         if (!COLLAPSIBLE_SCOPE) {
             return;
@@ -55,6 +57,17 @@
             "[data-dropdown-trigger]"
         ].join(", ");
         let collapseIdCounter = 0;
+        let storedStates = {};
+
+        try {
+            storedStates = JSON.parse(sessionStorage.getItem(PAGE_STATE_KEY) || "{}") || {};
+        } catch (error) {
+            storedStates = {};
+        }
+
+        function saveStoredStates() {
+            sessionStorage.setItem(PAGE_STATE_KEY, JSON.stringify(storedStates));
+        }
 
         function matchesAnySelector(element, selectors) {
             return selectors.some(function (selector) {
@@ -103,6 +116,11 @@
             container.classList.toggle("is-collapsed", !isExpanded);
             header.setAttribute("aria-expanded", isExpanded ? "true" : "false");
             content.setAttribute("aria-hidden", isExpanded ? "false" : "true");
+            const stateKey = container.getAttribute("data-collapsible-key");
+            if (stateKey) {
+                storedStates[stateKey] = isExpanded ? "expanded" : "collapsed";
+                saveStoredStates();
+            }
             if ("inert" in content) {
                 content.inert = !isExpanded;
             } else if (!isExpanded) {
@@ -110,6 +128,76 @@
             } else {
                 content.removeAttribute("inert");
             }
+        }
+
+        function buildCollapseKey(container, header, fallbackIndex) {
+            if (container.dataset.collapseKey) {
+                return container.dataset.collapseKey;
+            }
+
+            if (container.id) {
+                return "id:" + container.id;
+            }
+
+            const headerText = (header.textContent || "")
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, "-")
+                .replace(/[^a-z0-9\-_]/g, "")
+                .slice(0, 60);
+
+            if (headerText) {
+                return "header:" + headerText + ":" + fallbackIndex;
+            }
+
+            return "index:" + fallbackIndex;
+        }
+
+        function restorePendingScrollTarget() {
+            let pendingState = null;
+
+            try {
+                pendingState = JSON.parse(sessionStorage.getItem(SCROLL_STATE_KEY) || "null");
+            } catch (error) {
+                pendingState = null;
+            }
+
+            if (!pendingState || pendingState.path !== window.location.pathname) {
+                return;
+            }
+
+            sessionStorage.removeItem(SCROLL_STATE_KEY);
+
+            window.requestAnimationFrame(function () {
+                const selector = pendingState.selector || "";
+                const target = selector ? document.querySelector(selector) : null;
+                if (target) {
+                    target.scrollIntoView({ block: "start", behavior: "auto" });
+                }
+            });
+        }
+
+        function rememberInteractionTarget(targetElement) {
+            const owningContainer = targetElement.closest("[data-collapsible-container]");
+            if (!owningContainer) {
+                return;
+            }
+
+            const containerId = owningContainer.id;
+            const stateKey = owningContainer.getAttribute("data-collapsible-key");
+            const selector = containerId ? ("#" + containerId) : (stateKey ? '[data-collapsible-key="' + stateKey + '"]' : "");
+
+            if (!selector) {
+                return;
+            }
+
+            sessionStorage.setItem(
+                SCROLL_STATE_KEY,
+                JSON.stringify({
+                    path: window.location.pathname,
+                    selector: selector
+                })
+            );
         }
 
         function expandForHashTarget() {
@@ -169,6 +257,7 @@
             const contentInner = document.createElement("div");
             const contentId = container.id ? container.id + "-content" : "collapsible-section-" + collapseIdCounter;
             const indicator = document.createElement("span");
+            const collapseKey = buildCollapseKey(container, header, collapseIdCounter);
 
             content.className = "collapse-content";
             content.id = contentId;
@@ -188,6 +277,7 @@
             container.appendChild(content);
             container.classList.add("is-collapsible", "is-collapsed");
             container.setAttribute("data-collapsible-container", "true");
+            container.setAttribute("data-collapsible-key", collapseKey);
 
             header.classList.add("collapse-toggle-header");
             header.setAttribute("role", "button");
@@ -199,6 +289,10 @@
                 content.inert = true;
             } else {
                 content.setAttribute("inert", "");
+            }
+
+            if (storedStates[collapseKey] === "expanded") {
+                setExpandedState(container, header, content, true);
             }
 
             header.addEventListener("click", function (event) {
@@ -231,7 +325,23 @@
             });
         });
 
+        COLLAPSIBLE_SCOPE.addEventListener("click", function (event) {
+            const interactiveTarget = event.target.closest("a, button");
+            if (!interactiveTarget) {
+                return;
+            }
+            rememberInteractionTarget(interactiveTarget);
+        });
+
+        COLLAPSIBLE_SCOPE.addEventListener("submit", function (event) {
+            if (!event.target) {
+                return;
+            }
+            rememberInteractionTarget(event.target);
+        });
+
         expandForHashTarget();
+        restorePendingScrollTarget();
         window.addEventListener("hashchange", expandForHashTarget);
     });
 })();

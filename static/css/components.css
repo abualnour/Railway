@@ -218,7 +218,8 @@
     .branch-schedule-grid,
     .branch-workspace-grid,
     .employee-profile-grid,
-    .employee-profile-shell-grid
+    .employee-profile-shell-grid,
+    .self-service-card-grid
 ):has(> .is-collapsible) {
     align-items: start;
 }

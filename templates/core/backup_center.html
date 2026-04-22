@@ -58,7 +58,7 @@
     </div>
 
     <div class="backup-center-grid backup-center-grid-top">
-        <div class="card backup-panel backup-panel-primary">
+        <div class="card backup-panel backup-panel-primary" id="download-new-backup">
             <div class="card-header backup-panel-header">
                 <div>
                     <h2>Download New Backup</h2>
@@ -79,9 +79,39 @@
                         Database dump tool is not available in this environment yet. File backup will work, but a full PostgreSQL backup will fail until <code>pg_dump</code> is installed or <code>HR_BACKUP_PG_DUMP_COMMAND</code> points to it.
                     </div>
                 {% endif %}
+                <div class="backup-status-card">
+                    <div class="backup-status-card-header">
+                        <h3>Database Backup Status</h3>
+                        <span class="backup-status-pill {% if last_database_precheck.message %}{% if last_database_precheck.ok %}backup-status-success{% else %}backup-status-warning{% endif %}{% else %}backup-status-muted{% endif %}">
+                            {% if last_database_precheck.message %}
+                                {% if last_database_precheck.ok %}Ready{% else %}Needs Review{% endif %}
+                            {% else %}
+                                Not Checked Yet
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="backup-status-detail-grid">
+                        <div class="backup-status-detail">
+                            <span class="backup-path-note-label">Backup Engine</span>
+                            <strong>{{ database_backup_status.mode }}</strong>
+                        </div>
+                        <div class="backup-status-detail">
+                            <span class="backup-path-note-label">pg_dump Version</span>
+                            <strong>{{ database_backup_status.pg_dump_version|default:"Not detected" }}</strong>
+                        </div>
+                    </div>
+                    <div class="backup-status-message {% if last_database_precheck.message %}{% if last_database_precheck.ok %}backup-status-message-success{% else %}backup-status-message-warning{% endif %}{% else %}backup-status-message-muted{% endif %}">
+                        {% if last_database_precheck.message %}
+                            {{ last_database_precheck.message }}
+                        {% else %}
+                            Run <strong>Check Database Backup First</strong> to verify the live server can generate the database dump before downloading a ZIP.
+                        {% endif %}
+                    </div>
+                </div>
 
                 <form method="post" class="backup-form-stack">
                     {% csrf_token %}
+                    <input type="hidden" name="next" value="{% url 'backup_center' %}#download-new-backup">
 
                     <div class="form-group">
                         <label for="id_backup_note">Backup Note</label>
@@ -102,7 +132,7 @@
                             Build the full backup package and download it immediately through the browser. This page no longer offers a server-save shortcut.
                         </p>
                         <div class="form-actions">
-                            <button type="submit" name="action" value="check_database_backup" class="btn btn-light">Check Database Backup First</button>
+                            <button type="submit" name="action" value="check_database_backup" class="btn backup-secondary-btn">Check Database Backup First</button>
                         </div>
                         <button type="submit" name="action" value="download_backup_now" class="btn backup-download-btn backup-action-btn">Download Backup Now</button>
                     </div>

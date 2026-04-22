@@ -814,6 +814,7 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
 class BackupCenterView(LoginRequiredMixin, TemplateView):
     template_name = "core/backup_center.html"
     backup_table_limit = 20
+    backup_precheck_session_key = "backup_center_last_precheck"
 
     def dispatch(self, request, *args, **kwargs):
         if not self.can_access_backup_center(request.user):
@@ -825,6 +826,7 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         action = (request.POST.get("action") or "create_backup_server").strip()
+        next_url = (request.POST.get("next") or "").strip()
 
         if action in {"create_backup", "create_backup_server"}:
             note = (request.POST.get("backup_note") or "").strip()
@@ -839,7 +841,7 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
                         request,
                         f"Backup was created, but the database dump was not included. {database_backup_warning}",
                     )
-            return redirect("backup_center")
+            return redirect(next_url or "backup_center")
 
         if action == "download_backup_now":
             note = (request.POST.get("backup_note") or "").strip()
@@ -847,19 +849,26 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
                 return self.download_backup_response(note=note)
             except Exception as exc:
                 messages.error(request, f"Backup download failed: {exc}")
-                return redirect("backup_center")
+                return redirect(next_url or "backup_center")
 
         if action == "check_database_backup":
             try:
                 result = self.run_database_backup_preflight()
             except Exception as exc:
                 messages.error(request, f"Database backup pre-check failed: {exc}")
+                self.store_database_backup_precheck_result(
+                    {
+                        "ok": False,
+                        "message": f"Database backup pre-check failed: {exc}",
+                    }
+                )
             else:
+                self.store_database_backup_precheck_result(result)
                 if result.get("ok"):
                     messages.success(request, result["message"])
                 else:
                     messages.warning(request, result["message"])
-            return redirect("backup_center")
+            return redirect(next_url or "backup_center")
 
         if action == "export_employee_master":
             return self.export_employee_master_data()
@@ -1089,6 +1098,28 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
 
         version_text = (completed.stdout or completed.stderr or "").strip()
         return version_text
+
+    def store_database_backup_precheck_result(self, result):
+        session = getattr(self.request, "session", None)
+        if session is None:
+            return
+        session[self.backup_precheck_session_key] = {
+            "ok": bool(result.get("ok")),
+            "message": str(result.get("message") or "").strip(),
+        }
+        session.modified = True
+
+    def get_last_database_backup_precheck_result(self):
+        session = getattr(self.request, "session", None)
+        if session is None:
+            return {}
+        raw_result = session.get(self.backup_precheck_session_key) or {}
+        if not isinstance(raw_result, dict):
+            return {}
+        return {
+            "ok": bool(raw_result.get("ok")),
+            "message": str(raw_result.get("message") or "").strip(),
+        }
 
     def run_database_backup_preflight(self):
         if self.is_postgres_database():
@@ -1781,11 +1812,14 @@ class BackupCenterView(LoginRequiredMixin, TemplateView):
         include_paths = self.get_include_paths()
         latest_backups = self.get_latest_backups()
         database_backup_status = self.get_database_backup_status()
+        database_backup_status["pg_dump_version"] = self.get_pg_dump_version_text()
+        last_database_precheck = self.get_last_database_backup_precheck_result()
         context.update(
             {
                 "backup_root": self.get_backup_root(),
                 "include_paths": [item["display_label"] for item in include_paths],
                 "database_backup_status": database_backup_status,
+                "last_database_precheck": last_database_precheck,
                 "backup_recent_update_items": self.get_backup_recent_update_items(),
                 "backup_next_focus_items": self.get_backup_next_focus_items(),
                 "latest_backups": latest_backups[: self.backup_table_limit],
