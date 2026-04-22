@@ -39,4 +39,6 @@ RUN python -m venv /opt/venv \
 
 COPY . /app
 
+RUN python manage.py collectstatic --noinput
+
 CMD gunicorn config.wsgi:application --bind 0.0.0.0:${PORT} --workers 1 --threads 2 --timeout 120
