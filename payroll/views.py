@@ -13,7 +13,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
-from xhtml2pdf import pisa
+try:
+    from xhtml2pdf import pisa
+except ImportError:
+    pisa = None
 
 from employees.access import is_admin_compatible as is_admin_compatible_role
 from employees.models import Employee, EmployeeAttendanceLedger
@@ -192,6 +195,9 @@ def build_payslip_context(payroll_line):
 
 
 def render_payslip_pdf_response(template_name, context, filename):
+    if pisa is None:
+        return HttpResponse("PDF generation is temporarily unavailable.", status=503)
+
     html = render_to_string(template_name, context)
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
@@ -199,7 +205,6 @@ def render_payslip_pdf_response(template_name, context, filename):
     if pdf_status.err:
         return HttpResponse("Unable to generate payslip PDF.", status=500)
     return response
-
 
 def get_payroll_status_notification_users(target_status):
     user_model = get_user_model()
