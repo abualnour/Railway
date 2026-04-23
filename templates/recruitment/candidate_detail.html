@@ -27,6 +27,9 @@
         <div class="detail-item"><span class="detail-label">Offer Letter</span><span class="detail-value">{% if candidate.offer_letter_file %}<a href="{{ candidate.offer_letter_file.url }}" target="_blank" rel="noopener">Open Offer Letter</a>{% else %}--{% endif %}</span></div>
         <div class="detail-item"><span class="detail-label">Offer Sent Date</span><span class="detail-value">{{ candidate.offer_sent_date|date:"F j, Y"|default:"--" }}</span></div>
         <div class="detail-item"><span class="detail-label">Offer Expiry Date</span><span class="detail-value">{{ candidate.offer_expiry_date|date:"F j, Y"|default:"--" }}</span></div>
+        <div class="detail-item"><span class="detail-label">Offer Status</span><span class="detail-value">{{ candidate.get_offer_status_display }}</span></div>
+        <div class="detail-item"><span class="detail-label">Recruiter Owner</span><span class="detail-value">{% if candidate.recruiter_owner %}{{ candidate.recruiter_owner.get_full_name|default:candidate.recruiter_owner.username }}{% else %}Unassigned{% endif %}</span></div>
+        <div class="detail-item"><span class="detail-label">Offer Decision At</span><span class="detail-value">{% if candidate.offer_decision_at %}{{ candidate.offer_decision_at|date:"F j, Y - g:i A" }}{% else %}--{% endif %}</span></div>
         <div class="detail-item"><span class="detail-label">Hired Employee</span><span class="detail-value">{% if candidate.hired_employee %}<a href="{% url 'employees:employee_detail' candidate.hired_employee.pk %}">{{ candidate.hired_employee.employee_id }} - {{ candidate.hired_employee.full_name }}</a>{% else %}--{% endif %}</span></div>
     </div>
 
@@ -86,6 +89,45 @@
                 {% if interview.location %}<div style="margin-top:8px;">Location: {{ interview.location }}</div>{% endif %}
                 {% if interview.note %}<div style="margin-top:8px; white-space:pre-line;">{{ interview.note }}</div>{% endif %}
                 {% if interview.outcome %}<div style="margin-top:8px; white-space:pre-line;">Outcome: {{ interview.outcome }}</div>{% endif %}
+                <div class="card" style="padding:18px; margin-top:16px;">
+                    <h4 style="margin-top:0;">Interviewer Feedback</h4>
+                    {% if interview.feedback_entries.all %}
+                    <div class="summary-list modern-list-gap" style="margin-top:12px;">
+                        {% for feedback in interview.feedback_entries.all %}
+                        <div class="summary-list-item">
+                            <div class="request-overview-top">
+                                <strong>{{ feedback.interviewer.get_full_name|default:feedback.interviewer.username }}</strong>
+                                <span class="badge badge-light">{{ feedback.updated_at|date:"F j, Y - g:i A" }}</span>
+                            </div>
+                            <div class="page-actions" style="margin-top:12px;">
+                                {% if feedback.score is not None %}<span class="badge badge-light">Score {{ feedback.score }}/100</span>{% endif %}
+                                {% if feedback.recommendation %}<span class="badge badge-light">{{ feedback.get_recommendation_display }}</span>{% endif %}
+                            </div>
+                            {% if feedback.strengths %}<div style="margin-top:8px; white-space:pre-line;"><strong>Strengths:</strong> {{ feedback.strengths }}</div>{% endif %}
+                            {% if feedback.concerns %}<div style="margin-top:8px; white-space:pre-line;"><strong>Concerns:</strong> {{ feedback.concerns }}</div>{% endif %}
+                            {% if feedback.note %}<div style="margin-top:8px; white-space:pre-line;"><strong>Note:</strong> {{ feedback.note }}</div>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted" style="margin:0 0 12px;">No interviewer feedback submitted yet.</p>
+                    {% endif %}
+                    <form method="post" action="{% url 'recruitment:candidate_interview_feedback' interview.pk %}" style="margin-top:16px;">
+                        {% csrf_token %}
+                        <div class="form-grid two-col">
+                            {% for field in interview.feedback_form %}
+                            <div class="form-group {% if field.name == 'strengths' or field.name == 'concerns' or field.name == 'note' %}full-width{% endif %}">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="page-actions" style="margin-top:16px;">
+                            <button type="submit" class="btn btn-light btn-sm">Save My Feedback</button>
+                        </div>
+                    </form>
+                </div>
             </div>
             {% endfor %}
         </div>
@@ -99,6 +141,24 @@
         <div class="page-actions">
             <a class="btn btn-light" href="{{ candidate.offer_letter_file.url }}" target="_blank" rel="noopener">Open Offer Letter</a>
         </div>
+        <form method="post" action="{% url 'recruitment:candidate_offer_decision' candidate.pk %}" style="margin-top:16px;">
+            {% csrf_token %}
+            <div class="form-grid two-col">
+                {% for field in offer_decision_form %}
+                <div class="form-group {% if field.name == 'offer_decision_note' %}full-width{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="page-actions" style="margin-top:16px;">
+                <button type="submit" class="btn btn-primary">Save Offer Decision</button>
+            </div>
+        </form>
+        {% if candidate.offer_decision_note %}
+        <div class="document-description" style="margin-top:12px;"><strong>Decision Note:</strong> {{ candidate.offer_decision_note|linebreaksbr }}</div>
+        {% endif %}
     </div>
     {% endif %}
 

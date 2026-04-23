@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Expenses | {{ employee.full_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/employees.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="employee-profile-page self-service-hub-page">
+    <div class="page-header employee-profile-header">
+        <div class="employee-page-header-main">
+            <h1 class="page-title">{{ self_service_home_label }} Expenses</h1>
+            <p class="page-subtitle">Submit expense claims, attach receipts, and track finance review status.</p>
+        </div>
+        <div class="employee-page-header-tools">
+            <div class="employee-header-meta">
+                <span class="employee-header-chip">Employee: {{ employee.full_name|default:"Not Assigned" }}</span>
+                <span class="employee-header-chip">Branch: {{ employee_display_branch|default:"Not Assigned" }}</span>
+            </div>
+            <div class="page-actions employee-header-actions">
+                <a href="{{ self_service_profile_url }}" class="btn btn-light">Profile</a>
+                <a href="{{ self_service_leave_url }}" class="btn btn-secondary">Leave</a>
+                <a href="{{ self_service_documents_url }}" class="btn btn-secondary">Documents</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="self-service-shell">
+        <div class="card detail-card modern-soft-card">
+            <div class="card-header">
+                <div class="section-heading">
+                    <div>
+                        <h2>Submit Expense Claim</h2>
+                        <p class="page-subtitle">Add the expense details and receipt so finance can review it cleanly.</p>
+                    </div>
+                    <span class="badge badge-primary">{{ expense_claim_total }} Claim{{ expense_claim_total|pluralize }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="{% url 'employees:expense_claim_create' %}" class="employee-sidebar-form" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="detail-grid two-col">
+                        {% for field in expense_claim_form %}
+                            <div class="form-group {% if field.name == 'description' %}full-width{% endif %}">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% for error in field.errors %}
+                                    <div class="form-error">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn btn-primary" type="submit">Save Expense Claim</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card detail-card modern-soft-card self-service-request-status-card">
+            <div class="card-header">
+                <div class="section-heading">
+                    <div>
+                        <h2>My Expense Status</h2>
+                        <p class="page-subtitle">Review draft, submitted, approved, rejected, and paid claims.</p>
+                    </div>
+                    <span class="badge badge-light">{{ expense_claim_total }} Total</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="detail-grid self-service-summary-grid" style="margin-bottom: 18px;">
+                    <div class="detail-item"><span class="detail-label">Draft</span><span class="detail-value">{{ expense_draft_count }}</span></div>
+                    <div class="detail-item"><span class="detail-label">Submitted</span><span class="detail-value">{{ expense_submitted_count }}</span></div>
+                    <div class="detail-item"><span class="detail-label">Approved</span><span class="detail-value">{{ expense_approved_count }}</span></div>
+                    <div class="detail-item"><span class="detail-label">Rejected</span><span class="detail-value">{{ expense_rejected_count }}</span></div>
+                    <div class="detail-item"><span class="detail-label">Paid</span><span class="detail-value">{{ expense_paid_count }}</span></div>
+                </div>
+
+                {% if expense_claims %}
+                    <div class="summary-list document-list modern-list-gap">
+                        {% for claim in expense_claims %}
+                            <div class="summary-list-item document-card-item">
+                                <div class="table-stack document-card-stack">
+                                    <div class="status-badge-stack document-card-head">
+                                        <strong class="document-card-title">{{ claim.title }}</strong>
+                                        <span class="badge badge-{% if claim.status == 'approved' or claim.status == 'paid' %}success{% elif claim.status == 'rejected' %}danger{% elif claim.status == 'submitted' %}primary{% else %}light{% endif %}">{{ claim.get_status_display }}</span>
+                                    </div>
+                                    <small>{{ claim.amount }} {{ claim.currency }} - {{ claim.get_category_display }} - {{ claim.expense_date|date:"F j, Y" }}</small>
+                                    {% if claim.description %}
+                                        <div class="document-description"><strong>Description:</strong> {{ claim.description|linebreaksbr }}</div>
+                                    {% endif %}
+                                    {% if claim.receipt_file %}
+                                        <a class="btn btn-light btn-sm" href="{{ claim.receipt_file.url }}" target="_blank" rel="noopener">Open Receipt</a>
+                                    {% endif %}
+                                    {% if claim.review_note %}
+                                        <div class="document-description"><strong>Review Note:</strong> {{ claim.review_note|linebreaksbr }}</div>
+                                    {% endif %}
+                                    <small>
+                                        {% if claim.submitted_at %}Submitted {{ claim.submitted_at|date:"F j, Y - g:i A" }}{% else %}Draft saved {{ claim.created_at|date:"F j, Y - g:i A" }}{% endif %}
+                                        {% if claim.reviewed_at %} - Reviewed {{ claim.reviewed_at|date:"F j, Y - g:i A" }}{% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <h3>No expense claims yet</h3>
+                        <p>Your submitted expense claims and finance review outcomes will appear here.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

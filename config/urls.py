@@ -25,6 +25,9 @@ urlpatterns = [
     path("work-calendar/", include(("workcalendar.urls", "workcalendar"), namespace="workcalendar")),
     path("recruitment/", include(("recruitment.urls", "recruitment"), namespace="recruitment")),
     path("performance/", include(("performance.urls", "performance"), namespace="performance")),
+    path("assets/", include(("assets.urls", "assets"), namespace="assets")),
+    path("finance/", include(("finance.urls", "finance"), namespace="finance")),
+    path("api/v1/employees/", include(("employees.api_urls", "employees_api"), namespace="employees_api")),
 ]
 
 urlpatterns += [

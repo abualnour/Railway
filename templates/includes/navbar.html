@@ -37,7 +37,7 @@
                 <a href="{% url 'dashboard_home' %}" class="topbar-link">Dashboard</a>
                 {% endif %}
 
-                {% if nav_can_view_hr_workspace or nav_can_view_payroll_workspace or nav_can_manage_work_calendar or nav_can_view_organization or nav_can_view_recruitment or nav_can_view_performance %}
+                {% if nav_can_view_hr_workspace or nav_can_view_payroll_workspace or nav_can_manage_work_calendar or nav_can_view_organization or nav_can_view_recruitment or nav_can_view_performance or nav_can_view_assets %}
                 <div class="topbar-group" data-dropdown>
                     <button type="button" class="topbar-group-trigger" data-dropdown-trigger aria-expanded="false">
                         Platform
@@ -53,6 +53,9 @@
                         {% if nav_can_view_performance %}
                         <a href="{{ nav_performance_url }}" class="topbar-sub-link">Performance</a>
                         {% endif %}
+                        {% if nav_can_view_assets %}
+                        <a href="{{ nav_assets_url }}" class="topbar-sub-link">Assets</a>
+                        {% endif %}
                         {% if nav_can_view_payroll_workspace %}
                         <a href="{{ nav_payroll_workspace_url }}" class="topbar-sub-link">Payroll Workspace</a>
                         {% endif %}
@@ -63,6 +66,17 @@
                         <a href="{% url 'organization:company_list' %}" class="topbar-sub-link">Organization
                             Structure</a>
                         {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if nav_can_view_finance %}
+                <div class="topbar-group" data-dropdown>
+                    <button type="button" class="topbar-group-trigger" data-dropdown-trigger aria-expanded="false">
+                        Finance
+                    </button>
+                    <div class="topbar-group-menu" data-dropdown-menu>
+                        <a href="{{ nav_finance_url }}" class="topbar-sub-link">Expense Claims</a>
                     </div>
                 </div>
                 {% endif %}
@@ -82,6 +96,9 @@
                         {% endif %}
                         {% if nav_self_service_attendance_url %}
                         <a href="{{ nav_self_service_attendance_url }}" class="topbar-sub-link">My Attendance</a>
+                        {% endif %}
+                        {% if nav_self_service_expenses_url %}
+                        <a href="{{ nav_self_service_expenses_url }}" class="topbar-sub-link">My Expenses</a>
                         {% endif %}
                         {% if nav_self_service_working_time_url %}
                         <a href="{{ nav_self_service_working_time_url }}" class="topbar-sub-link">Working Time</a>
@@ -125,6 +142,9 @@
                         {% endif %}
                         {% if nav_self_service_attendance_url %}
                         <a href="{{ nav_self_service_attendance_url }}" class="topbar-sub-link">My Attendance</a>
+                        {% endif %}
+                        {% if nav_self_service_expenses_url %}
+                        <a href="{{ nav_self_service_expenses_url }}" class="topbar-sub-link">My Expenses</a>
                         {% endif %}
                         {% if nav_self_service_working_time_url %}
                         <a href="{{ nav_self_service_working_time_url }}" class="topbar-sub-link">Working Time</a>
@@ -185,6 +205,9 @@
                         {% endif %}
                         {% if nav_self_service_attendance_url %}
                         <a href="{{ nav_self_service_attendance_url }}" class="topbar-sub-link">My Attendance</a>
+                        {% endif %}
+                        {% if nav_self_service_expenses_url %}
+                        <a href="{{ nav_self_service_expenses_url }}" class="topbar-sub-link">My Expenses</a>
                         {% endif %}
                         {% if nav_self_service_working_time_url %}
                         <a href="{{ nav_self_service_working_time_url }}" class="topbar-sub-link">Working Time</a>

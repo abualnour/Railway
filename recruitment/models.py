@@ -104,6 +104,18 @@ class Candidate(models.Model):
         (STATUS_REJECTED, "Rejected"),
     ]
 
+    OFFER_STATUS_NOT_SENT = "not_sent"
+    OFFER_STATUS_PENDING = "pending"
+    OFFER_STATUS_ACCEPTED = "accepted"
+    OFFER_STATUS_DECLINED = "declined"
+
+    OFFER_STATUS_CHOICES = [
+        (OFFER_STATUS_NOT_SENT, "Not Sent"),
+        (OFFER_STATUS_PENDING, "Pending Response"),
+        (OFFER_STATUS_ACCEPTED, "Accepted"),
+        (OFFER_STATUS_DECLINED, "Declined"),
+    ]
+
     job_posting = models.ForeignKey(
         JobPosting,
         on_delete=models.CASCADE,
@@ -125,6 +137,20 @@ class Candidate(models.Model):
     )
     offer_sent_date = models.DateField(null=True, blank=True)
     offer_expiry_date = models.DateField(null=True, blank=True)
+    offer_status = models.CharField(
+        max_length=20,
+        choices=OFFER_STATUS_CHOICES,
+        default=OFFER_STATUS_NOT_SENT,
+    )
+    offer_decision_at = models.DateTimeField(null=True, blank=True)
+    offer_decision_note = models.TextField(blank=True)
+    recruiter_owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="owned_recruitment_candidates",
+        null=True,
+        blank=True,
+    )
     hired_employee = models.ForeignKey(
         Employee,
         on_delete=models.SET_NULL,
@@ -152,6 +178,8 @@ class Candidate(models.Model):
         errors = {}
         if self.offer_sent_date and self.offer_expiry_date and self.offer_expiry_date < self.offer_sent_date:
             errors["offer_expiry_date"] = "Offer expiry date cannot be earlier than the offer sent date."
+        if self.offer_status in {self.OFFER_STATUS_ACCEPTED, self.OFFER_STATUS_DECLINED} and not self.offer_decision_at:
+            self.offer_decision_at = timezone.now()
         if errors:
             raise ValidationError(errors)
 
@@ -240,6 +268,44 @@ class CandidateInterview(models.Model):
             errors["scheduled_at"] = "Interview time cannot be in the past."
         if self.score is not None and self.score > 100:
             errors["score"] = "Interview score cannot be greater than 100."
+        if errors:
+            raise ValidationError(errors)
+
+
+class CandidateInterviewFeedback(models.Model):
+    interview = models.ForeignKey(
+        CandidateInterview,
+        on_delete=models.CASCADE,
+        related_name="feedback_entries",
+    )
+    interviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="candidate_interview_feedback",
+    )
+    score = models.PositiveSmallIntegerField(null=True, blank=True)
+    recommendation = models.CharField(
+        max_length=20,
+        choices=CandidateInterview.RECOMMENDATION_CHOICES,
+        blank=True,
+    )
+    strengths = models.TextField(blank=True)
+    concerns = models.TextField(blank=True)
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+        unique_together = ("interview", "interviewer")
+
+    def __str__(self):
+        return f"{self.interview.candidate.full_name} feedback by {self.interviewer}"
+
+    def clean(self):
+        errors = {}
+        if self.score is not None and self.score > 100:
+            errors["score"] = "Feedback score cannot be greater than 100."
         if errors:
             raise ValidationError(errors)
 

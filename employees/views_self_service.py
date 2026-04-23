@@ -72,6 +72,39 @@ def build_self_service_overtime_context(request, employee, *, form=None):
     return context
 
 
+def build_self_service_expense_context(request, employee, *, form=None):
+    from finance.forms import ExpenseClaimForm
+    from finance.models import ExpenseClaim
+
+    expense_claims = list(
+        employee.expense_claims.select_related("reviewed_by").order_by("-expense_date", "-created_at", "-id")
+    )
+    context = build_self_service_page_context(
+        request,
+        employee,
+        current_section="expenses",
+    )
+    context["expense_claim_form"] = form or ExpenseClaimForm(initial={"expense_date": timezone.localdate()})
+    context["expense_claims"] = expense_claims
+    context["expense_claim_total"] = len(expense_claims)
+    context["expense_draft_count"] = sum(
+        1 for claim in expense_claims if claim.status == ExpenseClaim.STATUS_DRAFT
+    )
+    context["expense_submitted_count"] = sum(
+        1 for claim in expense_claims if claim.status == ExpenseClaim.STATUS_SUBMITTED
+    )
+    context["expense_approved_count"] = sum(
+        1 for claim in expense_claims if claim.status == ExpenseClaim.STATUS_APPROVED
+    )
+    context["expense_rejected_count"] = sum(
+        1 for claim in expense_claims if claim.status == ExpenseClaim.STATUS_REJECTED
+    )
+    context["expense_paid_count"] = sum(
+        1 for claim in expense_claims if claim.status == ExpenseClaim.STATUS_PAID
+    )
+    return context
+
+
 @login_required
 def overtime_request_list(request):
     employee = get_user_employee_profile(request.user)
@@ -86,6 +119,22 @@ def overtime_request_list(request):
 
     context = build_self_service_overtime_context(request, employee)
     return render(request, "employees/self_service_overtime.html", context)
+
+
+@login_required
+def expense_claim_list(request):
+    employee = get_user_employee_profile(request.user)
+    if employee is None:
+        raise PermissionDenied("No employee profile is connected to this account.")
+    if not can_view_employee_profile(request.user, employee):
+        return deny_employee_access(
+            request,
+            "You do not have permission to view this employee expense workspace.",
+            employee=employee,
+        )
+
+    context = build_self_service_expense_context(request, employee)
+    return render(request, "employees/self_service_expenses.html", context)
 
 
 @login_required
@@ -126,6 +175,51 @@ def overtime_request_create(request):
     messages.error(request, "Please review the overtime request form and try again.")
     context = build_self_service_overtime_context(request, employee, form=form)
     return render(request, "employees/self_service_overtime.html", context, status=400)
+
+
+@login_required
+@require_POST
+def expense_claim_create(request):
+    from finance.forms import ExpenseClaimForm
+    from finance.models import ExpenseClaim
+
+    employee = get_user_employee_profile(request.user)
+    if employee is None:
+        raise PermissionDenied("No employee profile is connected to this account.")
+    if not can_view_employee_profile(request.user, employee):
+        return deny_employee_access(
+            request,
+            "You do not have permission to submit expense claims from this account.",
+            employee=employee,
+        )
+
+    form = ExpenseClaimForm(request.POST, request.FILES)
+    if form.is_valid():
+        expense_claim = form.save(commit=False)
+        expense_claim.employee = employee
+        if expense_claim.status == ExpenseClaim.STATUS_SUBMITTED:
+            expense_claim.submitted_at = timezone.now()
+        expense_claim.full_clean()
+        expense_claim.save()
+
+        create_employee_history(
+            employee=employee,
+            title="Expense claim submitted" if expense_claim.status == ExpenseClaim.STATUS_SUBMITTED else "Expense claim draft saved",
+            description=(
+                f"{expense_claim.title}: {expense_claim.amount} {expense_claim.currency} "
+                f"for {expense_claim.get_category_display()} on {expense_claim.expense_date:%B %d, %Y}."
+            ),
+            event_type=EmployeeHistory.EVENT_STATUS,
+            created_by=get_actor_label(request.user),
+            is_system_generated=True,
+            event_date=expense_claim.expense_date,
+        )
+        messages.success(request, "Expense claim saved successfully.")
+        return redirect("employees:expense_claim_list")
+
+    messages.error(request, "Please review the expense claim form and try again.")
+    context = build_self_service_expense_context(request, employee, form=form)
+    return render(request, "employees/self_service_expenses.html", context, status=400)
 
 
 @login_required

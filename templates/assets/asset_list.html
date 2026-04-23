@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Assets{% endblock %}
+
+{% block content %}
+<div class="page-section">
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+        <div>
+            <h1 style="margin:0;">Company Assets</h1>
+            <p class="text-muted" style="margin:8px 0 0;">Track company equipment, assignment status, and employee custody records.</p>
+        </div>
+        <div class="page-actions">
+            <a class="btn btn-light" href="{% url 'assets:assignment_create' %}">Assign Asset</a>
+            <a class="btn btn-primary" href="{% url 'assets:asset_create' %}">Create Asset</a>
+        </div>
+    </div>
+
+    <div class="summary-grid" style="margin-top:20px;">
+        <div class="summary-card"><span class="summary-label">Total Assets</span><span class="summary-value">{{ asset_total }}</span></div>
+        <div class="summary-card"><span class="summary-label">Available</span><span class="summary-value">{{ available_total }}</span></div>
+        <div class="summary-card"><span class="summary-label">Assigned</span><span class="summary-value">{{ assigned_total }}</span></div>
+    </div>
+
+    <div class="card" style="padding:20px; margin-top:20px;">
+        <form method="get" class="form-grid three-col">
+            <div class="form-group">
+                <label for="asset-search">Search</label>
+                <input id="asset-search" class="form-control" type="search" name="q" value="{{ search_query }}" placeholder="Asset code, name, or serial number">
+            </div>
+            <div class="form-group">
+                <label for="asset-status">Status</label>
+                <select id="asset-status" class="form-control" name="status">
+                    <option value="">All statuses</option>
+                    <option value="available" {% if selected_status == "available" %}selected{% endif %}>Available</option>
+                    <option value="assigned" {% if selected_status == "assigned" %}selected{% endif %}>Assigned</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="asset-category">Category</label>
+                <select id="asset-category" class="form-control" name="category">
+                    <option value="">All categories</option>
+                    {% for value, label in category_choices %}
+                    <option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="page-actions">
+                <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+                <a class="btn btn-light btn-sm" href="{% url 'assets:asset_list' %}">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="card" style="padding:24px; margin-top:20px;">
+        {% if assets %}
+        <div class="summary-list modern-list-gap">
+            {% for asset in assets %}
+            <div class="summary-list-item">
+                <div class="request-overview-top">
+                    <div>
+                        <strong>{{ asset.asset_code }} - {{ asset.name }}</strong>
+                        <div class="text-muted" style="margin-top:8px;">
+                            {{ asset.get_category_display }}{% if asset.serial_number %} - Serial {{ asset.serial_number }}{% endif %}
+                        </div>
+                    </div>
+                    <div class="page-actions">
+                        <span class="badge badge-{% if asset.is_available %}success{% else %}warning{% endif %}">
+                            {% if asset.is_available %}Available{% else %}Assigned{% endif %}
+                        </span>
+                        <span class="badge badge-light">{{ asset.get_condition_display }}</span>
+                    </div>
+                </div>
+                <div class="detail-grid two-col" style="margin-top:14px;">
+                    <div class="detail-item">
+                        <span class="detail-label">Current Assignee</span>
+                        <span class="detail-value">{% if asset.current_assignee %}{{ asset.current_assignee.full_name }}{% else %}--{% endif %}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Purchase Date</span>
+                        <span class="detail-value">{% if asset.purchase_date %}{{ asset.purchase_date|date:"M j, Y" }}{% else %}--{% endif %}</span>
+                    </div>
+                </div>
+                <div class="page-actions document-actions-row" style="margin-top:12px;">
+                    <a class="btn btn-light btn-sm" href="{% url 'assets:asset_detail' asset.pk %}">Open</a>
+                    <a class="btn btn-light btn-sm" href="{% url 'assets:asset_update' asset.pk %}">Edit</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state compact-empty-state">
+            <h3>No assets found</h3>
+            <p>Create the first company asset or adjust the current filters.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

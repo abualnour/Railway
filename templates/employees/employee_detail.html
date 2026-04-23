@@ -1419,6 +1419,7 @@
                         <button type="button" class="employee-360-tab-button is-active" data-tab-trigger="overview" role="tab" aria-selected="true">Overview</button>
                         <button type="button" class="employee-360-tab-button" data-tab-trigger="payroll" role="tab" aria-selected="false">Payroll</button>
                         <button type="button" class="employee-360-tab-button" data-tab-trigger="documents" role="tab" aria-selected="false">Documents</button>
+                        <button type="button" class="employee-360-tab-button" data-tab-trigger="assets" role="tab" aria-selected="false">Assets</button>
                         <button type="button" class="employee-360-tab-button" data-tab-trigger="leave" role="tab" aria-selected="false">Leave</button>
                         <button type="button" class="employee-360-tab-button" data-tab-trigger="compliance" role="tab" aria-selected="false">Compliance</button>
                         <button type="button" class="employee-360-tab-button" data-tab-trigger="performance" role="tab" aria-selected="false">Performance</button>
@@ -2085,6 +2086,89 @@
                 </div>
                 </div>
 
+
+                <div class="employee-360-tab-panel" data-tab-panel="assets">
+                <div class="card detail-card modern-soft-card management-workspace-links-card">
+                    <div class="card-header">
+                        <div class="section-heading">
+                            <div>
+                                <h2>Assigned Assets</h2>
+                                <p class="page-subtitle">Track active company asset custody and recent assignment history for this employee.</p>
+                            </div>
+                            <span class="badge badge-light">{{ employee_active_asset_assignment_total }} Active</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="detail-grid two-col employee-org-grid" style="margin-bottom: 18px;">
+                            <div class="detail-item">
+                                <span class="detail-label">Active Assets</span>
+                                <span class="detail-value">{{ employee_active_asset_assignment_total }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Recent Assignment Records</span>
+                                <span class="detail-value">{{ employee_asset_assignment_total }}</span>
+                            </div>
+                        </div>
+
+                        {% if employee_asset_assignments %}
+                        <div class="summary-list modern-list-gap">
+                            {% for assignment in employee_asset_assignments %}
+                            <div class="summary-list-item">
+                                <div class="request-overview-top">
+                                    <div>
+                                        <strong>{{ assignment.asset.asset_code }} - {{ assignment.asset.name }}</strong>
+                                        <div class="text-muted" style="margin-top: 8px;">
+                                            {{ assignment.asset.get_category_display }} - assigned {{ assignment.assigned_date|date:"M j, Y" }}
+                                        </div>
+                                    </div>
+                                    <div class="page-actions">
+                                        <span class="badge badge-{% if assignment.returned_date %}light{% else %}warning{% endif %}">
+                                            {% if assignment.returned_date %}Returned{% else %}Active{% endif %}
+                                        </span>
+                                        <span class="badge badge-light">{{ assignment.asset.get_condition_display }}</span>
+                                    </div>
+                                </div>
+                                <div class="detail-grid two-col employee-org-grid" style="margin-top: 14px;">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Assigned By</span>
+                                        <span class="detail-value">{{ assignment.assigned_by.get_full_name|default:assignment.assigned_by.username }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Returned Date</span>
+                                        <span class="detail-value">{% if assignment.returned_date %}{{ assignment.returned_date|date:"M j, Y" }}{% else %}--{% endif %}</span>
+                                    </div>
+                                </div>
+                                {% if assignment.notes %}
+                                <div class="document-description" style="margin-top: 12px;">{{ assignment.notes|linebreaksbr }}</div>
+                                {% endif %}
+                                <div class="page-actions document-actions-row" style="margin-top: 12px;">
+                                    <a class="btn btn-light btn-sm" href="{% url 'assets:asset_detail' assignment.asset.pk %}">Open Asset</a>
+                                    {% if not assignment.returned_date %}
+                                    <a class="btn btn-primary btn-sm" href="{% url 'assets:assignment_return' assignment.pk %}">Record Return</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="empty-state compact-empty-state">
+                            <h3>No asset assignments yet</h3>
+                            <p>Company asset assignments for this employee will appear here.</p>
+                        </div>
+                        {% endif %}
+
+                        <div class="detail-grid two-col employee-org-grid" style="margin-top: 18px;">
+                            <div class="detail-item">
+                                <span class="detail-label">Assets Workspace</span>
+                                <span class="detail-value">Create assets, assign equipment, and record returns from the central Assets workspace.</span>
+                                <div class="page-actions document-actions-row" style="margin-top: 12px;">
+                                    <a class="btn btn-light btn-sm" href="{{ assets_workspace_url }}">Open Assets Workspace</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
 
                 <div class="employee-360-tab-panel" data-tab-panel="payroll">
                 <div class="card detail-card modern-soft-card management-workspace-links-card" id="employee-payroll-section">

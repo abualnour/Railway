@@ -6,6 +6,7 @@ from employees.access import (
     get_workspace_profile_url,
     is_admin_compatible as is_admin_compatible_role,
     is_employee_role_user as is_employee_role_user_role,
+    is_finance_manager_user as is_finance_manager_user_role,
     is_hr_user as is_hr_user_role,
     is_operations_manager_user as is_operations_manager_user_role,
     is_supervisor_user as is_supervisor_user_role,
@@ -50,6 +51,7 @@ def navbar_context(request):
             "nav_self_service_documents_url": "",
             "nav_self_service_profile_url": "",
             "nav_self_service_attendance_url": "",
+            "nav_self_service_expenses_url": "",
             "nav_self_service_working_time_url": "",
             "nav_self_service_branch_url": "",
             "nav_self_service_my_schedule_url": "",
@@ -59,11 +61,15 @@ def navbar_context(request):
             "nav_can_manage_work_calendar": False,
             "nav_can_view_recruitment": False,
             "nav_can_view_performance": False,
+            "nav_can_view_assets": False,
+            "nav_can_view_finance": False,
             "nav_hr_workspace_url": "",
             "nav_payroll_workspace_url": "",
             "nav_work_calendar_url": "",
             "nav_recruitment_url": "",
             "nav_performance_url": "",
+            "nav_assets_url": "",
+            "nav_finance_url": "",
             "nav_branch_schedule_overview_url": "",
             "session_timeout_enabled": False,
             "session_timeout_remaining_seconds": 0,
@@ -79,6 +85,7 @@ def navbar_context(request):
 
     is_admin_compatible = is_admin_compatible_role(user)
     is_hr_user = is_hr_user_role(user)
+    is_finance_manager_user = is_finance_manager_user_role(user)
     is_supervisor_user = is_supervisor_user_role(user)
     is_operations_manager_user = is_operations_manager_user_role(user)
     is_employee_role_user = is_employee_role_user_role(user)
@@ -138,6 +145,7 @@ def navbar_context(request):
     nav_self_service_documents_url = ""
     nav_self_service_profile_url = ""
     nav_self_service_attendance_url = ""
+    nav_self_service_expenses_url = ""
     nav_self_service_working_time_url = ""
     nav_self_service_branch_url = ""
     nav_self_service_my_schedule_url = ""
@@ -150,6 +158,7 @@ def navbar_context(request):
         nav_self_service_leave_url = reverse("employees:self_service_leave")
         nav_self_service_documents_url = reverse("employees:self_service_documents")
         nav_self_service_attendance_url = reverse("employees:self_service_attendance")
+        nav_self_service_expenses_url = reverse("employees:expense_claim_list")
         nav_self_service_working_time_url = reverse("employees:self_service_working_time")
         nav_self_service_my_schedule_url = reverse("employees:self_service_my_schedule")
 
@@ -225,6 +234,7 @@ def navbar_context(request):
         "nav_self_service_leave_url": nav_self_service_leave_url,
         "nav_self_service_documents_url": nav_self_service_documents_url,
         "nav_self_service_attendance_url": nav_self_service_attendance_url,
+        "nav_self_service_expenses_url": nav_self_service_expenses_url,
         "nav_self_service_working_time_url": nav_self_service_working_time_url,
         "nav_self_service_branch_url": nav_self_service_branch_url,
         "nav_self_service_my_schedule_url": nav_self_service_my_schedule_url,
@@ -241,6 +251,12 @@ def navbar_context(request):
         "nav_can_view_performance": bool(
             is_admin_compatible or is_hr_user or is_operations_manager_user or employee_profile is not None
         ),
+        "nav_can_view_assets": bool(
+            is_admin_compatible or is_hr_user or is_operations_manager_user
+        ),
+        "nav_can_view_finance": bool(
+            is_admin_compatible or is_hr_user or is_finance_manager_user
+        ),
         "nav_can_manage_work_calendar": bool(
             is_admin_compatible or is_hr_user
         ),
@@ -249,6 +265,8 @@ def navbar_context(request):
         "nav_work_calendar_url": reverse("workcalendar:home"),
         "nav_recruitment_url": reverse("recruitment:job_posting_list"),
         "nav_performance_url": reverse("performance:dashboard"),
+        "nav_assets_url": reverse("assets:asset_list"),
+        "nav_finance_url": reverse("finance:expense_claim_dashboard"),
         "nav_branch_schedule_overview_url": reverse("employees:branch_schedule_overview"),
         "nav_notifications_url": reverse("notifications:home"),
         "nav_notification_unread_total": nav_notification_unread_total,

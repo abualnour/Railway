@@ -1,6 +1,7 @@
 asgiref==3.11.1
 dj-database-url==3.0.1
 Django==6.0.3
+djangorestframework==3.16.1
 et_xmlfile==2.0.0
 gunicorn==23.0.0
 openpyxl==3.1.5

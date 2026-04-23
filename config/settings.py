@@ -95,6 +95,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    # Third-party apps
+    "rest_framework",
+
     # Local apps
     "core",
     "accounts",
@@ -107,6 +110,8 @@ INSTALLED_APPS = [
     "workcalendar",
     "recruitment",
     "performance",
+    "assets",
+    "finance",
 ]
 
 MIDDLEWARE = [
@@ -140,6 +145,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 25,
+}
 
 
 def _build_local_postgres_url() -> str | None:
@@ -353,6 +369,8 @@ HR_BACKUP_INCLUDE_PATHS = [
     "workcalendar",
     "recruitment",
     "performance",
+    "assets",
+    "finance",
     "templates",
     "static",
     "config",

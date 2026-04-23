@@ -24,9 +24,11 @@ from .forms import (
     CandidateForm,
     CandidateHireForm,
     CandidateInterviewForm,
+    CandidateInterviewFeedbackForm,
+    CandidateOfferDecisionForm,
     JobPostingForm,
 )
-from .models import Candidate, CandidateAttachment, CandidateInterview, CandidateStageAction, JobPosting
+from .models import Candidate, CandidateAttachment, CandidateInterview, CandidateInterviewFeedback, CandidateStageAction, JobPosting
 
 
 def can_manage_recruitment(user):
@@ -352,6 +354,9 @@ class JobPostingListView(RecruitmentAccessMixin, ListView):
                 "rejected_candidate_total": status_totals[Candidate.STATUS_REJECTED],
                 "expiring_offer_total": expiring_offers.count(),
                 "aging_candidate_total": aging_candidates.count(),
+                "owned_candidate_total": candidate_queryset.filter(recruiter_owner=self.request.user).count(),
+                "accepted_offer_total": candidate_queryset.filter(offer_status=Candidate.OFFER_STATUS_ACCEPTED).count(),
+                "declined_offer_total": candidate_queryset.filter(offer_status=Candidate.OFFER_STATUS_DECLINED).count(),
                 "closing_soon_total": JobPosting.objects.filter(
                     status=JobPosting.STATUS_OPEN,
                     closing_date__isnull=False,
@@ -368,6 +373,39 @@ class JobPostingListView(RecruitmentAccessMixin, ListView):
                 "hire_conversion_rate": int((hired_total / active_pipeline_total) * 100) if active_pipeline_total else 0,
             }
         )
+        return context
+
+
+class RecruitmentKanbanView(RecruitmentAccessMixin, ListView):
+    model = Candidate
+    template_name = "recruitment/kanban.html"
+    context_object_name = "candidates"
+
+    def get_queryset(self):
+        queryset = Candidate.objects.select_related(
+            "job_posting",
+            "job_posting__branch",
+            "recruiter_owner",
+        ).order_by("applied_at", "full_name")
+        owner = (self.request.GET.get("owner") or "").strip()
+        if owner == "mine":
+            queryset = queryset.filter(recruiter_owner=self.request.user)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        grouped_candidates = {status: [] for status, _label in Candidate.STATUS_CHOICES}
+        for candidate in context["candidates"]:
+            grouped_candidates.setdefault(candidate.status, []).append(candidate)
+        context["kanban_columns"] = [
+            {
+                "status": status,
+                "label": label,
+                "candidates": grouped_candidates.get(status, []),
+            }
+            for status, label in Candidate.STATUS_CHOICES
+        ]
+        context["owner_filter"] = (self.request.GET.get("owner") or "").strip()
         return context
 
 
@@ -451,6 +489,8 @@ class CandidateCreateView(RecruitmentAccessMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.job_posting = self.job_posting
+        if not form.instance.recruiter_owner_id:
+            form.instance.recruiter_owner = self.request.user
         response = super().form_valid(form)
         CandidateStageAction.objects.create(
             candidate=self.object,
@@ -493,11 +533,14 @@ class CandidateDetailView(RecruitmentAccessMixin, DetailView):
             "job_posting__department__company",
             "job_posting__branch",
             "hired_employee",
+            "recruiter_owner",
         ).prefetch_related(
             "stage_actions",
             "stage_actions__action_by",
             "interviews",
             "interviews__interviewer",
+            "interviews__feedback_entries",
+            "interviews__feedback_entries__interviewer",
             "attachments",
             "attachments__uploaded_by",
         )
@@ -505,9 +548,22 @@ class CandidateDetailView(RecruitmentAccessMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["interview_form"] = kwargs.get("interview_form") or CandidateInterviewForm()
+        context["offer_decision_form"] = kwargs.get("offer_decision_form") or CandidateOfferDecisionForm(instance=self.object)
         context["attachment_form"] = kwargs.get("attachment_form") or CandidateAttachmentForm()
         context["hire_form"] = kwargs.get("hire_form") or CandidateHireForm(candidate=self.object)
-        context["interviews"] = self.object.interviews.select_related("interviewer").order_by("scheduled_at", "id")
+        interviews = list(
+            self.object.interviews.select_related("interviewer")
+            .prefetch_related("feedback_entries__interviewer")
+            .order_by("scheduled_at", "id")
+        )
+        for interview in interviews:
+            interview.feedback_form = CandidateInterviewFeedbackForm(
+                instance=CandidateInterviewFeedback.objects.filter(
+                    interview=interview,
+                    interviewer=self.request.user,
+                ).first()
+            )
+        context["interviews"] = interviews
         context["attachments"] = self.object.attachments.select_related("uploaded_by").order_by("-created_at", "-id")
         return context
 
@@ -544,6 +600,28 @@ class CandidateUpdateView(RecruitmentAccessMixin, UpdateView):
                 note="Offer letter file was added to the candidate record.",
             )
             stage_change_messages.append(f"An offer letter was added for {self.object.full_name}.")
+        if previous_candidate.recruiter_owner_id != self.object.recruiter_owner_id:
+            CandidateStageAction.objects.create(
+                candidate=self.object,
+                stage="owner",
+                action_by=self.request.user,
+                note=f"Recruiter owner changed to {self.object.recruiter_owner or 'Unassigned'}.",
+            )
+            stage_change_messages.append(f"Recruiter owner changed for {self.object.full_name}.")
+        if previous_candidate.offer_status != self.object.offer_status:
+            CandidateStageAction.objects.create(
+                candidate=self.object,
+                stage=f"offer:{self.object.offer_status}",
+                action_by=self.request.user,
+                note=(
+                    f"Offer status changed from {previous_candidate.get_offer_status_display()} "
+                    f"to {self.object.get_offer_status_display()}."
+                    + (f" Note: {self.object.offer_decision_note}" if self.object.offer_decision_note else "")
+                ),
+            )
+            stage_change_messages.append(
+                f"Offer status for {self.object.full_name} changed to {self.object.get_offer_status_display()}."
+            )
         if stage_change_messages:
             notify_recruitment_team(
                 title=f"Candidate workflow updated for {self.object.full_name}",
@@ -589,6 +667,7 @@ class CandidateListView(RecruitmentAccessMixin, ListView):
             "job_posting__department__company",
             "job_posting__branch",
             "hired_employee",
+            "recruiter_owner",
         )
         self.filter_form = CandidateFilterForm(self.request.GET or None)
         if self.filter_form.is_valid():
@@ -630,6 +709,7 @@ class RecruitmentCandidatesExportView(RecruitmentAccessMixin, View):
             "job_posting__department",
             "job_posting__branch",
             "hired_employee",
+            "recruiter_owner",
         ).order_by("-applied_at", "full_name")
 
         response = HttpResponse(content_type="text/csv")
@@ -649,6 +729,8 @@ class RecruitmentCandidatesExportView(RecruitmentAccessMixin, View):
                 "Days In Pipeline",
                 "Offer Sent Date",
                 "Offer Expiry Date",
+                "Offer Status",
+                "Recruiter Owner",
                 "Hired Employee",
             ]
         )
@@ -667,6 +749,8 @@ class RecruitmentCandidatesExportView(RecruitmentAccessMixin, View):
                     candidate.days_in_pipeline,
                     candidate.offer_sent_date or "",
                     candidate.offer_expiry_date or "",
+                    candidate.get_offer_status_display(),
+                    candidate.recruiter_owner.get_full_name() or candidate.recruiter_owner.username if candidate.recruiter_owner_id else "",
                     candidate.hired_employee.employee_id if candidate.hired_employee_id else "",
                 ]
             )
@@ -835,6 +919,82 @@ class CandidateInterviewDeleteView(RecruitmentAccessMixin, DeleteView):
         context = super().get_context_data(**kwargs)
         context["candidate"] = self.object.candidate
         return context
+
+
+class CandidateOfferDecisionView(RecruitmentAccessMixin, View):
+    def post(self, request, pk):
+        candidate = get_object_or_404(Candidate.objects.select_related("job_posting", "recruiter_owner"), pk=pk)
+        form = CandidateOfferDecisionForm(request.POST, instance=candidate)
+        if form.is_valid():
+            updated_candidate = form.save(commit=False)
+            if updated_candidate.offer_status in {Candidate.OFFER_STATUS_ACCEPTED, Candidate.OFFER_STATUS_DECLINED}:
+                updated_candidate.offer_decision_at = timezone.now()
+                if updated_candidate.offer_status == Candidate.OFFER_STATUS_ACCEPTED:
+                    updated_candidate.status = Candidate.STATUS_OFFER
+                elif updated_candidate.offer_status == Candidate.OFFER_STATUS_DECLINED:
+                    updated_candidate.status = Candidate.STATUS_REJECTED
+            updated_candidate.save()
+            CandidateStageAction.objects.create(
+                candidate=updated_candidate,
+                stage=f"offer:{updated_candidate.offer_status}",
+                action_by=request.user,
+                note=(
+                    f"Offer marked as {updated_candidate.get_offer_status_display()}."
+                    + (f" Note: {updated_candidate.offer_decision_note}" if updated_candidate.offer_decision_note else "")
+                ),
+            )
+            notify_recruitment_team(
+                title=f"Offer decision recorded for {updated_candidate.full_name}",
+                body=f"Offer status is now {updated_candidate.get_offer_status_display()} for {updated_candidate.job_posting.title}.",
+                action_url=reverse("recruitment:candidate_detail", kwargs={"pk": updated_candidate.pk}),
+                exclude_users=[request.user],
+                level=InAppNotification.LEVEL_SUCCESS if updated_candidate.offer_status == Candidate.OFFER_STATUS_ACCEPTED else InAppNotification.LEVEL_WARNING,
+            )
+            messages.success(request, "Offer decision saved successfully.")
+            return HttpResponseRedirect(reverse("recruitment:candidate_detail", kwargs={"pk": candidate.pk}))
+
+        view = CandidateDetailView()
+        view.setup(request, pk=pk)
+        view.object = candidate
+        context = view.get_context_data(offer_decision_form=form)
+        return view.render_to_response(context)
+
+
+class CandidateInterviewFeedbackView(RecruitmentAccessMixin, View):
+    def post(self, request, pk):
+        interview = get_object_or_404(
+            CandidateInterview.objects.select_related("candidate", "candidate__job_posting"),
+            pk=pk,
+        )
+        feedback = CandidateInterviewFeedback.objects.filter(
+            interview=interview,
+            interviewer=request.user,
+        ).first()
+        form = CandidateInterviewFeedbackForm(request.POST, instance=feedback)
+        if form.is_valid():
+            feedback_entry = form.save(commit=False)
+            feedback_entry.interview = interview
+            feedback_entry.interviewer = request.user
+            feedback_entry.save()
+            CandidateStageAction.objects.create(
+                candidate=interview.candidate,
+                stage="interview-feedback",
+                action_by=request.user,
+                note=(
+                    f"Interview feedback saved."
+                    + (f" Score: {feedback_entry.score}/100." if feedback_entry.score is not None else "")
+                    + (f" Recommendation: {feedback_entry.get_recommendation_display()}." if feedback_entry.recommendation else "")
+                ),
+            )
+            messages.success(request, "Interview feedback saved successfully.")
+            return HttpResponseRedirect(reverse("recruitment:candidate_detail", kwargs={"pk": interview.candidate.pk}))
+
+        view = CandidateDetailView()
+        view.setup(request, pk=interview.candidate.pk)
+        view.object = interview.candidate
+        context = view.get_context_data()
+        messages.error(request, "Please review the interview feedback form and try again.")
+        return view.render_to_response(context)
 
 
 class CandidateAttachmentCreateView(RecruitmentAccessMixin, View):

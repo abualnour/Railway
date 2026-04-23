@@ -10,6 +10,7 @@
             <p class="text-muted" style="margin:8px 0 0;">Manage active job postings, monitor the hiring pipeline, and track upcoming interviews.</p>
         </div>
         <div class="page-actions">
+            <a class="btn btn-light" href="{% url 'recruitment:kanban' %}">Kanban Board</a>
             <a class="btn btn-light" href="{% url 'recruitment:candidate_list' %}">Candidate Directory</a>
             <a class="btn btn-light" href="{% url 'recruitment:export_candidates' %}">Export Candidates</a>
             <a class="btn btn-light" href="{% url 'recruitment:export_job_postings' %}">Export Job Postings</a>
@@ -26,6 +27,8 @@
         <div class="summary-card"><span class="summary-label">Hired</span><span class="summary-value">{{ hired_candidate_total }}</span></div>
         <div class="summary-card"><span class="summary-label">Expiring Offers</span><span class="summary-value">{{ expiring_offer_total }}</span></div>
         <div class="summary-card"><span class="summary-label">Aging Candidates</span><span class="summary-value">{{ aging_candidate_total }}</span></div>
+        <div class="summary-card"><span class="summary-label">My Owned Candidates</span><span class="summary-value">{{ owned_candidate_total }}</span></div>
+        <div class="summary-card"><span class="summary-label">Accepted / Declined Offers</span><span class="summary-value">{{ accepted_offer_total }} / {{ declined_offer_total }}</span></div>
     </div>
 
     <div class="detail-grid two-col" style="margin-top:20px;">

@@ -1,9 +1,11 @@
 from django import forms
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from employees.models import Employee, JobTitle, Section
 from organization.models import Branch, Company, Department
 
-from .models import Candidate, CandidateAttachment, CandidateInterview, JobPosting
+from .models import Candidate, CandidateAttachment, CandidateInterview, CandidateInterviewFeedback, JobPosting
 
 
 class JobPostingForm(forms.ModelForm):
@@ -44,17 +46,23 @@ class CandidateForm(forms.ModelForm):
             "offer_letter_file",
             "offer_sent_date",
             "offer_expiry_date",
+            "offer_status",
+            "offer_decision_note",
+            "recruiter_owner",
             "cover_letter",
             "status",
             "notes",
         ]
         widgets = {
             "cover_letter": forms.Textarea(attrs={"rows": 5}),
+            "offer_decision_note": forms.Textarea(attrs={"rows": 3}),
             "notes": forms.Textarea(attrs={"rows": 4}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        user_model = get_user_model()
+        self.fields["recruiter_owner"].queryset = user_model.objects.filter(is_active=True).order_by("first_name", "last_name", "username")
         for field in self.fields.values():
             existing_class = field.widget.attrs.get("class", "")
             field.widget.attrs["class"] = f"{existing_class} form-control".strip()
@@ -88,6 +96,43 @@ class CandidateInterviewForm(forms.ModelForm):
         widgets = {
             "note": forms.Textarea(attrs={"rows": 3}),
             "outcome": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            existing_class = field.widget.attrs.get("class", "")
+            field.widget.attrs["class"] = f"{existing_class} form-control".strip()
+
+
+class CandidateOfferDecisionForm(forms.ModelForm):
+    class Meta:
+        model = Candidate
+        fields = ["offer_status", "offer_decision_note"]
+        widgets = {
+            "offer_decision_note": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["offer_status"].choices = [
+            (Candidate.OFFER_STATUS_ACCEPTED, "Accepted"),
+            (Candidate.OFFER_STATUS_DECLINED, "Declined"),
+            (Candidate.OFFER_STATUS_PENDING, "Pending Response"),
+        ]
+        for field in self.fields.values():
+            existing_class = field.widget.attrs.get("class", "")
+            field.widget.attrs["class"] = f"{existing_class} form-control".strip()
+
+
+class CandidateInterviewFeedbackForm(forms.ModelForm):
+    class Meta:
+        model = CandidateInterviewFeedback
+        fields = ["score", "recommendation", "strengths", "concerns", "note"]
+        widgets = {
+            "strengths": forms.Textarea(attrs={"rows": 3}),
+            "concerns": forms.Textarea(attrs={"rows": 3}),
+            "note": forms.Textarea(attrs={"rows": 3}),
         }
 
     def __init__(self, *args, **kwargs):

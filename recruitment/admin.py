@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Candidate, CandidateAttachment, CandidateInterview, CandidateStageAction, JobPosting
+from .models import Candidate, CandidateAttachment, CandidateInterview, CandidateInterviewFeedback, CandidateStageAction, JobPosting
 
 
 @admin.register(JobPosting)
@@ -12,8 +12,8 @@ class JobPostingAdmin(admin.ModelAdmin):
 
 @admin.register(Candidate)
 class CandidateAdmin(admin.ModelAdmin):
-    list_display = ("full_name", "job_posting", "email", "phone", "status", "applied_at", "has_offer_letter")
-    list_filter = ("status", "job_posting__department", "job_posting__branch")
+    list_display = ("full_name", "job_posting", "email", "phone", "status", "offer_status", "recruiter_owner", "applied_at", "has_offer_letter")
+    list_filter = ("status", "offer_status", "recruiter_owner", "job_posting__department", "job_posting__branch")
     search_fields = ("full_name", "email", "phone", "nationality")
 
     @admin.display(boolean=True, description="Offer Letter")
@@ -33,6 +33,13 @@ class CandidateInterviewAdmin(admin.ModelAdmin):
     list_display = ("candidate", "scheduled_at", "interview_type", "interviewer", "score", "recommendation")
     list_filter = ("interview_type", "interviewer", "recommendation")
     search_fields = ("candidate__full_name", "location", "note", "outcome")
+
+
+@admin.register(CandidateInterviewFeedback)
+class CandidateInterviewFeedbackAdmin(admin.ModelAdmin):
+    list_display = ("interview", "interviewer", "score", "recommendation", "updated_at")
+    list_filter = ("interviewer", "recommendation", "updated_at")
+    search_fields = ("interview__candidate__full_name", "interviewer__username", "strengths", "concerns", "note")
 
 
 @admin.register(CandidateAttachment)

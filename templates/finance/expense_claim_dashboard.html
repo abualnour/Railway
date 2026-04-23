@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Finance Expense Claims{% endblock %}
+
+{% block content %}
+<div class="page-section">
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+        <div>
+            <h1 style="margin:0;">Finance Expense Claims</h1>
+            <p class="text-muted" style="margin:8px 0 0;">Review submitted employee expense claims and track approvals through payment.</p>
+        </div>
+    </div>
+
+    <div class="summary-grid" style="margin-top:20px;">
+        <div class="summary-card"><span class="summary-label">Total Claims</span><span class="summary-value">{{ claim_total }}</span></div>
+        <div class="summary-card"><span class="summary-label">Submitted</span><span class="summary-value">{{ submitted_total }}</span></div>
+        <div class="summary-card"><span class="summary-label">Approved</span><span class="summary-value">{{ approved_total }}</span></div>
+        <div class="summary-card"><span class="summary-label">Paid</span><span class="summary-value">{{ paid_total }}</span></div>
+    </div>
+
+    <div class="card" style="padding:20px; margin-top:20px;">
+        <form method="get" class="form-grid two-col">
+            <div class="form-group">
+                <label for="expense-status">Status</label>
+                <select id="expense-status" class="form-control" name="status">
+                    <option value="">All statuses</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="page-actions">
+                <button type="submit" class="btn btn-primary btn-sm">Apply Filter</button>
+                <a class="btn btn-light btn-sm" href="{% url 'finance:expense_claim_dashboard' %}">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="card" style="padding:24px; margin-top:20px;">
+        {% if claims %}
+        <div class="summary-list modern-list-gap">
+            {% for claim in claims %}
+            <div class="summary-list-item">
+                <div class="request-overview-top">
+                    <div>
+                        <strong>{{ claim.title }}</strong>
+                        <div class="text-muted" style="margin-top:8px;">{{ claim.employee.full_name }} - {{ claim.employee.employee_id }} - {{ claim.expense_date|date:"M j, Y" }}</div>
+                    </div>
+                    <div class="page-actions">
+                        <span class="badge badge-{% if claim.status == 'approved' or claim.status == 'paid' %}success{% elif claim.status == 'rejected' %}danger{% elif claim.status == 'submitted' %}primary{% else %}light{% endif %}">{{ claim.get_status_display }}</span>
+                        <span class="badge badge-light">{{ claim.amount }} {{ claim.currency }}</span>
+                    </div>
+                </div>
+                <div class="detail-grid two-col" style="margin-top:14px;">
+                    <div class="detail-item"><span class="detail-label">Category</span><span class="detail-value">{{ claim.get_category_display }}</span></div>
+                    <div class="detail-item"><span class="detail-label">Branch</span><span class="detail-value">{{ claim.employee.branch.name|default:"--" }}</span></div>
+                    <div class="detail-item"><span class="detail-label">Submitted</span><span class="detail-value">{% if claim.submitted_at %}{{ claim.submitted_at|date:"M j, Y - g:i A" }}{% else %}Draft{% endif %}</span></div>
+                    <div class="detail-item"><span class="detail-label">Reviewed</span><span class="detail-value">{% if claim.reviewed_at %}{{ claim.reviewed_at|date:"M j, Y - g:i A" }}{% else %}--{% endif %}</span></div>
+                </div>
+                {% if claim.description %}
+                <div class="document-description" style="margin-top:12px;">{{ claim.description|linebreaksbr }}</div>
+                {% endif %}
+                <div class="page-actions document-actions-row" style="margin-top:12px;">
+                    <a class="btn btn-primary btn-sm" href="{% url 'finance:expense_claim_review' claim.pk %}">Review</a>
+                    {% if claim.receipt_file %}
+                    <a class="btn btn-light btn-sm" href="{{ claim.receipt_file.url }}" target="_blank" rel="noopener">Open Receipt</a>
+                    {% endif %}
+                    <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' claim.employee.pk %}">Open Employee</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state compact-empty-state">
+            <h3>No expense claims found</h3>
+            <p>Submitted employee claims will appear here for finance review.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

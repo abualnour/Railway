@@ -2307,6 +2307,20 @@ class EmployeeDetailView(LoginRequiredMixin, DetailView):
             1 for performance_review in performance_reviews if performance_review.status == PerformanceReview.STATUS_SUBMITTED
         )
 
+        AssetAssignment = apps.get_model("assets", "AssetAssignment")
+        employee_asset_assignments = list(
+            AssetAssignment.objects.select_related("asset", "assigned_by")
+            .filter(employee=employee)
+            .order_by("-assigned_date", "-id")[:10]
+        )
+        context["employee_asset_assignments"] = employee_asset_assignments
+        context["employee_active_asset_assignments"] = [
+            assignment for assignment in employee_asset_assignments if assignment.returned_date is None
+        ]
+        context["employee_asset_assignment_total"] = len(employee_asset_assignments)
+        context["employee_active_asset_assignment_total"] = len(context["employee_active_asset_assignments"])
+        context["assets_workspace_url"] = reverse("assets:asset_list")
+
         PayrollProfile = apps.get_model("payroll", "PayrollProfile")
         PayrollLine = apps.get_model("payroll", "PayrollLine")
         PayrollObligation = apps.get_model("payroll", "PayrollObligation")
