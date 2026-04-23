@@ -1,19 +1,41 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Return Asset{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/assets.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="page-section">
-    <div class="card" style="padding:24px;">
-        <div class="card-header" style="padding:0; margin-bottom:16px;">
-            <div>
-                <h1 style="margin:0;">Return Asset</h1>
-                <p class="text-muted" style="margin:8px 0 0;">{{ assignment.asset.asset_code }} - {{ assignment.asset.name }} assigned to {{ assignment.employee.full_name }}.</p>
+<div class="platform-page assets-page">
+    <section class="platform-hero assets-hero assets-form-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Asset Return</span>
+            <h1>Return Asset</h1>
+            <p>{{ assignment.asset.asset_code }} | {{ assignment.asset.name }} currently assigned to {{ assignment.employee.full_name }}.</p>
+        </div>
+        <div class="platform-hero-side">
+            <div class="platform-side-card">
+                <span>Current Holder</span>
+                <strong>{{ assignment.employee.full_name }}</strong>
+                <small>Record the return condition and close the active assignment.</small>
             </div>
+            <div class="platform-hero-actions">
+                <a class="btn btn-light" href="{% url 'assets:asset_detail' assignment.asset.pk %}">Cancel</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="platform-panel">
+        <div class="platform-panel-head">
+            <h2>Return Details</h2>
+            <p>Capture the return date, condition, and any notes before closing the assignment.</p>
         </div>
         <form method="post">
             {% csrf_token %}
-            <div class="form-grid two-col">
+            <div class="platform-form-grid">
                 {% for field in form %}
                 <div class="form-group">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -22,11 +44,11 @@
                 </div>
                 {% endfor %}
             </div>
-            <div class="page-actions document-actions-row" style="margin-top:16px;">
+            <div class="platform-form-actions assets-form-actions">
                 <button type="submit" class="btn btn-primary">Record Return</button>
                 <a class="btn btn-light" href="{% url 'assets:asset_detail' assignment.asset.pk %}">Cancel</a>
             </div>
         </form>
-    </div>
+    </section>
 </div>
 {% endblock %}

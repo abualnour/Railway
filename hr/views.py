@@ -1,10 +1,9 @@
 from datetime import timedelta
 
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 from django.utils import timezone
 
+from config.access import is_hr, is_operations, is_superuser, is_supervisor, role_required
 from employees.access import is_admin_compatible as is_admin_compatible_role
 from employees.models import (
     Employee,
@@ -33,11 +32,15 @@ def can_access_hr_workspace(user):
     )
 
 
-@login_required
+@role_required(
+    is_admin_compatible_role,
+    is_hr,
+    is_operations,
+    is_supervisor,
+    is_superuser,
+    message="You do not have permission to access the HR workspace.",
+)
 def hr_home(request):
-    if not can_access_hr_workspace(request.user):
-        raise PermissionDenied("You do not have permission to access the HR workspace.")
-
     today = timezone.localdate()
     compliance_attention_date = today + timedelta(days=30)
     employees = Employee.objects.select_related("company", "department", "branch", "job_title")

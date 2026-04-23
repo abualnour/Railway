@@ -84,7 +84,7 @@
                 {% if nav_show_supervisor_workspace and nav_employee_profile %}
                 <div class="topbar-group" data-dropdown>
                     <button type="button" class="topbar-group-trigger" data-dropdown-trigger aria-expanded="false">
-                        Supervisor
+                        My Workspace
                     </button>
                     <div class="topbar-group-menu" data-dropdown-menu>
                         <a href="{{ nav_self_service_profile_url|default:'#' }}" class="topbar-sub-link">Profile</a>
@@ -106,19 +106,43 @@
                         {% if nav_self_service_my_schedule_url %}
                         <a href="{{ nav_self_service_my_schedule_url }}" class="topbar-sub-link">My Schedule</a>
                         {% endif %}
+                    </div>
+                </div>
+
+                <div class="topbar-group" data-dropdown>
+                    <button type="button" class="topbar-group-trigger" data-dropdown-trigger aria-expanded="false">
+                        Branch
+                    </button>
+                    <div class="topbar-group-menu" data-dropdown-menu>
                         {% if nav_supervisor_branch_url %}
                         <a href="{{ nav_supervisor_branch_url }}" class="topbar-sub-link">My Branch</a>
                         {% endif %}
                         {% if nav_self_service_weekly_schedule_url %}
                         <a href="{{ nav_self_service_weekly_schedule_url }}" class="topbar-sub-link">Weekly Schedule</a>
                         {% endif %}
+                    </div>
+                </div>
+
+                <div class="topbar-group" data-dropdown>
+                    <button type="button" class="topbar-group-trigger" data-dropdown-trigger aria-expanded="false">
+                        Team
+                    </button>
+                    <div class="topbar-group-menu" data-dropdown-menu>
                         <a href="{% url 'employees:employee_list' %}" class="topbar-sub-link">Team Directory</a>
+                        {% if nav_supervisor_attendance_history_url %}
+                        <a href="{{ nav_supervisor_attendance_history_url }}" class="topbar-sub-link">Team Attendance History</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="topbar-group" data-dropdown>
+                    <button type="button" class="topbar-group-trigger" data-dropdown-trigger aria-expanded="false">
+                        Requests
+                    </button>
+                    <div class="topbar-group-menu" data-dropdown-menu>
                         {% if nav_can_view_requests %}
                         <a href="{% url 'employees:employee_requests_overview' %}" class="topbar-sub-link">Team
                             Requests</a>
-                        {% endif %}
-                        {% if nav_supervisor_attendance_history_url %}
-                        <a href="{{ nav_supervisor_attendance_history_url }}" class="topbar-sub-link">Team Attendance History</a>
                         {% endif %}
                         {% if nav_can_view_branch_documents %}
                         <a href="{% url 'organization:branch_document_list' %}" class="topbar-sub-link">Branch

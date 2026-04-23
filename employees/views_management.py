@@ -1,10 +1,40 @@
 from .views_shared import *
 from .views_directory import *
 from .views_self_service import *
+from config.access import (
+    RoleRequiredMixin,
+    api_role_required,
+    is_employee_role,
+    is_hr,
+    is_operations,
+    is_supervisor,
+    is_superuser,
+    role_required,
+)
 
 # Employee lifecycle, documents, leave, attendance, and management workflows.
 
-class EmployeeCreateView(LoginRequiredMixin, CreateView):
+EMPLOYEE_ACCESS_ROLES = (
+    is_employee_role,
+    is_supervisor,
+    is_hr,
+    is_operations,
+    is_superuser,
+)
+
+MANAGEMENT_EMPLOYEE_ACCESS_ROLES = (
+    is_admin_compatible,
+    is_hr,
+    is_operations,
+    is_supervisor,
+    is_superuser,
+)
+
+
+class EmployeeCreateView(RoleRequiredMixin, CreateView):
+    allowed_roles = [is_admin_compatible, is_hr, is_operations, is_superuser]
+    deny_message = "You do not have permission to create employee profiles."
+    deny_redirect = "home"
     model = Employee
     form_class = EmployeeForm
     template_name = "employees/employee_form.html"
@@ -42,7 +72,10 @@ class EmployeeCreateView(LoginRequiredMixin, CreateView):
         return context
 
 
-class EmployeeUpdateView(LoginRequiredMixin, UpdateView):
+class EmployeeUpdateView(RoleRequiredMixin, UpdateView):
+    allowed_roles = [is_admin_compatible, is_hr, is_operations, is_superuser]
+    deny_message = "You do not have permission to update employee profiles."
+    deny_redirect = "home"
     model = Employee
     form_class = EmployeeForm
     template_name = "employees/employee_form.html"
@@ -99,7 +132,10 @@ class EmployeeUpdateView(LoginRequiredMixin, UpdateView):
         return context
 
 
-class EmployeeTransferView(LoginRequiredMixin, UpdateView):
+class EmployeeTransferView(RoleRequiredMixin, UpdateView):
+    allowed_roles = [is_admin_compatible, is_hr, is_operations, is_superuser]
+    deny_message = "You do not have permission to transfer employee placements."
+    deny_redirect = "home"
     model = Employee
     form_class = EmployeeTransferForm
     template_name = "employees/employee_transfer.html"
@@ -142,7 +178,10 @@ class EmployeeTransferView(LoginRequiredMixin, UpdateView):
         return context
 
 
-class EmployeeDeleteView(LoginRequiredMixin, ProtectedDeleteMixin, DeleteView):
+class EmployeeDeleteView(RoleRequiredMixin, ProtectedDeleteMixin, DeleteView):
+    allowed_roles = [is_admin_compatible, is_hr, is_operations, is_superuser]
+    deny_message = "You do not have permission to delete employee profiles."
+    deny_redirect = "home"
     model = Employee
     template_name = "employees/employee_confirm_delete.html"
     success_url = reverse_lazy("employees:employee_list")
@@ -165,7 +204,7 @@ class EmployeeDeleteView(LoginRequiredMixin, ProtectedDeleteMixin, DeleteView):
         return response
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to change employee status.")
 @require_POST
 def employee_status_update(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
@@ -202,7 +241,7 @@ def employee_status_update(request, pk):
     return redirect("employees:employee_detail", pk=employee.pk)
 
 
-@login_required
+@api_role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to view this employee.")
 def end_of_service_estimate(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
 
@@ -258,7 +297,7 @@ def end_of_service_estimate(request, pk):
     )
 
 
-@login_required
+@role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to access employee documents.")
 def employee_document_view(request, employee_pk, document_pk):
     employee = get_object_or_404(Employee, pk=employee_pk)
     document = get_object_or_404(EmployeeDocument, pk=document_pk, employee=employee)
@@ -273,7 +312,7 @@ def employee_document_view(request, employee_pk, document_pk):
     return build_browser_file_response(document.file, force_download=False)
 
 
-@login_required
+@role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to access employee documents.")
 def employee_document_download(request, employee_pk, document_pk):
     employee = get_object_or_404(Employee, pk=employee_pk)
     document = get_object_or_404(EmployeeDocument, pk=document_pk, employee=employee)
@@ -288,7 +327,7 @@ def employee_document_download(request, employee_pk, document_pk):
     return build_browser_file_response(document.file, force_download=True)
 
 
-@login_required
+@role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to access required submissions.")
 def employee_required_submission_response_view(request, request_pk):
     submission_request = get_object_or_404(
         EmployeeRequiredSubmission.objects.select_related("employee"),
@@ -306,7 +345,7 @@ def employee_required_submission_response_view(request, request_pk):
     return build_browser_file_response(submission_request.response_file, force_download=False)
 
 
-@login_required
+@role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to access required submissions.")
 def employee_required_submission_response_download(request, request_pk):
     submission_request = get_object_or_404(
         EmployeeRequiredSubmission.objects.select_related("employee"),
@@ -324,7 +363,7 @@ def employee_required_submission_response_download(request, request_pk):
     return build_browser_file_response(submission_request.response_file, force_download=True)
 
 
-@login_required
+@role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to access document requests.")
 def employee_document_request_response_view(request, request_pk):
     document_request = get_object_or_404(
         EmployeeDocumentRequest.objects.select_related("employee"),
@@ -342,7 +381,7 @@ def employee_document_request_response_view(request, request_pk):
     return build_browser_file_response(document_request.response_file, force_download=False)
 
 
-@login_required
+@role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to access document requests.")
 def employee_document_request_response_download(request, request_pk):
     document_request = get_object_or_404(
         EmployeeDocumentRequest.objects.select_related("employee"),
@@ -361,7 +400,7 @@ def employee_document_request_response_download(request, request_pk):
 
 
 
-@login_required
+@role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to update employee documents.")
 def employee_document_update(request, employee_pk, document_pk):
     employee = get_object_or_404(Employee, pk=employee_pk)
     document = get_object_or_404(EmployeeDocument, pk=document_pk, employee=employee)
@@ -391,7 +430,7 @@ def employee_document_update(request, employee_pk, document_pk):
     return redirect("employees:employee_detail", pk=employee.pk)
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to create employee contracts.")
 @require_POST
 def employee_contract_create(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
@@ -438,7 +477,7 @@ def employee_contract_create(request, pk):
     return redirect(f"{reverse('employees:employee_detail', kwargs={'pk': employee.pk})}#employee-contracts-section")
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to update employee contracts.")
 @require_POST
 def employee_contract_update(request, employee_pk, contract_pk):
     employee = get_object_or_404(Employee, pk=employee_pk)
@@ -483,7 +522,7 @@ def employee_contract_update(request, employee_pk, contract_pk):
     return redirect(f"{reverse('employees:employee_detail', kwargs={'pk': employee.pk})}#employee-contracts-section")
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to delete employee contracts.")
 @require_POST
 def employee_contract_delete(request, employee_pk, contract_pk):
     employee = get_object_or_404(Employee, pk=employee_pk)
@@ -513,7 +552,7 @@ def employee_contract_delete(request, employee_pk, contract_pk):
     return redirect(f"{reverse('employees:employee_detail', kwargs={'pk': employee.pk})}#employee-contracts-section")
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to create employee documents.")
 @require_POST
 def employee_document_create(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
@@ -549,7 +588,7 @@ def employee_document_create(request, pk):
     return redirect("employees:employee_detail", pk=employee.pk)
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to delete employee documents.")
 @require_POST
 def employee_document_delete(request, employee_pk, document_pk):
     employee = get_object_or_404(Employee, pk=employee_pk)
@@ -580,7 +619,7 @@ def employee_document_delete(request, employee_pk, document_pk):
 
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to create required submissions.")
 @require_POST
 def employee_required_submission_create(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
@@ -639,7 +678,7 @@ def employee_required_submission_create(request, pk):
     )
 
 
-@login_required
+@role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to submit required files.")
 @require_POST
 def employee_required_submission_submit(request, request_pk):
     submission_request = get_object_or_404(
@@ -731,7 +770,7 @@ def employee_required_submission_submit(request, request_pk):
     )
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to review required submissions.")
 @require_POST
 def employee_required_submission_review(request, request_pk):
     submission_request = get_object_or_404(
@@ -782,7 +821,7 @@ def employee_required_submission_review(request, request_pk):
 
     return redirect('employees:employee_detail', pk=employee.pk)
 
-@login_required
+@role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to create document requests.")
 @require_POST
 def employee_document_request_create(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
@@ -831,7 +870,7 @@ def employee_document_request_create(request, pk):
     )
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to review document requests.")
 @require_POST
 def employee_document_request_review(request, request_pk):
     document_request = get_object_or_404(
@@ -916,7 +955,7 @@ def employee_document_request_review(request, request_pk):
     return redirect("employees:employee_requests_overview")
 
 
-@login_required
+@role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to cancel this document request.")
 @require_POST
 def employee_document_request_cancel(request, request_pk):
     document_request = get_object_or_404(EmployeeDocumentRequest.objects.select_related("employee"), pk=request_pk)
@@ -960,7 +999,7 @@ def employee_document_request_cancel(request, request_pk):
     )
 
 
-@login_required
+@role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to create leave requests.")
 @require_POST
 def employee_leave_create(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
@@ -1044,7 +1083,7 @@ def employee_leave_create(request, pk):
     return redirect("employees:employee_detail", pk=employee.pk)
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to review overtime requests.")
 @require_POST
 def overtime_request_review(request, request_pk):
     overtime_request = get_object_or_404(
@@ -1133,7 +1172,7 @@ def overtime_request_review(request, request_pk):
     return redirect("employees:employee_detail", pk=employee.pk)
 
 
-@login_required
+@role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to approve leave requests.")
 @require_POST
 def employee_leave_approve(request, employee_pk, leave_pk):
     employee = get_object_or_404(Employee, pk=employee_pk)
@@ -1235,7 +1274,7 @@ def employee_leave_approve(request, employee_pk, leave_pk):
     return redirect("employees:employee_detail", pk=employee.pk)
 
 
-@login_required
+@role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to reject leave requests.")
 @require_POST
 def employee_leave_reject(request, employee_pk, leave_pk):
     employee = get_object_or_404(Employee, pk=employee_pk)
@@ -1325,7 +1364,7 @@ def employee_leave_reject(request, employee_pk, leave_pk):
     return redirect("employees:employee_detail", pk=employee.pk)
 
 
-@login_required
+@role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to cancel leave requests.")
 @require_POST
 def employee_leave_cancel(request, employee_pk, leave_pk):
     employee = get_object_or_404(Employee, pk=employee_pk)
@@ -1390,7 +1429,7 @@ def employee_leave_cancel(request, employee_pk, leave_pk):
     return redirect("employees:employee_detail", pk=employee.pk)
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to create employee action records.")
 @require_POST
 def employee_action_record_create(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
@@ -1442,7 +1481,7 @@ def employee_action_record_create(request, pk):
     return redirect("employees:employee_detail", pk=employee.pk)
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to create attendance records.")
 @require_POST
 def employee_attendance_create(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
@@ -1488,7 +1527,7 @@ def employee_attendance_create(request, pk):
     return redirect("employees:employee_detail", pk=employee.pk)
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to add manual history.")
 @require_POST
 def employee_history_create(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
@@ -1514,8 +1553,7 @@ def employee_history_create(request, pk):
     return redirect("employees:employee_detail", pk=employee.pk)
 
 
-@login_required
-@login_required
+@role_required(*EMPLOYEE_ACCESS_ROLES, message="You do not have permission to request attendance corrections.")
 @require_POST
 def employee_attendance_correction_create(request, attendance_pk):
     attendance_entry = get_object_or_404(
@@ -1568,7 +1606,7 @@ def employee_attendance_correction_create(request, attendance_pk):
     return redirect(next_url)
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to apply attendance corrections.")
 @require_POST
 def employee_attendance_correction_apply(request, correction_pk):
     correction = get_object_or_404(
@@ -1628,7 +1666,7 @@ def employee_attendance_correction_apply(request, correction_pk):
     return redirect(next_url)
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to reject attendance corrections.")
 @require_POST
 def employee_attendance_correction_reject(request, correction_pk):
     correction = get_object_or_404(
@@ -2047,7 +2085,7 @@ def build_attendance_history_management_context(request, *, supervisor_history_o
     return context
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to access attendance management.")
 def attendance_management(request):
     if not can_view_attendance_management(request.user):
         return deny_employee_access(
@@ -2059,7 +2097,7 @@ def attendance_management(request):
     return render(request, "employees/attendance_management.html", context)
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to access document expiry monitoring.")
 def document_expiry_dashboard(request):
     if not (is_admin_compatible(request.user) or is_hr_user(request.user) or is_operations_manager_user(request.user)):
         return deny_employee_access(
@@ -2141,7 +2179,7 @@ def document_expiry_dashboard(request):
     return render(request, "employees/document_expiry_dashboard.html", context)
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to access branch schedules overview.")
 def branch_schedule_overview(request):
     if not can_view_branch_schedule_overview(request.user):
         return deny_employee_access(
@@ -2389,7 +2427,7 @@ def branch_schedule_overview(request):
     return render(request, "employees/branch_schedule_overview.html", context)
 
 
-@login_required
+@role_required(*MANAGEMENT_EMPLOYEE_ACCESS_ROLES, message="You do not have permission to access team attendance history.")
 def supervisor_attendance_history(request):
     if not is_branch_scoped_supervisor(request.user):
         return deny_employee_access(

@@ -1,19 +1,27 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Delete Interview{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/recruitment.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="page-section">
-    <div class="card" style="padding:24px;">
-        <h1 style="margin-top:0;">Delete Interview</h1>
-        <p>Remove the {{ interview.get_interview_type_display|lower }} interview scheduled for {{ interview.scheduled_at|date:"F j, Y - g:i A" }} for {{ candidate.full_name }}?</p>
-        <div class="page-actions" style="margin-top:16px;">
+<div class="platform-page recruitment-page recruitment-secondary-page">
+    <section class="platform-panel recruitment-panel recruitment-confirm-panel">
+        <div class="platform-panel-head">
+            <h2>Delete Interview</h2>
+            <p>Remove the {{ interview.get_interview_type_display|lower }} interview scheduled for {{ interview.scheduled_at|date:"F j, Y - g:i A" }} for {{ candidate.full_name }}.</p>
+        </div>
+        <div class="platform-inline-actions recruitment-item-actions">
             <a class="btn btn-light" href="{% url 'recruitment:candidate_detail' candidate.pk %}">Cancel</a>
             <form method="post">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger">Delete Interview</button>
             </form>
         </div>
-    </div>
+    </section>
 </div>
 {% endblock %}

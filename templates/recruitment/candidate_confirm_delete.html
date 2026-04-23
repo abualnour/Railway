@@ -1,17 +1,25 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Delete Candidate{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/recruitment.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="page-section">
-    <form method="post" class="card" style="padding:24px;">
-        {% csrf_token %}
-        <h1 style="margin-top:0;">Delete Candidate</h1>
-        <p>Delete <strong>{{ object.full_name }}</strong> from <strong>{{ object.job_posting.title }}</strong>?</p>
-        <div class="page-actions" style="margin-top:20px;">
-            <button type="submit" class="btn btn-danger">Delete</button>
-            <a class="btn btn-light" href="{% url 'recruitment:candidate_detail' object.pk %}">Cancel</a>
+<div class="platform-page recruitment-page recruitment-secondary-page">
+    <section class="platform-panel recruitment-panel recruitment-confirm-panel">
+        <div class="platform-panel-head">
+            <h2>Delete Candidate</h2>
+            <p>Remove <strong>{{ object.full_name }}</strong> from <strong>{{ object.job_posting.title }}</strong>. This action affects the live recruitment pipeline for this role.</p>
         </div>
-    </form>
+        <form method="post" class="platform-inline-actions recruitment-item-actions">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Delete Candidate</button>
+            <a class="btn btn-light" href="{% url 'recruitment:candidate_detail' object.pk %}">Cancel</a>
+        </form>
+    </section>
 </div>
 {% endblock %}

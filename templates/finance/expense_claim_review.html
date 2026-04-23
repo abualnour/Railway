@@ -1,52 +1,80 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Review Expense Claim{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/finance.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="page-section">
-    <div class="card" style="padding:24px;">
-        <div class="card-header" style="padding:0; margin-bottom:16px;">
-            <div>
-                <h1 style="margin:0;">Review Expense Claim</h1>
-                <p class="text-muted" style="margin:8px 0 0;">{{ claim.employee.full_name }} - {{ claim.title }}</p>
+<div class="platform-page finance-expense-page finance-expense-review-page">
+    <section class="platform-hero finance-expense-review-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Finance Review</span>
+            <h1>Review Expense Claim</h1>
+            <p>{{ claim.employee.full_name }} | {{ claim.title }}</p>
+            <div class="platform-hero-meta">
+                <span class="platform-hero-chip">Amount: {{ claim.amount }} {{ claim.currency }}</span>
+                <span class="platform-hero-chip">Status: {{ claim.get_status_display }}</span>
+                <span class="platform-hero-chip">Expense Date: {{ claim.expense_date|date:"M j, Y" }}</span>
             </div>
         </div>
-
-        <div class="detail-grid two-col" style="margin-bottom:18px;">
-            <div class="detail-item"><span class="detail-label">Employee</span><span class="detail-value">{{ claim.employee.full_name }}</span></div>
-            <div class="detail-item"><span class="detail-label">Amount</span><span class="detail-value">{{ claim.amount }} {{ claim.currency }}</span></div>
-            <div class="detail-item"><span class="detail-label">Category</span><span class="detail-value">{{ claim.get_category_display }}</span></div>
-            <div class="detail-item"><span class="detail-label">Expense Date</span><span class="detail-value">{{ claim.expense_date|date:"M j, Y" }}</span></div>
-            <div class="detail-item"><span class="detail-label">Status</span><span class="detail-value">{{ claim.get_status_display }}</span></div>
-            <div class="detail-item"><span class="detail-label">Submitted</span><span class="detail-value">{% if claim.submitted_at %}{{ claim.submitted_at|date:"M j, Y - g:i A" }}{% else %}Draft{% endif %}</span></div>
+        <div class="platform-hero-side">
+            <div class="platform-side-card">
+                <span>Submitted</span>
+                <strong>{% if claim.submitted_at %}{{ claim.submitted_at|date:"M j, Y" }}{% else %}Draft{% endif %}</strong>
+                <small>Claim intake timestamp</small>
+            </div>
+            <div class="platform-inline-actions platform-hero-actions">
+                <a class="btn btn-light btn-sm" href="{% url 'finance:expense_claim_dashboard' %}">Back To Claims</a>
+                {% if claim.receipt_file %}
+                <a class="btn btn-light btn-sm" href="{{ claim.receipt_file.url }}" target="_blank" rel="noopener">Open Receipt</a>
+                {% endif %}
+            </div>
         </div>
+    </section>
 
-        {% if claim.description %}
-        <div class="document-description" style="margin-bottom:18px;">{{ claim.description|linebreaksbr }}</div>
-        {% endif %}
+    <section class="platform-grid finance-expense-review-grid">
+        <article class="platform-panel">
+            <div class="platform-panel-head">
+                <h2>Claim Snapshot</h2>
+                <p>Review employee, amount, category, timing, and supporting context before saving the finance decision.</p>
+            </div>
+            <div class="detail-grid two-col finance-expense-detail-grid">
+                <div class="detail-item"><span class="detail-label">Employee</span><span class="detail-value">{{ claim.employee.full_name }}</span></div>
+                <div class="detail-item"><span class="detail-label">Amount</span><span class="detail-value">{{ claim.amount }} {{ claim.currency }}</span></div>
+                <div class="detail-item"><span class="detail-label">Category</span><span class="detail-value">{{ claim.get_category_display }}</span></div>
+                <div class="detail-item"><span class="detail-label">Expense Date</span><span class="detail-value">{{ claim.expense_date|date:"M j, Y" }}</span></div>
+                <div class="detail-item"><span class="detail-label">Status</span><span class="detail-value">{{ claim.get_status_display }}</span></div>
+                <div class="detail-item"><span class="detail-label">Submitted</span><span class="detail-value">{% if claim.submitted_at %}{{ claim.submitted_at|date:"M j, Y - g:i A" }}{% else %}Draft{% endif %}</span></div>
+            </div>
+            {% if claim.description %}
+            <div class="finance-expense-description">{{ claim.description|linebreaksbr }}</div>
+            {% endif %}
+        </article>
 
-        {% if claim.receipt_file %}
-        <div class="page-actions document-actions-row" style="margin-bottom:18px;">
-            <a class="btn btn-light btn-sm" href="{{ claim.receipt_file.url }}" target="_blank" rel="noopener">Open Receipt</a>
-        </div>
-        {% endif %}
-
-        <form method="post">
-            {% csrf_token %}
-            <div class="form-grid two-col">
+        <article class="platform-panel">
+            <div class="platform-panel-head">
+                <h2>Finance Decision</h2>
+                <p>Set the review outcome and record any internal finance note for this claim.</p>
+            </div>
+            <form method="post" class="platform-form-grid finance-expense-review-form">
+                {% csrf_token %}
                 {% for field in form %}
-                <div class="form-group {% if field.name == 'review_note' %}full-width{% endif %}">
+                <div class="form-group {% if field.name == 'review_note' %}platform-form-span{% endif %}">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
                     {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
                 </div>
                 {% endfor %}
-            </div>
-            <div class="page-actions document-actions-row" style="margin-top:16px;">
-                <button type="submit" class="btn btn-primary">Save Review</button>
-                <a class="btn btn-light" href="{% url 'finance:expense_claim_dashboard' %}">Cancel</a>
-            </div>
-        </form>
-    </div>
+                <div class="platform-form-actions">
+                    <button type="submit" class="btn btn-primary">Save Review</button>
+                    <a class="btn btn-light" href="{% url 'finance:expense_claim_dashboard' %}">Cancel</a>
+                </div>
+            </form>
+        </article>
+    </section>
 </div>
 {% endblock %}

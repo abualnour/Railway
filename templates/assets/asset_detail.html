@@ -1,27 +1,48 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ asset.asset_code }}{% endblock %}
 
-{% block content %}
-<div class="page-section">
-    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
-        <div>
-            <h1 style="margin:0;">{{ asset.name }}</h1>
-            <p class="text-muted" style="margin:8px 0 0;">{{ asset.asset_code }} - {{ asset.get_category_display }}</p>
-        </div>
-        <div class="page-actions">
-            <a class="btn btn-light" href="{% url 'assets:asset_update' asset.pk %}">Edit Asset</a>
-            {% if asset.is_available %}
-            <a class="btn btn-primary" href="{% url 'assets:assignment_create' %}">Assign Asset</a>
-            {% endif %}
-            <a class="btn btn-light" href="{% url 'assets:asset_list' %}">Back to Assets</a>
-        </div>
-    </div>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/assets.css' %}">
+{% endblock %}
 
-    <div class="detail-grid two-col" style="margin-top:20px;">
-        <div class="card" style="padding:24px;">
-            <h3 style="margin-top:0;">Asset Details</h3>
-            <div class="detail-grid two-col">
+{% block content %}
+<div class="platform-page assets-page">
+    <section class="platform-hero assets-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Asset Detail</span>
+            <h1>{{ asset.name }}</h1>
+            <p>{{ asset.asset_code }} | {{ asset.get_category_display }}</p>
+            <div class="platform-hero-meta">
+                <span class="platform-hero-chip">Status: {% if asset.is_available %}Available{% else %}Assigned{% endif %}</span>
+                <span class="platform-hero-chip">Condition: {{ asset.get_condition_display }}</span>
+            </div>
+        </div>
+        <div class="platform-hero-side">
+            <div class="platform-side-card">
+                <span>Current Assignee</span>
+                <strong>{% if asset.current_assignee %}{{ asset.current_assignee.full_name }}{% else %}--{% endif %}</strong>
+                <small>Current employee custody linked to this asset record.</small>
+            </div>
+            <div class="platform-hero-actions">
+                <a class="btn btn-light" href="{% url 'assets:asset_update' asset.pk %}">Edit Asset</a>
+                {% if asset.is_available %}
+                <a class="btn btn-primary" href="{% url 'assets:assignment_create' %}">Assign Asset</a>
+                {% endif %}
+                <a class="btn btn-light" href="{% url 'assets:asset_list' %}">Back to Assets</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="platform-grid">
+        <section class="platform-panel">
+            <div class="platform-panel-head">
+                <h2>Asset Details</h2>
+                <p>Master record information, condition, and custody summary for this equipment item.</p>
+            </div>
+            <div class="detail-grid two-col assets-detail-grid">
                 <div class="detail-item"><span class="detail-label">Status</span><span class="detail-value">{% if asset.is_available %}Available{% else %}Assigned{% endif %}</span></div>
                 <div class="detail-item"><span class="detail-label">Condition</span><span class="detail-value">{{ asset.get_condition_display }}</span></div>
                 <div class="detail-item"><span class="detail-label">Serial Number</span><span class="detail-value">{{ asset.serial_number|default:"--" }}</span></div>
@@ -29,40 +50,63 @@
                 <div class="detail-item"><span class="detail-label">Current Assignee</span><span class="detail-value">{% if asset.current_assignee %}{{ asset.current_assignee.full_name }}{% else %}--{% endif %}</span></div>
             </div>
             {% if asset.notes %}
-            <div class="document-description" style="margin-top:16px;">{{ asset.notes|linebreaksbr }}</div>
+            <div class="platform-empty-inline assets-note-box">{{ asset.notes|linebreaksbr }}</div>
             {% endif %}
-        </div>
+        </section>
 
-        <div class="card" style="padding:24px;">
-            <h3 style="margin-top:0;">Assignment History</h3>
+        <section class="platform-panel">
+            <div class="platform-panel-head">
+                <h2>Assignment History</h2>
+                <p>Past and active employee custody records linked to this asset.</p>
+            </div>
             {% if assignments %}
-            <div class="summary-list modern-list-gap">
+            <div class="platform-list assets-history-list">
                 {% for assignment in assignments %}
-                <div class="summary-list-item">
-                    <div class="request-overview-top">
+                <article class="platform-list-item assets-history-item">
+                    <div class="assets-list-main">
                         <strong>{{ assignment.employee.full_name }}</strong>
-                        <span class="badge badge-{% if assignment.returned_date %}light{% else %}warning{% endif %}">
-                            {% if assignment.returned_date %}Returned{% else %}Active{% endif %}
-                        </span>
+                        <span>{{ assignment.assigned_date|date:"M j, Y" }} assignment record</span>
+                        <div class="assets-meta-grid">
+                            <div class="assets-meta-item">
+                                <small>Assigned</small>
+                                <strong>{{ assignment.assigned_date|date:"M j, Y" }}</strong>
+                            </div>
+                            <div class="assets-meta-item">
+                                <small>Returned</small>
+                                <strong>{% if assignment.returned_date %}{{ assignment.returned_date|date:"M j, Y" }}{% else %}--{% endif %}</strong>
+                            </div>
+                            <div class="assets-meta-item">
+                                <small>Assigned By</small>
+                                <strong>{{ assignment.assigned_by.get_full_name|default:assignment.assigned_by.username }}</strong>
+                            </div>
+                            <div class="assets-meta-item">
+                                <small>Condition</small>
+                                <strong>{{ assignment.get_condition_on_assign_display }}</strong>
+                            </div>
+                        </div>
                     </div>
-                    <div class="detail-grid two-col" style="margin-top:12px;">
-                        <div class="detail-item"><span class="detail-label">Assigned</span><span class="detail-value">{{ assignment.assigned_date|date:"M j, Y" }}</span></div>
-                        <div class="detail-item"><span class="detail-label">Returned</span><span class="detail-value">{% if assignment.returned_date %}{{ assignment.returned_date|date:"M j, Y" }}{% else %}--{% endif %}</span></div>
-                        <div class="detail-item"><span class="detail-label">Assigned By</span><span class="detail-value">{{ assignment.assigned_by.get_full_name|default:assignment.assigned_by.username }}</span></div>
-                        <div class="detail-item"><span class="detail-label">Condition</span><span class="detail-value">{{ assignment.get_condition_on_assign_display }}</span></div>
+                    <div class="assets-list-side">
+                        <div class="platform-inline-actions">
+                            <span class="badge badge-{% if assignment.returned_date %}light{% else %}warning{% endif %}">
+                                {% if assignment.returned_date %}Returned{% else %}Active{% endif %}
+                            </span>
+                        </div>
+                        {% if not assignment.returned_date %}
+                        <div class="platform-inline-actions">
+                            <a class="btn btn-primary btn-sm" href="{% url 'assets:assignment_return' assignment.pk %}">Record Return</a>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% if not assignment.returned_date %}
-                    <div class="page-actions document-actions-row" style="margin-top:12px;">
-                        <a class="btn btn-primary btn-sm" href="{% url 'assets:assignment_return' assignment.pk %}">Record Return</a>
-                    </div>
-                    {% endif %}
-                </div>
+                </article>
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-muted" style="margin:0;">No assignment history yet.</p>
+            <div class="empty-state">
+                <h3>No assignment history yet</h3>
+                <p>Custody and return activity for this asset will appear here once assignments are recorded.</p>
+            </div>
             {% endif %}
-        </div>
+        </section>
     </div>
 </div>
 {% endblock %}

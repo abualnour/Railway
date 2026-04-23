@@ -24,6 +24,9 @@
                 <a class="btn btn-light" href="{{ self_service_profile_url }}">Profile</a>
                 <a class="btn btn-light" href="{{ self_service_my_schedule_url }}">My Schedule</a>
                 <a class="btn btn-secondary" href="{{ self_service_weekly_schedule_url }}">Weekly Schedule</a>
+                {% if branch_workspace_detail_url %}
+                <a class="btn btn-light" href="{{ branch_workspace_detail_url }}">Full Branch Workspace</a>
+                {% endif %}
             </div>
         </div>
     </div>

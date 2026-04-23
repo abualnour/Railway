@@ -1,5 +1,7 @@
 from django.urls import reverse
 
+from config.access import *  # noqa: F401,F403
+
 
 ROLE_EXCLUDED_STAFF_VALUES = {"hr", "finance_manager", "supervisor", "operations_manager", "employee"}
 
@@ -18,24 +20,11 @@ def is_admin_compatible(user):
     return bool(getattr(user, "is_staff", False))
 
 
-def is_hr_user(user):
-    return bool(user and user.is_authenticated and getattr(user, "is_hr", False))
-
-
-def is_supervisor_user(user):
-    return bool(user and user.is_authenticated and getattr(user, "is_supervisor", False))
-
-
-def is_finance_manager_user(user):
-    return bool(user and user.is_authenticated and getattr(user, "is_finance_manager", False))
-
-
-def is_operations_manager_user(user):
-    return bool(user and user.is_authenticated and getattr(user, "is_operations_manager", False))
-
-
-def is_employee_role_user(user):
-    return bool(user and user.is_authenticated and getattr(user, "is_employee_role", False))
+is_hr_user = is_hr
+is_supervisor_user = is_supervisor
+is_finance_manager_user = is_finance
+is_operations_manager_user = is_operations
+is_employee_role_user = is_employee_role
 
 
 def get_user_scope_branch(user, employee_profile=None):

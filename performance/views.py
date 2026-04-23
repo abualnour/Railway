@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Count, IntegerField, Q
 from django.db.models.functions import Cast
 from django.http import HttpResponse
@@ -9,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
+from config.access import is_hr, is_operations, is_superuser, role_required
 from employees.access import (
     get_user_scope_branch,
     is_admin_compatible,
@@ -33,6 +33,10 @@ def get_linked_employee(user):
     if not user or not user.is_authenticated:
         return None
     return getattr(user, "employee_profile", None)
+
+
+def has_linked_employee_profile(user):
+    return bool(get_linked_employee(user))
 
 
 def can_manage_performance_reviews(user, employee=None):
@@ -226,12 +230,15 @@ def trigger_performance_review_alerts(reference_date=None):
     return persist_in_app_notifications(notifications)
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_operations,
+    is_superuser,
+    has_linked_employee_profile,
+    message="You do not have permission to access the performance workspace.",
+)
 def performance_dashboard(request):
-    if not can_access_performance_dashboard(request.user):
-        messages.error(request, "You do not have permission to access the performance workspace.")
-        return redirect("home")
-
     linked_employee = get_linked_employee(request.user)
     manager_scope = is_admin_compatible(request.user) or is_hr_user(request.user) or is_operations_manager_user(request.user)
 
@@ -370,12 +377,15 @@ def performance_dashboard(request):
     return render(request, "performance/dashboard.html", context)
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_operations,
+    is_superuser,
+    message="You do not have permission to create review cycles.",
+    redirect_to="performance:dashboard",
+)
 def review_cycle_create(request):
-    if not (is_admin_compatible(request.user) or is_hr_user(request.user) or is_operations_manager_user(request.user)):
-        messages.error(request, "You do not have permission to create review cycles.")
-        return redirect("performance:dashboard")
-
     if request.method == "POST":
         form = ReviewCycleForm(request.POST)
         if form.is_valid():
@@ -396,13 +406,16 @@ def review_cycle_create(request):
     )
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_operations,
+    is_superuser,
+    message="You do not have permission to update review cycles.",
+    redirect_to="performance:dashboard",
+)
 def review_cycle_update(request, cycle_pk):
     cycle = get_object_or_404(ReviewCycle, pk=cycle_pk)
-    if not (is_admin_compatible(request.user) or is_hr_user(request.user) or is_operations_manager_user(request.user)):
-        messages.error(request, "You do not have permission to update review cycles.")
-        return redirect("performance:dashboard")
-
     if request.method == "POST":
         form = ReviewCycleForm(request.POST, instance=cycle)
         if form.is_valid():
@@ -424,26 +437,34 @@ def review_cycle_update(request, cycle_pk):
     )
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_operations,
+    is_superuser,
+    message="You do not have permission to clone review cycles.",
+    redirect_to="performance:dashboard",
+)
 def review_cycle_clone(request, cycle_pk):
     cycle = get_object_or_404(ReviewCycle.objects.select_related("company"), pk=cycle_pk)
     if request.method != "POST":
-        return redirect("performance:dashboard")
-    if not (is_admin_compatible(request.user) or is_hr_user(request.user) or is_operations_manager_user(request.user)):
-        messages.error(request, "You do not have permission to clone review cycles.")
         return redirect("performance:dashboard")
     cloned_cycle = cycle.clone_as_draft()
     messages.success(request, f"{cycle.title} was cloned into a new draft cycle.")
     return redirect("performance:review_cycle_update", cycle_pk=cloned_cycle.pk)
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_operations,
+    is_superuser,
+    message="You do not have permission to close review cycles.",
+    redirect_to="performance:dashboard",
+)
 def review_cycle_close(request, cycle_pk):
     cycle = get_object_or_404(ReviewCycle, pk=cycle_pk)
     if request.method != "POST":
-        return redirect("performance:dashboard")
-    if not (is_admin_compatible(request.user) or is_hr_user(request.user) or is_operations_manager_user(request.user)):
-        messages.error(request, "You do not have permission to close review cycles.")
         return redirect("performance:dashboard")
     if cycle.status == ReviewCycle.STATUS_CLOSED:
         messages.info(request, "This review cycle is already closed and locked.")
@@ -454,7 +475,14 @@ def review_cycle_close(request, cycle_pk):
     return redirect("performance:dashboard")
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_operations,
+    is_superuser,
+    has_linked_employee_profile,
+    message="You do not have permission to create performance reviews.",
+)
 def performance_review_create(request, employee_pk):
     employee = get_object_or_404(
         Employee.objects.select_related("company", "branch", "user"),
@@ -490,7 +518,14 @@ def performance_review_create(request, employee_pk):
     )
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_operations,
+    is_superuser,
+    has_linked_employee_profile,
+    message="You do not have permission to update performance reviews.",
+)
 def performance_review_update(request, review_pk):
     review = get_object_or_404(
         PerformanceReview.objects.select_related("employee", "cycle", "reviewer"),
@@ -527,7 +562,14 @@ def performance_review_update(request, review_pk):
     )
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_operations,
+    is_superuser,
+    has_linked_employee_profile,
+    message="You do not have permission to acknowledge performance reviews.",
+)
 def performance_review_acknowledge(request, review_pk):
     review = get_object_or_404(
         PerformanceReview.objects.select_related("employee", "employee__user", "cycle", "reviewer"),
@@ -550,7 +592,14 @@ def performance_review_acknowledge(request, review_pk):
     return redirect(f"{reverse('employees:employee_detail', kwargs={'pk': review.employee.pk})}?tab=performance")
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_operations,
+    is_superuser,
+    has_linked_employee_profile,
+    message="You do not have permission to comment on performance reviews.",
+)
 def performance_review_comment_create(request, review_pk):
     review = get_object_or_404(
         build_performance_review_queryset(),
@@ -575,7 +624,14 @@ def performance_review_comment_create(request, review_pk):
     return redirect(f"{reverse('employees:employee_detail', kwargs={'pk': review.employee.pk})}?tab=performance")
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_operations,
+    is_superuser,
+    has_linked_employee_profile,
+    message="You do not have permission to force-complete performance reviews.",
+)
 def performance_review_force_complete(request, review_pk):
     review = get_object_or_404(
         PerformanceReview.objects.select_related("employee", "cycle", "reviewer"),
@@ -601,12 +657,15 @@ def performance_review_force_complete(request, review_pk):
     return redirect(f"{reverse('employees:employee_detail', kwargs={'pk': review.employee.pk})}?tab=performance")
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_operations,
+    is_superuser,
+    has_linked_employee_profile,
+    message="You do not have permission to access the reviewer queue.",
+)
 def performance_reviewer_queue(request):
-    if not can_access_performance_dashboard(request.user):
-        messages.error(request, "You do not have permission to access the reviewer queue.")
-        return redirect("home")
-
     linked_employee = get_linked_employee(request.user)
     queue_reviews = []
     if linked_employee:
@@ -627,12 +686,15 @@ def performance_reviewer_queue(request):
     )
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_operations,
+    is_superuser,
+    has_linked_employee_profile,
+    message="You do not have permission to export performance reviews.",
+)
 def performance_reviews_export(request):
-    if not can_access_performance_dashboard(request.user):
-        messages.error(request, "You do not have permission to export performance reviews.")
-        return redirect("home")
-
     review_queryset = build_performance_review_queryset()
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="performance-reviews.csv"'
@@ -658,15 +720,19 @@ def performance_reviews_export(request):
     return response
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_operations,
+    is_superuser,
+    has_linked_employee_profile,
+    message="You do not have permission to view this performance review export.",
+)
 def performance_review_print(request, review_pk):
     review = get_object_or_404(
         build_performance_review_queryset(),
         pk=review_pk,
     )
-    if not can_access_performance_dashboard(request.user):
-        messages.error(request, "You do not have permission to view this performance review export.")
-        return redirect("home")
     return render(
         request,
         "performance/review_print.html",

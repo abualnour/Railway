@@ -205,7 +205,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1023px) {
     .employee-profile-page .document-file-row-head {
         flex-direction: column;
         align-items: stretch;
@@ -217,7 +217,7 @@
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .employee-profile-page .detail-card .card-header,
     .employee-profile-page .detail-card .card-body,
     .employee-profile-page .employee-hero-card .card-body,
@@ -244,7 +244,7 @@
     }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
     .employee-profile-page .detail-card .card-header,
     .employee-profile-page .detail-card .card-body,
     .employee-profile-page .employee-hero-card .card-body,
@@ -540,13 +540,13 @@
     border-radius: 999px;
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1199px) {
     .employee-profile-page .employee-hero-meta {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .employee-profile-page .employee-hero {
         grid-template-columns: 1fr;
     }
@@ -618,7 +618,7 @@
     background: linear-gradient(180deg, rgba(7, 11, 18, 0.96) 0%, rgba(4, 7, 12, 0.99) 100%);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .employee-profile-page .identity-compliance-panel {
         padding: 20px;
     }
@@ -755,13 +755,13 @@
     margin: 0;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1023px) {
     .employee-profile-page .organization-summary-band {
         grid-template-columns: 1fr;
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .employee-profile-page .employee-documents-panel {
         padding: 18px;
     }
@@ -827,7 +827,7 @@
     padding: 14px 16px !important;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .employee-profile-page .employee-information-card .card-header,
     .employee-profile-page .employee-information-card .card-body {
         padding-left: 20px;
@@ -899,7 +899,7 @@
     padding: 14px 16px !important;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .employee-profile-page .employee-information-card > .card-header {
         padding: 22px 20px 16px !important;
     }
@@ -918,7 +918,7 @@
     }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
     .employee-profile-page .employee-information-card > .card-header {
         padding: 18px 16px 14px !important;
     }
@@ -1038,7 +1038,7 @@
     gap: 10px !important;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .employee-profile-page .employee-information-card .employee-identity-status-grid {
         grid-template-columns: 1fr !important;
     }
@@ -1088,7 +1088,7 @@
     margin-top: 4px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .employee-profile-page .profile-status-dropdown {
         width: 100%;
     }
@@ -1147,19 +1147,19 @@
     min-height: 132px;
 }
 
-@media (max-width: 1380px) {
+@media (max-width: 1199px) {
     .employee-profile-page .working-time-metrics {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1023px) {
     .employee-profile-page .working-time-metrics {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .employee-profile-page .working-time-metrics {
         grid-template-columns: 1fr;
     }
@@ -1168,6 +1168,49 @@
         margin-top: 0;
     }
 }
+
+.table-responsive-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 639px) {
+    .employee-tab-bar,
+    .employee-profile-page .employee-360-workspace-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .employee-tab-btn,
+    .employee-profile-page .employee-360-tab-button {
+        flex: 1 1 calc(50% - 3px);
+        min-width: 0;
+        font-size: 12px;
+    }
+
+    .employee-detail-grid,
+    .employee-info-grid,
+    .profile-data-grid,
+    .employee-profile-page .detail-grid.two-col,
+    .employee-profile-page .employee-information-grid,
+    .employee-profile-page .employee-org-grid,
+    .employee-profile-page .organization-detail-grid,
+    .employee-profile-page .payroll-snapshot-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .employee-profile-page .employee-header-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .employee-profile-page .employee-header-actions .btn {
+        flex: 1 1 auto;
+    }
+}
+
 .employee-photo,
 .employee-avatar-lg {
     width: 78px;

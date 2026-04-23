@@ -1,102 +1,106 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Recruitment{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/recruitment.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="page-section">
-    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
-        <div>
-            <h1 style="margin:0;">Recruitment</h1>
-            <p class="text-muted" style="margin:8px 0 0;">Manage active job postings, monitor the hiring pipeline, and track upcoming interviews.</p>
+<div class="platform-page recruitment-page">
+    <section class="platform-hero dashboard-platform-hero recruitment-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Recruitment Workspace</span>
+            <h1>Recruitment</h1>
+            <p>Manage active job postings, monitor hiring momentum, and move quickly from funnel health into candidate and role detail workflows.</p>
+            <div class="platform-hero-meta">
+                <span class="platform-hero-chip">Job Postings: {{ job_posting_total }}</span>
+                <span class="platform-hero-chip">Open Roles: {{ open_job_posting_total }}</span>
+                <span class="platform-hero-chip">Active Candidates: {{ active_candidate_total }}</span>
+                <span class="platform-hero-chip">Offers: {{ offer_candidate_total }}</span>
+            </div>
         </div>
-        <div class="page-actions">
-            <a class="btn btn-light" href="{% url 'recruitment:kanban' %}">Kanban Board</a>
-            <a class="btn btn-light" href="{% url 'recruitment:candidate_list' %}">Candidate Directory</a>
-            <a class="btn btn-light" href="{% url 'recruitment:export_candidates' %}">Export Candidates</a>
-            <a class="btn btn-light" href="{% url 'recruitment:export_job_postings' %}">Export Job Postings</a>
-            <a class="btn btn-primary" href="{% url 'recruitment:job_posting_create' %}">Create Job Posting</a>
+        <div class="platform-hero-side">
+            <div class="platform-side-card">
+                <span>Closing Soon</span>
+                <strong>{{ closing_soon_total }}</strong>
+                <small>Roles approaching their closing window</small>
+            </div>
+            <div class="platform-inline-actions platform-hero-actions dashboard-platform-actions">
+                <a class="btn btn-light btn-sm" href="{% url 'recruitment:kanban' %}">Kanban Board</a>
+                <a class="btn btn-light btn-sm" href="{% url 'recruitment:candidate_list' %}">Candidate Directory</a>
+                <a class="btn btn-light btn-sm" href="{% url 'recruitment:export_candidates' %}">Export Candidates</a>
+                <a class="btn btn-light btn-sm" href="{% url 'recruitment:export_job_postings' %}">Export Job Postings</a>
+                <a class="btn btn-primary btn-sm" href="{% url 'recruitment:job_posting_create' %}">Create Job Posting</a>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <div class="summary-grid" style="margin-top:20px;">
-        <div class="summary-card"><span class="summary-label">Job Postings</span><span class="summary-value">{{ job_posting_total }}</span></div>
-        <div class="summary-card"><span class="summary-label">Open Roles</span><span class="summary-value">{{ open_job_posting_total }}</span></div>
-        <div class="summary-card"><span class="summary-label">Active Candidates</span><span class="summary-value">{{ active_candidate_total }}</span></div>
-        <div class="summary-card"><span class="summary-label">Interview Stage</span><span class="summary-value">{{ interview_candidate_total }}</span></div>
-        <div class="summary-card"><span class="summary-label">Offers</span><span class="summary-value">{{ offer_candidate_total }}</span></div>
-        <div class="summary-card"><span class="summary-label">Hired</span><span class="summary-value">{{ hired_candidate_total }}</span></div>
-        <div class="summary-card"><span class="summary-label">Expiring Offers</span><span class="summary-value">{{ expiring_offer_total }}</span></div>
-        <div class="summary-card"><span class="summary-label">Aging Candidates</span><span class="summary-value">{{ aging_candidate_total }}</span></div>
-        <div class="summary-card"><span class="summary-label">My Owned Candidates</span><span class="summary-value">{{ owned_candidate_total }}</span></div>
-        <div class="summary-card"><span class="summary-label">Accepted / Declined Offers</span><span class="summary-value">{{ accepted_offer_total }} / {{ declined_offer_total }}</span></div>
-    </div>
+    <section class="kpi-grid recruitment-kpi-grid">
+        <article class="kpi-card kpi-info"><div class="kpi-card-head"><div class="kpi-card-icon">JP</div></div><div class="kpi-card-value">{{ job_posting_total }}</div><div class="kpi-card-label">Job Postings</div></article>
+        <article class="kpi-card kpi-success"><div class="kpi-card-head"><div class="kpi-card-icon">OR</div></div><div class="kpi-card-value">{{ open_job_posting_total }}</div><div class="kpi-card-label">Open Roles</div></article>
+        <article class="kpi-card kpi-info"><div class="kpi-card-head"><div class="kpi-card-icon">AC</div></div><div class="kpi-card-value">{{ active_candidate_total }}</div><div class="kpi-card-label">Active Candidates</div></article>
+        <article class="kpi-card kpi-warning"><div class="kpi-card-head"><div class="kpi-card-icon">IV</div></div><div class="kpi-card-value">{{ interview_candidate_total }}</div><div class="kpi-card-label">Interview Stage</div></article>
+        <article class="kpi-card kpi-warning"><div class="kpi-card-head"><div class="kpi-card-icon">OF</div></div><div class="kpi-card-value">{{ offer_candidate_total }}</div><div class="kpi-card-label">Offers</div></article>
+        <article class="kpi-card kpi-success"><div class="kpi-card-head"><div class="kpi-card-icon">HR</div></div><div class="kpi-card-value">{{ hired_candidate_total }}</div><div class="kpi-card-label">Hired</div></article>
+    </section>
 
-    <div class="detail-grid two-col" style="margin-top:20px;">
-        <div class="card" style="padding:24px;">
-            <h3 style="margin-top:0;">Pipeline Funnel</h3>
-            <p class="text-muted" style="margin:8px 0 16px;">Quick view of where candidates are sitting across the active recruitment pipeline.</p>
-            <div class="summary-list modern-list-gap">
+    <section class="platform-grid recruitment-overview-grid">
+        <article class="platform-panel recruitment-panel">
+            <div class="platform-panel-head">
+                <h2>Pipeline Funnel</h2>
+                <p>Quick view of where candidates are sitting across the active recruitment pipeline.</p>
+            </div>
+            <div class="recruitment-funnel-list">
                 {% for item in funnel_metrics %}
-                <div class="summary-list-item">
-                    <div class="request-overview-top">
+                <div class="recruitment-funnel-item">
+                    <div class="recruitment-funnel-head">
                         <strong>{{ item.label }}</strong>
                         <span class="badge badge-light">{{ item.count }}</span>
                     </div>
-                    <div style="height:10px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; margin-top:12px;">
-                        <div style="width:{{ item.width }}%; height:100%; background:linear-gradient(90deg, rgba(249,110,11,.95), rgba(249,158,11,.75));"></div>
+                    <div class="recruitment-funnel-track">
+                        <div class="recruitment-funnel-fill" style="width: {{ item.width }}%;"></div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
-        </div>
+        </article>
 
-        <div class="card" style="padding:24px;">
-            <h3 style="margin-top:0;">Recruitment Health</h3>
-            <p class="text-muted" style="margin:8px 0 16px;">A compact snapshot of hiring momentum and interview quality.</p>
-            <div class="detail-grid two-col">
-                <div class="detail-item">
-                    <span class="detail-label">Hire Conversion</span>
-                    <span class="detail-value">{{ hire_conversion_rate }}%</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Closing Soon</span>
-                    <span class="detail-value">{{ closing_soon_total }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Scored Interviews</span>
-                    <span class="detail-value">{{ scored_interview_total }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Average Score</span>
-                    <span class="detail-value">{% if average_interview_score %}{{ average_interview_score|floatformat:1 }}/100{% else %}--{% endif %}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Rejected</span>
-                    <span class="detail-value">{{ rejected_candidate_total }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Offers in Progress</span>
-                    <span class="detail-value">{{ offer_candidate_total }}</span>
-                </div>
+        <article class="platform-panel recruitment-panel">
+            <div class="platform-panel-head">
+                <h2>Recruitment Health</h2>
+                <p>A compact snapshot of hiring momentum and interview quality.</p>
             </div>
-        </div>
-    </div>
+            <div class="detail-grid two-col recruitment-health-grid">
+                <div class="detail-item"><span class="detail-label">Hire Conversion</span><span class="detail-value">{{ hire_conversion_rate }}%</span></div>
+                <div class="detail-item"><span class="detail-label">Closing Soon</span><span class="detail-value">{{ closing_soon_total }}</span></div>
+                <div class="detail-item"><span class="detail-label">Scored Interviews</span><span class="detail-value">{{ scored_interview_total }}</span></div>
+                <div class="detail-item"><span class="detail-label">Average Score</span><span class="detail-value">{% if average_interview_score %}{{ average_interview_score|floatformat:1 }}/100{% else %}--{% endif %}</span></div>
+                <div class="detail-item"><span class="detail-label">Rejected</span><span class="detail-value">{{ rejected_candidate_total }}</span></div>
+                <div class="detail-item"><span class="detail-label">Offers in Progress</span><span class="detail-value">{{ offer_candidate_total }}</span></div>
+            </div>
+        </article>
+    </section>
 
-    <div class="detail-grid two-col" style="margin-top:20px;">
-        <div class="card" style="padding:24px;">
-            <div class="card-header" style="padding:0; margin-bottom:16px;">
-                <h3 style="margin:0;">Expiring Offers</h3>
+    <section class="platform-grid recruitment-overview-grid">
+        <article class="platform-panel recruitment-panel">
+            <div class="platform-panel-head">
+                <h2>Expiring Offers</h2>
+                <p>Offers approaching expiry and needing recruiter follow-up.</p>
             </div>
             {% if expiring_offers %}
-            <div class="summary-list modern-list-gap">
+            <div class="platform-list">
                 {% for candidate in expiring_offers %}
-                <div class="summary-list-item">
-                    <div class="request-overview-top">
+                <div class="platform-list-item">
+                    <div class="platform-list-item-stack">
                         <strong>{{ candidate.full_name }}</strong>
-                        <span class="badge badge-warning">{{ candidate.offer_expiry_date|date:"M j, Y" }}</span>
+                        <small>{{ candidate.job_posting.title }} | {{ candidate.job_posting.branch.name }}</small>
                     </div>
-                    <div class="text-muted" style="margin-top:8px;">{{ candidate.job_posting.title }} - {{ candidate.job_posting.branch.name }}</div>
-                    <div class="page-actions" style="margin-top:12px;">
+                    <div class="platform-inline-actions recruitment-item-actions">
+                        <span class="badge badge-warning">{{ candidate.offer_expiry_date|date:"M j, Y" }}</span>
                         {% if candidate.offer_sent_date %}<span class="badge badge-light">Sent {{ candidate.offer_sent_date|date:"M j, Y" }}</span>{% endif %}
                         <a class="btn btn-light btn-sm" href="{% url 'recruitment:candidate_detail' candidate.pk %}">Open Candidate</a>
                     </div>
@@ -104,24 +108,28 @@
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-muted" style="margin:0;">No offers are expiring in the next 7 days.</p>
+            <div class="empty-state">
+                <h3>No offers closing soon</h3>
+                <p>No offers are expiring in the next 7 days.</p>
+            </div>
             {% endif %}
-        </div>
+        </article>
 
-        <div class="card" style="padding:24px;">
-            <div class="card-header" style="padding:0; margin-bottom:16px;">
-                <h3 style="margin:0;">Aging Candidates</h3>
+        <article class="platform-panel recruitment-panel">
+            <div class="platform-panel-head">
+                <h2>Aging Candidates</h2>
+                <p>Candidates that have been sitting in the pipeline too long.</p>
             </div>
             {% if aging_candidates %}
-            <div class="summary-list modern-list-gap">
+            <div class="platform-list">
                 {% for candidate in aging_candidates %}
-                <div class="summary-list-item">
-                    <div class="request-overview-top">
+                <div class="platform-list-item">
+                    <div class="platform-list-item-stack">
                         <strong>{{ candidate.full_name }}</strong>
-                        <span class="badge badge-warning">{{ candidate.days_in_pipeline }} Days</span>
+                        <small>{{ candidate.job_posting.title }} | {{ candidate.get_status_display }}</small>
                     </div>
-                    <div class="text-muted" style="margin-top:8px;">{{ candidate.job_posting.title }} - {{ candidate.get_status_display }}</div>
-                    <div class="page-actions" style="margin-top:12px;">
+                    <div class="platform-inline-actions recruitment-item-actions">
+                        <span class="badge badge-warning">{{ candidate.days_in_pipeline }} Days</span>
                         <span class="badge badge-light">{{ candidate.applied_at|date:"M j, Y" }}</span>
                         <a class="btn btn-light btn-sm" href="{% url 'recruitment:candidate_detail' candidate.pk %}">Open Candidate</a>
                     </div>
@@ -129,13 +137,20 @@
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-muted" style="margin:0;">No aging candidates need attention right now.</p>
+            <div class="empty-state">
+                <h3>No aging candidates</h3>
+                <p>No aging candidates need attention right now.</p>
+            </div>
             {% endif %}
-        </div>
-    </div>
+        </article>
+    </section>
 
-    <form method="get" class="card" style="padding:20px; margin-top:20px;">
-        <div class="form-grid two-col">
+    <section class="platform-panel recruitment-panel">
+        <div class="platform-panel-head">
+            <h2>Filter Job Postings</h2>
+            <p>Search and narrow the visible role pipeline by title, department, branch, or posting status.</p>
+        </div>
+        <form method="get" class="platform-form-grid recruitment-filter-form">
             <div class="form-group">
                 <label for="id_search">Search</label>
                 <input id="id_search" type="text" name="search" value="{{ search_query }}" class="form-control" placeholder="Search title, department, or branch">
@@ -149,59 +164,58 @@
                     {% endfor %}
                 </select>
             </div>
-        </div>
-        <div class="page-actions" style="margin-top:16px;">
-            <button type="submit" class="btn btn-primary">Apply Filters</button>
-            <a class="btn btn-light" href="{% url 'recruitment:job_posting_list' %}">Clear</a>
-        </div>
-    </form>
+            <div class="platform-form-actions">
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <a class="btn btn-light" href="{% url 'recruitment:job_posting_list' %}">Clear</a>
+            </div>
+        </form>
+    </section>
 
-    <div class="detail-grid two-col" style="margin-top:20px;">
-        <div class="card" style="padding:24px;">
-            <div class="card-header" style="padding:0; margin-bottom:16px;">
-                <h3 style="margin:0;">Upcoming Interviews</h3>
+    <section class="platform-grid recruitment-overview-grid">
+        <article class="platform-panel recruitment-panel">
+            <div class="platform-panel-head">
+                <h2>Upcoming Interviews</h2>
+                <p>See the next scheduled interviews across the active recruitment queue.</p>
             </div>
             {% if upcoming_interviews %}
-            <div class="summary-list modern-list-gap">
+            <div class="platform-list">
                 {% for interview in upcoming_interviews %}
-                <div class="summary-list-item">
-                    <div class="request-overview-top">
-                        <div>
-                            <strong>{{ interview.candidate.full_name }}</strong>
-                            <div class="text-muted" style="margin-top:8px;">{{ interview.candidate.job_posting.title }} - {{ interview.get_interview_type_display }}</div>
-                        </div>
+                <div class="platform-list-item">
+                    <div class="platform-list-item-stack">
+                        <strong>{{ interview.candidate.full_name }}</strong>
+                        <small>{{ interview.candidate.job_posting.title }} | {{ interview.get_interview_type_display }}</small>
+                        <span>Interviewer: {{ interview.interviewer.get_full_name|default:interview.interviewer.email|default:"Unassigned" }}</span>
+                    </div>
+                    <div class="platform-inline-actions recruitment-item-actions">
                         <span class="badge badge-light">{{ interview.scheduled_at|date:"F j, Y - g:i A" }}</span>
-                    </div>
-                    <div class="text-muted" style="margin-top:8px;">
-                        Interviewer: {{ interview.interviewer.get_full_name|default:interview.interviewer.email|default:"Unassigned" }}
-                    </div>
-                    {% if interview.score is not None or interview.recommendation %}
-                    <div class="page-actions" style="margin-top:12px;">
                         {% if interview.score is not None %}<span class="badge badge-light">Score {{ interview.score }}/100</span>{% endif %}
                         {% if interview.recommendation %}<span class="badge badge-light">{{ interview.get_recommendation_display }}</span>{% endif %}
                     </div>
-                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-muted" style="margin:0;">No upcoming interviews are scheduled yet.</p>
+            <div class="empty-state">
+                <h3>No upcoming interviews</h3>
+                <p>No upcoming interviews are scheduled yet.</p>
+            </div>
             {% endif %}
-        </div>
+        </article>
 
-        <div class="card" style="padding:24px;">
-            <div class="card-header" style="padding:0; margin-bottom:16px;">
-                <h3 style="margin:0;">Top Branch Funnel</h3>
+        <article class="platform-panel recruitment-panel">
+            <div class="platform-panel-head">
+                <h2>Top Branch Funnel</h2>
+                <p>Compare candidate volume, offers, and hires by branch.</p>
             </div>
             {% if branch_funnel %}
-            <div class="summary-list modern-list-gap">
+            <div class="platform-list">
                 {% for branch in branch_funnel %}
-                <div class="summary-list-item">
-                    <div class="request-overview-top">
+                <div class="platform-list-item">
+                    <div class="platform-list-item-stack">
                         <strong>{{ branch.name }}</strong>
-                        <span class="badge badge-light">{{ branch.total }} Candidate{{ branch.total|pluralize }}</span>
+                        <small>{{ branch.total }} candidate{{ branch.total|pluralize }}</small>
                     </div>
-                    <div class="page-actions" style="margin-top:12px;">
+                    <div class="platform-inline-actions recruitment-item-actions">
                         <span class="badge badge-light">Offers {{ branch.offers }}</span>
                         <span class="badge badge-success">Hired {{ branch.hired }}</span>
                         <span class="badge badge-light">Hire Rate {{ branch.hire_rate }}%</span>
@@ -210,50 +224,47 @@
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-muted" style="margin:0;">Branch funnel data will appear once candidates are added.</p>
+            <div class="empty-state">
+                <h3>No branch funnel data</h3>
+                <p>Branch funnel data will appear once candidates are added.</p>
+            </div>
             {% endif %}
-        </div>
-    </div>
+        </article>
+    </section>
 
-    {% if job_postings %}
-    <div class="summary-list modern-list-gap" style="margin-top:20px;">
-        {% for job_posting in job_postings %}
-        <div class="summary-list-item">
-            <div class="request-overview-top">
-                <div>
-                    <h3 style="margin:0;">{{ job_posting.title }}</h3>
-                    <div class="text-muted" style="margin-top:8px;">
-                        {{ job_posting.department.name }} - {{ job_posting.branch.name }} - {{ job_posting.department.company.name }}
-                    </div>
-                </div>
-                <div class="page-actions">
-                    <span class="badge badge-light">{{ job_posting.get_status_display }}</span>
-                    <span class="badge badge-light">{{ job_posting.candidate_total }} Candidate{{ job_posting.candidate_total|pluralize }}</span>
-                </div>
-            </div>
-            <div class="detail-grid two-col" style="margin-top:18px;">
-                <div class="detail-item">
-                    <span class="detail-label">Posted Date</span>
-                    <span class="detail-value">{{ job_posting.posted_date|date:"F j, Y" }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Closing Date</span>
-                    <span class="detail-value">{{ job_posting.closing_date|date:"F j, Y"|default:"--" }}</span>
-                </div>
-            </div>
-            <div class="page-actions" style="margin-top:18px;">
-                <a class="btn btn-light" href="{% url 'recruitment:job_posting_detail' job_posting.pk %}">Open</a>
-                <a class="btn btn-light" href="{% url 'recruitment:job_posting_update' job_posting.pk %}">Edit</a>
-                <a class="btn btn-danger" href="{% url 'recruitment:job_posting_delete' job_posting.pk %}">Delete</a>
-            </div>
+    <section class="platform-panel recruitment-panel">
+        <div class="platform-panel-head">
+            <h2>Job Posting Pipeline</h2>
+            <p>Active recruitment roles with direct access to role detail and candidate activity.</p>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="empty-state" style="margin-top:20px;">
-        <h3>No job postings yet</h3>
-        <p>Create the first recruitment opening to start tracking candidates.</p>
-    </div>
-    {% endif %}
+        {% if job_postings %}
+        <div class="platform-list">
+            {% for job_posting in job_postings %}
+            <div class="platform-list-item recruitment-job-item">
+                <div class="platform-list-item-stack">
+                    <strong>{{ job_posting.title }}</strong>
+                    <small>{{ job_posting.department.name }} | {{ job_posting.branch.name }} | {{ job_posting.department.company.name }}</small>
+                    <span class="recruitment-job-meta">
+                        <span class="badge badge-light">Posted {{ job_posting.posted_date|date:"F j, Y" }}</span>
+                        <span class="badge badge-light">Closing {{ job_posting.closing_date|date:"F j, Y"|default:"--" }}</span>
+                        <span class="badge badge-light">{{ job_posting.candidate_total }} Candidate{{ job_posting.candidate_total|pluralize }}</span>
+                    </span>
+                </div>
+                <div class="platform-inline-actions recruitment-item-actions">
+                    <span class="badge badge-light">{{ job_posting.get_status_display }}</span>
+                    <a class="btn btn-light btn-sm" href="{% url 'recruitment:job_posting_detail' job_posting.pk %}">Open</a>
+                    <a class="btn btn-light btn-sm" href="{% url 'recruitment:job_posting_update' job_posting.pk %}">Edit</a>
+                    <a class="btn btn-danger btn-sm" href="{% url 'recruitment:job_posting_delete' job_posting.pk %}">Delete</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No job postings yet</h3>
+            <p>Create the first recruitment opening to start tracking candidates.</p>
+        </div>
+        {% endif %}
+    </section>
 </div>
 {% endblock %}

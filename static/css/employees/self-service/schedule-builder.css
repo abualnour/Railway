@@ -122,7 +122,7 @@
     min-width: 180px;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1023px) {
     .employee-profile-page .branch-duty-master-toolbar {
         grid-template-columns: 1fr;
     }
@@ -777,13 +777,13 @@ html[data-theme="premium-dark"] .employee-profile-page .branch-schedule-publishe
     border-radius: 10px !important;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1023px) {
     .employee-profile-page .branch-duty-master-list {
         grid-template-columns: 1fr !important;
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .employee-profile-page .branch-duty-master-toolbar {
         grid-template-columns: 1fr !important;
     }
@@ -927,13 +927,13 @@ html[data-theme="premium-dark"] .employee-profile-page .branch-schedule-publishe
     border-radius: 10px !important;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1023px) {
     .employee-profile-page .branch-duty-master-list {
         grid-template-columns: 1fr !important;
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .employee-profile-page .branch-duty-master-toolbar {
         grid-template-columns: 1fr !important;
     }
@@ -1156,7 +1156,7 @@ html[data-theme="premium-light"] .employee-profile-page .btn.btn-secondary {
     background: rgba(255, 255, 255, 0.04) !important;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .employee-profile-page .branch-duty-master-summary {
         padding-right: 46px !important;
     }
@@ -1283,13 +1283,13 @@ html[data-theme="premium-dark"] .employee-profile-page .branch-schedule-public-c
     align-items: start;
 }
 
-@media (max-width: 1400px) {
+@media (max-width: 1199px) {
     .employee-profile-page .branch-duty-master-list {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .employee-profile-page .branch-duty-master-list {
         grid-template-columns: 1fr;
     }
@@ -1390,7 +1390,7 @@ html[data-theme="premium-dark"] .employee-profile-page .branch-schedule-public-c
     padding-top: 24px;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1199px) {
     .employee-profile-page .branch-duty-master-create-form .branch-schedule-theme-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1400,7 +1400,7 @@ html[data-theme="premium-dark"] .employee-profile-page .branch-schedule-public-c
     }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 639px) {
     .employee-profile-page .branch-duty-master-create-form .branch-schedule-theme-grid {
         grid-template-columns: 1fr;
     }
@@ -1484,7 +1484,7 @@ html[data-theme="premium-dark"] .employee-profile-page .branch-schedule-public-c
     font-weight: 700;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .employee-profile-page .branch-schedule-published-table {
         min-width: 760px;
     }
@@ -1502,7 +1502,7 @@ html[data-theme="premium-dark"] .employee-profile-page .branch-schedule-public-c
     }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
     .employee-profile-page .branch-manual-schedule-table {
         min-width: 820px;
     }
@@ -1693,3 +1693,87 @@ html[data-theme="premium-dark"] .employee-profile-page .free-grid-readonly {
 }
 
 /* WEEKLY SCHEDULE HARD OVERRIDE */
+
+@media (max-width: 767px) {
+    /* Scroll the schedule grid instead of overflowing the page */
+    .schedule-grid-wrapper,
+    .schedule-builder-grid,
+    .employee-profile-page .branch-manual-schedule-table-wrap,
+    .employee-profile-page .branch-schedule-published-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        min-width: 0;
+    }
+
+    /* Make the grid horizontally scrollable with a fixed left column */
+    .schedule-grid-row {
+        display: grid;
+        grid-template-columns: 120px repeat(7, minmax(80px, 1fr));
+    }
+
+    .schedule-grid-label {
+        position: sticky;
+        left: 0;
+        z-index: 10;
+        background: var(--color-surface-1, var(--surface));
+    }
+
+    .employee-profile-page .branch-manual-schedule-table,
+    .employee-profile-page .branch-schedule-published-table {
+        min-width: max-content;
+    }
+
+    .employee-profile-page .branch-manual-schedule-table th:first-child,
+    .employee-profile-page .branch-manual-schedule-table td:first-child,
+    .employee-profile-page .branch-schedule-published-table th:first-child,
+    .employee-profile-page .branch-schedule-published-table td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 10;
+        background: var(--color-surface-1, var(--surface));
+    }
+
+    .employee-profile-page .branch-manual-schedule-table th:first-child,
+    .employee-profile-page .branch-manual-schedule-table td:first-child,
+    .employee-profile-page .branch-manual-schedule-table th:nth-child(2),
+    .employee-profile-page .branch-manual-schedule-table td:nth-child(2),
+    .employee-profile-page .branch-schedule-published-table th:first-child,
+    .employee-profile-page .branch-schedule-published-table td:first-child,
+    .employee-profile-page .branch-schedule-published-table th:nth-child(2),
+    .employee-profile-page .branch-schedule-published-table td:nth-child(2) {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    /* Larger touch targets for shift slots */
+    .shift-slot,
+    .schedule-cell,
+    .employee-profile-page .branch-manual-pending-cell input,
+    .employee-profile-page .branch-manual-duty-select,
+    .employee-profile-page .branch-schedule-public-cell,
+    .employee-profile-page .free-grid-readonly {
+        min-height: 44px;
+        min-width: 80px;
+    }
+
+    /* Collapse the toolbar */
+    .schedule-toolbar,
+    .employee-profile-page .branch-schedule-toolbar,
+    .employee-profile-page .branch-duty-master-toolbar {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .schedule-toolbar-actions,
+    .employee-profile-page .branch-schedule-toolbar,
+    .employee-profile-page .branch-duty-master-actions {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 479px) {
+    .schedule-grid-row {
+        grid-template-columns: 100px repeat(7, 72px);
+    }
+}

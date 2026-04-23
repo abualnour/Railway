@@ -67,22 +67,34 @@
         </div>
     </section>
 
-    <section class="platform-stats-grid home-stat-ribbon home-stat-ribbon-self">
-        <article class="platform-stat-card home-stat-pill">
-            <span>Open Requests</span>
-            <strong>{{ pending_request_count }}</strong>
+    <section class="kpi-grid home-kpi-strip home-stat-ribbon-self">
+        <article class="kpi-card kpi-info">
+            <div class="kpi-card-head">
+                <div class="kpi-card-icon">RQ</div>
+            </div>
+            <div class="kpi-card-value">{{ pending_request_count }}</div>
+            <div class="kpi-card-label">Open Requests</div>
         </article>
-        <article class="platform-stat-card home-stat-pill home-stat-pill-success">
-            <span>Approved</span>
-            <strong>{{ approved_request_count }}</strong>
+        <article class="kpi-card kpi-success">
+            <div class="kpi-card-head">
+                <div class="kpi-card-icon">OK</div>
+            </div>
+            <div class="kpi-card-value">{{ approved_request_count }}</div>
+            <div class="kpi-card-label">Approved</div>
         </article>
-        <article class="platform-stat-card home-stat-pill home-stat-pill-danger">
-            <span>Closed Items</span>
-            <strong>{{ rejected_request_count|add:cancelled_request_count }}</strong>
+        <article class="kpi-card kpi-danger">
+            <div class="kpi-card-head">
+                <div class="kpi-card-icon">CL</div>
+            </div>
+            <div class="kpi-card-value">{{ rejected_request_count|add:cancelled_request_count }}</div>
+            <div class="kpi-card-label">Closed Items</div>
         </article>
-        <article class="platform-stat-card home-stat-pill">
-            <span>Current Section</span>
-            <strong>{{ employee.section|default:"-" }}</strong>
+        <article class="kpi-card kpi-info">
+            <div class="kpi-card-head">
+                <div class="kpi-card-icon">SC</div>
+            </div>
+            <div class="kpi-card-value">{{ employee.section|default:"-" }}</div>
+            <div class="kpi-card-label">Current Section</div>
         </article>
     </section>
 
@@ -179,20 +191,29 @@
         </div>
     </section>
 
-    <section class="platform-stats-grid home-stat-ribbon home-stat-ribbon-finance">
+    <section class="kpi-grid home-kpi-strip home-stat-ribbon-finance">
         {% for item in finance_status_cards %}
-            <article class="platform-stat-card home-stat-pill{% if item.tone == 'warning' %} home-stat-pill-danger{% elif item.tone == 'primary' %} home-stat-pill-success{% endif %}">
-                <span>{{ item.label }}</span>
-                <strong>{{ item.value }}</strong>
+            <article class="kpi-card{% if item.tone == 'warning' %} kpi-warning{% elif item.tone == 'primary' %} kpi-info{% else %} kpi-info{% endif %}">
+                <div class="kpi-card-head">
+                    <div class="kpi-card-icon">FN</div>
+                </div>
+                <div class="kpi-card-value">{{ item.value }}</div>
+                <div class="kpi-card-label">{{ item.label }}</div>
             </article>
         {% endfor %}
-        <article class="platform-stat-card home-stat-pill">
-            <span>Payroll Profiles</span>
-            <strong>{{ finance_profile_total }}</strong>
+        <article class="kpi-card kpi-info">
+            <div class="kpi-card-head">
+                <div class="kpi-card-icon">PF</div>
+            </div>
+            <div class="kpi-card-value">{{ finance_profile_total }}</div>
+            <div class="kpi-card-label">Payroll Profiles</div>
         </article>
-        <article class="platform-stat-card home-stat-pill home-stat-pill-danger">
-            <span>Profiles On Hold</span>
-            <strong>{{ finance_hold_profile_total }}</strong>
+        <article class="kpi-card kpi-danger">
+            <div class="kpi-card-head">
+                <div class="kpi-card-icon">HD</div>
+            </div>
+            <div class="kpi-card-value">{{ finance_hold_profile_total }}</div>
+            <div class="kpi-card-label">Profiles On Hold</div>
         </article>
     </section>
 
@@ -409,11 +430,14 @@
         </div>
     </section>
 
-    <section class="platform-stats-grid home-stat-ribbon home-stat-ribbon-executive">
+    <section class="kpi-grid home-kpi-strip home-stat-ribbon-executive">
         {% for item in executive_status_cards %}
-            <article class="platform-stat-card home-stat-pill{% if item.tone == 'warning' %} home-stat-pill-danger{% elif item.tone == 'primary' %} home-stat-pill-success{% endif %}">
-                <span>{{ item.label }}</span>
-                <strong>{{ item.value }}</strong>
+            <article class="kpi-card{% if item.tone == 'warning' %} kpi-danger{% elif item.tone == 'primary' %} kpi-success{% else %} kpi-info{% endif %}">
+                <div class="kpi-card-head">
+                    <div class="kpi-card-icon">EX</div>
+                </div>
+                <div class="kpi-card-value">{{ item.value }}</div>
+                <div class="kpi-card-label">{{ item.label }}</div>
             </article>
         {% endfor %}
     </section>
@@ -662,11 +686,14 @@
         </div>
     </section>
 
-    <section class="platform-stats-grid home-stat-ribbon home-stat-ribbon-operations">
+    <section class="kpi-grid home-kpi-strip home-stat-ribbon-operations">
         {% for item in operational_status_cards %}
-            <article class="platform-stat-card home-stat-pill{% if item.tone == 'warning' %} home-stat-pill-danger{% elif item.tone == 'primary' %} home-stat-pill-success{% endif %}">
-                <span>{{ item.label }}</span>
-                <strong>{{ item.value }}</strong>
+            <article class="kpi-card{% if item.tone == 'warning' %} kpi-danger{% elif item.tone == 'primary' %} kpi-success{% else %} kpi-info{% endif %}">
+                <div class="kpi-card-head">
+                    <div class="kpi-card-icon">OP</div>
+                </div>
+                <div class="kpi-card-value">{{ item.value }}</div>
+                <div class="kpi-card-label">{{ item.label }}</div>
             </article>
         {% endfor %}
     </section>

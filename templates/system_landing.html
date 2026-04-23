@@ -4,112 +4,114 @@
 {% block title %}System Home{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'css/system_landing.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="system-home-shell system-home-shell-landing">
-    <section class="system-home-hero">
-        <div class="system-home-hero-main">
-            <div class="system-home-hero-grid">
-                <div class="system-home-hero-copy">
-                    <div class="system-home-brand">
-                        <img src="{% static 'brand/nouraxis-logo.png' %}" alt="NourAxis logo" class="system-home-logo">
-                        <div>
-                            <span class="system-home-kicker">NourAxis Platform</span>
-                            <h1 class="system-home-title">Run people operations, branch work, and daily HR flow from one polished control layer</h1>
-                        </div>
-                    </div>
+<div class="platform-page system-home-page">
+    <section class="platform-hero system-home-compact-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">NourAxis Platform</span>
+            <h1>System Home</h1>
+            <p>A compact command-style front page with quick entry points into daily work, management tools, HR flow, payroll, and compliance.</p>
+            <div class="platform-hero-meta">
+                <span class="platform-hero-chip">Employee Self-Service</span>
+                <span class="platform-hero-chip">Branch Supervision</span>
+                <span class="platform-hero-chip">Attendance Control</span>
+                <span class="platform-hero-chip">Payroll &amp; Compliance</span>
+            </div>
+        </div>
 
-                    <p class="system-home-lead">
-                        A cleaner front door for employees, supervisors, HR, payroll, and operations teams with faster
-                        paths into the work that matters every day.
-                    </p>
-
-                    <div class="system-home-actions">
-                        {% if user.is_authenticated %}
-                            {% if linked_employee %}
-                                <a href="{{ nav_self_service_profile_url|default:'#' }}" class="btn btn-primary">Open My Work Hub</a>
-                                {% if can_view_dashboard %}
-                                    <a href="{% url 'dashboard_home' %}" class="btn btn-secondary">Go To Control Dashboard</a>
-                                {% endif %}
-                            {% else %}
-                                <a href="{% url 'dashboard_home' %}" class="btn btn-primary">Enter Dashboard</a>
-                            {% endif %}
-                        {% else %}
-                            <a href="{% url 'login' %}" class="btn btn-primary">Sign In To Start</a>
+        <div class="platform-hero-side">
+            <div class="platform-side-card">
+                <span>Access Style</span>
+                <strong>Unified</strong>
+                <small>One shared entry surface for every visible role path</small>
+            </div>
+            <div class="platform-inline-actions platform-hero-actions">
+                {% if user.is_authenticated %}
+                    {% if linked_employee %}
+                        <a href="{{ nav_self_service_profile_url|default:'#' }}" class="btn btn-primary btn-sm">Open My Work Hub</a>
+                        {% if can_view_dashboard %}
+                            <a href="{% url 'dashboard_home' %}" class="btn btn-light btn-sm">Open Dashboard</a>
                         {% endif %}
-                    </div>
-
-                    <div class="system-home-badges">
-                        <span class="system-home-pill">Employee Self-Service</span>
-                        <span class="system-home-pill">Branch Supervision</span>
-                        <span class="system-home-pill">Attendance Control</span>
-                        <span class="system-home-pill">Payroll &amp; Compliance</span>
-                    </div>
-                </div>
-
-                <aside class="system-home-hero-side">
-                    <div class="system-home-spotlight-card">
-                        <span class="system-home-spotlight-label">What This Home Page Delivers</span>
-                        <h2>Clear entry points for every role</h2>
-                        <p>Move from sign-in to action with less clutter, stronger hierarchy, and a more executive feel across the platform.</p>
-                    </div>
-
-                    <div class="system-home-mini-grid">
-                        <div class="system-home-mini-card">
-                            <span>Workspace Focus</span>
-                            <strong>Daily Work</strong>
-                            <small>Requests, attendance, branch tasks, and profile pages</small>
-                        </div>
-                        <div class="system-home-mini-card">
-                            <span>Management Scope</span>
-                            <strong>Multi-Role</strong>
-                            <small>Self-service, operations, HR, payroll, and admin paths</small>
-                        </div>
-                    </div>
-                </aside>
+                    {% else %}
+                        <a href="{% url 'dashboard_home' %}" class="btn btn-primary btn-sm">Enter Dashboard</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Sign In To Start</a>
+                {% endif %}
             </div>
         </div>
     </section>
 
-    <section class="system-home-feature-grid system-home-feature-grid-top">
-        <article class="system-home-feature-card system-home-feature-card-large system-home-feature-card-anchor">
-            <span class="system-home-feature-kicker">Experience Direction</span>
-            <h2>Built to feel like a modern operations workspace, not a crowded admin list</h2>
-            <p>Use a clearer front page, sharper cards, and stronger labels to move into requests, attendance, schedules, payroll, and organizational work with less friction.</p>
+    <section class="kpi-grid system-home-kpi-grid">
+        <article class="kpi-card kpi-info">
+            <div class="kpi-card-head">
+                <div class="kpi-card-icon">EM</div>
+            </div>
+            <div class="kpi-card-value">1</div>
+            <div class="kpi-card-label">Employee Hub</div>
         </article>
-
-        <article class="system-home-feature-card system-home-feature-card-compact">
-            <span class="system-home-feature-kicker">Employee Hub</span>
-            <h2>Profiles, leave, documents, and attendance</h2>
-            <p>Give employees a simpler starting point for personal records, request tracking, and daily work pages.</p>
+        <article class="kpi-card kpi-success">
+            <div class="kpi-card-head">
+                <div class="kpi-card-icon">SV</div>
+            </div>
+            <div class="kpi-card-value">1</div>
+            <div class="kpi-card-label">Supervisor Flow</div>
         </article>
-
-        <article class="system-home-feature-card system-home-feature-card-compact">
-            <span class="system-home-feature-kicker">Supervisor Tools</span>
-            <h2>Branch follow-up with cleaner visibility</h2>
-            <p>Review team activity, weekly schedules, branch requests, and on-the-ground execution from one flow.</p>
+        <article class="kpi-card kpi-warning">
+            <div class="kpi-card-head">
+                <div class="kpi-card-icon">HR</div>
+            </div>
+            <div class="kpi-card-value">1</div>
+            <div class="kpi-card-label">HR Workspace</div>
+        </article>
+        <article class="kpi-card kpi-danger">
+            <div class="kpi-card-head">
+                <div class="kpi-card-icon">PY</div>
+            </div>
+            <div class="kpi-card-value">1</div>
+            <div class="kpi-card-label">Payroll Workspace</div>
         </article>
     </section>
 
-    <section class="system-home-feature-grid system-home-feature-grid-bottom">
-        <article class="system-home-feature-card">
-            <span class="system-home-feature-kicker">Management View</span>
-            <h2>Organization, branch, and workforce control</h2>
-            <p>Handle structure, attendance visibility, requests, and employee activity through stronger command surfaces.</p>
+    <section class="platform-grid system-home-grid">
+        <article class="platform-panel system-home-panel">
+            <div class="platform-panel-head">
+                <h2>Employee Hub</h2>
+                <p>Profiles, leave, documents, and attendance in one calmer self-service starting point.</p>
+            </div>
         </article>
 
-        <article class="system-home-feature-card">
-            <span class="system-home-feature-kicker">HR Workspace</span>
-            <h2>Policy, compliance, and people operations</h2>
-            <p>Keep HR communication, employee actions, compliance follow-up, and request oversight in one premium workspace.</p>
+        <article class="platform-panel system-home-panel">
+            <div class="platform-panel-head">
+                <h2>Supervisor Tools</h2>
+                <p>Branch follow-up, team visibility, weekly schedules, and request handling from one flow.</p>
+            </div>
         </article>
 
-        <article class="system-home-feature-card">
-            <span class="system-home-feature-kicker">Payroll Workspace</span>
-            <h2>Salary setup and pay-cycle execution</h2>
-            <p>Manage payroll profiles, periods, obligations, and payout lines directly inside the same connected system.</p>
+        <article class="platform-panel system-home-panel">
+            <div class="platform-panel-head">
+                <h2>Management View</h2>
+                <p>Organization, branch, and workforce control without the old crowded landing-page feel.</p>
+            </div>
+        </article>
+
+        <article class="platform-panel system-home-panel">
+            <div class="platform-panel-head">
+                <h2>HR Workspace</h2>
+                <p>Policy, compliance, employee actions, and workflow oversight in a smaller operational card system.</p>
+            </div>
+        </article>
+
+        <article class="platform-panel system-home-panel">
+            <div class="platform-panel-head">
+                <h2>Payroll Workspace</h2>
+                <p>Salary setup, periods, obligations, and payout control from the same connected system shell.</p>
+            </div>
         </article>
     </section>
 </div>

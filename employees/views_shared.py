@@ -24,6 +24,15 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
+from config.access import (
+    api_role_required,
+    is_any_management,
+    is_employee_role,
+    is_hr,
+    is_operations,
+    is_supervisor,
+    role_required,
+)
 from config.mixins import ProtectedDeleteMixin
 from organization.models import Branch, Company, Department, JobTitle, Section
 from payroll.forms import PayrollProfileForm
@@ -961,37 +970,7 @@ def sync_attendance_event_to_ledger(event, actor_label="System"):
     return ledger
 
 
-def is_admin_compatible(user):
-    return is_admin_compatible_role(user)
-
-
-def is_hr_user(user):
-    return is_hr_user_role(user)
-
-
-def is_supervisor_user(user):
-    return is_supervisor_user_role(user)
-
-
-def is_operations_manager_user(user):
-    return is_operations_manager_user_role(user)
-
-
-def is_employee_role_user(user):
-    return is_employee_role_user_role(user)
-
-
-def is_management_user(user):
-    return bool(
-        user
-        and user.is_authenticated
-        and (
-            is_admin_compatible(user)
-            or is_hr_user(user)
-            or is_supervisor_user(user)
-            or is_operations_manager_user(user)
-        )
-    )
+is_admin_compatible = is_admin_compatible_role
 
 
 def is_self_employee(user, employee):
@@ -1007,6 +986,13 @@ def get_user_scope_branch(user):
 def is_branch_scoped_supervisor(user):
     linked_employee = get_user_employee_profile(user)
     return is_branch_scoped_supervisor_for_role(user, linked_employee)
+
+
+is_hr_user = is_hr
+is_supervisor_user = is_supervisor
+is_operations_manager_user = is_operations
+is_employee_role_user = is_employee_role
+is_management_user = is_any_management
 
 
 def can_supervisor_view_employee(user, employee):

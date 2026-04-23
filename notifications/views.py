@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Q
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -10,7 +11,12 @@ from django.utils import timezone
 
 from .email_sender import send_notification_email
 from .forms import NotificationPreferenceForm
-from .models import InAppNotification, build_in_app_notification, get_notification_preferences_for_user
+from .models import (
+    InAppNotification,
+    NotificationPreference,
+    build_in_app_notification,
+    get_notification_preferences_for_user,
+)
 
 
 NOTIFICATION_CATEGORY_ORDER = [
@@ -195,8 +201,10 @@ def persist_in_app_notifications(notifications):
                     subject=notification.title,
                     body_text=notification.body,
                 )
-            except Exception:
-                pass
+            except Exception as exc:
+                notification.email_failed = True
+                notification.email_failed_reason = str(exc)[:255]
+                notification.save(update_fields=["email_failed", "email_failed_reason"])
             else:
                 notification.email_sent = True
                 notification.save(update_fields=["email_sent"])
@@ -226,7 +234,7 @@ def build_notification_category_cards(notifications):
 
 def build_notification_category_summary(recipient):
     category_label_map = dict(InAppNotification.CATEGORY_CHOICES)
-    base_queryset = InAppNotification.objects.filter(recipient=recipient)
+    base_queryset = InAppNotification.objects.filter(recipient=recipient, is_deleted=False)
     cards = []
     for category in NOTIFICATION_CATEGORY_ORDER:
         category_queryset = base_queryset.filter(category=category)
@@ -253,7 +261,7 @@ def filter_visible_category_cards(category_cards, selected_category):
 
 @login_required
 def notification_center(request):
-    base_queryset = InAppNotification.objects.filter(recipient=request.user)
+    base_queryset = InAppNotification.objects.filter(recipient=request.user, is_deleted=False)
     unread_total = base_queryset.filter(is_read=False).count()
     preferences = get_notification_preferences_for_user(request.user)
     selected_category = (request.GET.get("category") or "").strip()
@@ -294,7 +302,12 @@ def notification_center(request):
 @login_required
 def mark_notification_read(request, pk):
     if request.method == "POST":
-        notification = get_object_or_404(InAppNotification, pk=pk, recipient=request.user)
+        notification = get_object_or_404(
+            InAppNotification,
+            pk=pk,
+            recipient=request.user,
+            is_deleted=False,
+        )
         notification.mark_read()
         next_url = (request.POST.get("next") or "").strip()
         if next_url:
@@ -305,7 +318,11 @@ def mark_notification_read(request, pk):
 @login_required
 def mark_all_read(request):
     if request.method == "POST":
-        unread_notifications = InAppNotification.objects.filter(recipient=request.user, is_read=False)
+        unread_notifications = InAppNotification.objects.filter(
+            recipient=request.user,
+            is_read=False,
+            is_deleted=False,
+        )
         unread_notifications.update(is_read=True, read_at=timezone.now())
     next_url = (request.POST.get("next") or "").strip() if request.method == "POST" else ""
     return redirect(next_url or "notifications:home")
@@ -319,9 +336,99 @@ def mark_category_read(request, category):
             recipient=request.user,
             category=category,
             is_read=False,
+            is_deleted=False,
         ).update(is_read=True, read_at=timezone.now())
     next_url = (request.POST.get("next") or "").strip() if request.method == "POST" else ""
     return redirect(next_url or "notifications:home")
+
+
+@login_required
+def delete_notification(request, pk):
+    if request.method == "POST":
+        notification = get_object_or_404(
+            InAppNotification,
+            pk=pk,
+            recipient=request.user,
+            is_deleted=False,
+        )
+        notification.is_deleted = True
+        notification.deleted_at = timezone.now()
+        notification.save(update_fields=["is_deleted", "deleted_at"])
+    return redirect(request.POST.get("next") or "notifications:home")
+
+
+@login_required
+def bulk_delete_notifications(request):
+    if request.method == "POST":
+        raw_ids = (request.POST.get("ids") or "").strip()
+        notification_ids = []
+        for value in raw_ids.split(","):
+            value = value.strip()
+            if not value:
+                continue
+            try:
+                notification_ids.append(int(value))
+            except (TypeError, ValueError):
+                continue
+        if notification_ids:
+            InAppNotification.objects.filter(
+                recipient=request.user,
+                pk__in=notification_ids,
+                is_deleted=False,
+            ).update(is_deleted=True, deleted_at=timezone.now())
+    return redirect(request.POST.get("next") or "notifications:home")
+
+
+@login_required
+def delivery_performance(request):
+    if not (request.user.is_management_role or request.user.is_superuser):
+        return redirect("notifications:home")
+
+    base_qs = InAppNotification.objects.all()
+    summary_counts = base_qs.aggregate(
+        total=Count("id"),
+        email_sent=Count("id", filter=Q(email_sent=True)),
+        email_failed=Count("id", filter=Q(email_failed=True)),
+    )
+    summary = {
+        "total": summary_counts["total"] or 0,
+        "email_sent": summary_counts["email_sent"] or 0,
+        "email_failed": summary_counts["email_failed"] or 0,
+        "last_sent": base_qs.filter(email_sent=True).order_by("-created_at").values_list("created_at", flat=True).first(),
+    }
+    summary["failure_rate"] = (
+        round(summary["email_failed"] / summary["email_sent"] * 100, 1)
+        if summary["email_sent"]
+        else 0
+    )
+
+    category_label_map = dict(InAppNotification.CATEGORY_CHOICES)
+    category_breakdown = []
+    for cat in NOTIFICATION_CATEGORY_ORDER:
+        qs = base_qs.filter(category=cat)
+        category_breakdown.append(
+            {
+                "label": category_label_map.get(cat, cat),
+                "total": qs.count(),
+                "email_sent": qs.filter(email_sent=True).count(),
+                "email_failed": qs.filter(email_failed=True).count(),
+            }
+        )
+
+    recent_failures = (
+        base_qs.filter(email_failed=True)
+        .select_related("recipient")
+        .order_by("-created_at")[:20]
+    )
+    opt_outs = NotificationPreference.objects.filter(email_enabled=False).select_related("user").order_by("user__role")
+
+    context = {
+        "summary": summary,
+        "category_breakdown": category_breakdown,
+        "recent_failures": recent_failures,
+        "opt_outs": opt_outs,
+    }
+    return render(request, "notifications/performance.html", context)
 
 
 @login_required

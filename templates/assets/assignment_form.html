@@ -1,19 +1,41 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Assign Asset{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/assets.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="page-section">
-    <div class="card" style="padding:24px;">
-        <div class="card-header" style="padding:0; margin-bottom:16px;">
-            <div>
-                <h1 style="margin:0;">Assign Asset</h1>
-                <p class="text-muted" style="margin:8px 0 0;">Assign an available company asset to an employee.</p>
+<div class="platform-page assets-page">
+    <section class="platform-hero assets-hero assets-form-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Asset Assignment</span>
+            <h1>Assign Asset</h1>
+            <p>Assign an available company asset to an employee and record the handover details.</p>
+        </div>
+        <div class="platform-hero-side">
+            <div class="platform-side-card">
+                <span>Workflow</span>
+                <strong>Active Assignment</strong>
+                <small>Create a new custody record for an available asset.</small>
             </div>
+            <div class="platform-hero-actions">
+                <a class="btn btn-light" href="{% url 'assets:asset_list' %}">Cancel</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="platform-panel">
+        <div class="platform-panel-head">
+            <h2>Assignment Details</h2>
+            <p>Select the employee, asset, and issue details to create the custody record.</p>
         </div>
         <form method="post">
             {% csrf_token %}
-            <div class="form-grid two-col">
+            <div class="platform-form-grid">
                 {% for field in form %}
                 <div class="form-group">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -22,11 +44,11 @@
                 </div>
                 {% endfor %}
             </div>
-            <div class="page-actions document-actions-row" style="margin-top:16px;">
+            <div class="platform-form-actions assets-form-actions">
                 <button type="submit" class="btn btn-primary">Assign Asset</button>
                 <a class="btn btn-light" href="{% url 'assets:asset_list' %}">Cancel</a>
             </div>
         </form>
-    </div>
+    </section>
 </div>
 {% endblock %}

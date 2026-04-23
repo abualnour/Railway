@@ -1,29 +1,49 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ page_title }}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/recruitment.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="page-section">
-    <div class="card-header">
-        <h1 style="margin:0;">{{ page_title }}</h1>
-    </div>
-    <form method="post" class="card" style="padding:24px; margin-top:18px;">
-        {% csrf_token %}
-        {{ form.non_field_errors }}
-        <div class="form-grid two-col">
+<div class="platform-page recruitment-page recruitment-secondary-page">
+    <section class="platform-hero recruitment-secondary-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Recruitment Workspace</span>
+            <h1>{{ page_title }}</h1>
+            <p>Set up the role, branch, timing, and hiring details using the same structured workspace patterns used across NourAxis.</p>
+        </div>
+        <div class="platform-hero-side">
+            <div class="platform-inline-actions recruitment-item-actions">
+                <a class="btn btn-light btn-sm" href="{% url 'recruitment:job_posting_list' %}">Back to Recruitment</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="platform-panel recruitment-panel">
+        <div class="platform-panel-head">
+            <h2>Job Posting Details</h2>
+            <p>Complete the posting information below, then save to publish or update the recruitment pipeline.</p>
+        </div>
+        <form method="post" class="platform-form-grid recruitment-form-grid">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
             {% for field in form %}
-            <div class="form-group">
+            <div class="form-group {% if field.name == 'description' or field.name == 'requirements' %}platform-form-span{% endif %}">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                 {{ field }}
                 {% if field.help_text %}<small class="text-muted">{{ field.help_text }}</small>{% endif %}
                 {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
             </div>
             {% endfor %}
-        </div>
-        <div class="page-actions" style="margin-top:20px;">
-            <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
-            <a class="btn btn-light" href="{% url 'recruitment:job_posting_list' %}">Cancel</a>
-        </div>
-    </form>
+            <div class="platform-form-span platform-inline-actions recruitment-item-actions">
+                <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
+                <a class="btn btn-light" href="{% url 'recruitment:job_posting_list' %}">Cancel</a>
+            </div>
+        </form>
+    </section>
 </div>
 {% endblock %}

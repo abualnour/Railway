@@ -1,17 +1,31 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ page_title }}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/performance.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="page-section">
-    <div class="card-header">
-        <h1 style="margin:0;">{{ page_title }}</h1>
-        <p class="text-muted" style="margin:8px 0 0;">{{ employee.full_name }} - {{ employee.employee_id }}</p>
-    </div>
-    <form method="post" class="card" style="padding:24px; margin-top:18px;">
-        {% csrf_token %}
-        {{ form.non_field_errors }}
-        <div class="form-grid two-col">
+<div class="platform-page performance-dashboard-page performance-secondary-page">
+    <section class="platform-hero performance-dashboard-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Performance Workspace</span>
+            <h1>{{ page_title }}</h1>
+            <p>{{ employee.full_name }} | {{ employee.employee_id }}</p>
+        </div>
+    </section>
+
+    <section class="platform-panel performance-panel">
+        <div class="platform-panel-head">
+            <h2>Review Form</h2>
+            <p>Capture rating, narrative feedback, and review state for this employee.</p>
+        </div>
+        <form method="post" class="platform-form-grid">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
             {% for field in form %}
             <div class="form-group">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -19,11 +33,11 @@
                 {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
             </div>
             {% endfor %}
-        </div>
-        <div class="page-actions" style="margin-top:20px;">
-            <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
-            <a class="btn btn-light" href="{% url 'employees:employee_detail' employee.pk %}?tab=performance">Cancel</a>
-        </div>
-    </form>
+            <div class="platform-form-actions">
+                <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
+                <a class="btn btn-light" href="{% url 'employees:employee_detail' employee.pk %}?tab=performance">Cancel</a>
+            </div>
+        </form>
+    </section>
 </div>
 {% endblock %}

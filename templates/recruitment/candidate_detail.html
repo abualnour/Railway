@@ -1,129 +1,152 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ candidate.full_name }}{% endblock %}
 
-{% block content %}
-<div class="page-section">
-    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
-        <div>
-            <h1 style="margin:0;">{{ candidate.full_name }}</h1>
-            <p class="text-muted" style="margin:8px 0 0;">{{ candidate.job_posting.title }} - {{ candidate.job_posting.branch.name }}</p>
-        </div>
-        <div class="page-actions">
-            <a class="btn btn-light" href="{% url 'recruitment:job_posting_detail' candidate.job_posting.pk %}">Back to Job Posting</a>
-            <a class="btn btn-light" href="{% url 'recruitment:candidate_update' candidate.pk %}">Edit Candidate</a>
-            <a class="btn btn-danger" href="{% url 'recruitment:candidate_delete' candidate.pk %}">Delete</a>
-        </div>
-    </div>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/recruitment.css' %}">
+{% endblock %}
 
-    <div class="detail-grid two-col" style="margin-top:20px;">
-        <div class="detail-item"><span class="detail-label">Email</span><span class="detail-value">{{ candidate.email }}</span></div>
-        <div class="detail-item"><span class="detail-label">Phone</span><span class="detail-value">{{ candidate.phone }}</span></div>
-        <div class="detail-item"><span class="detail-label">Nationality</span><span class="detail-value">{{ candidate.nationality }}</span></div>
-        <div class="detail-item"><span class="detail-label">Status</span><span class="detail-value">{{ candidate.get_status_display }}</span></div>
-        <div class="detail-item"><span class="detail-label">Applied At</span><span class="detail-value">{{ candidate.applied_at|date:"F j, Y - g:i A" }}</span></div>
-        <div class="detail-item"><span class="detail-label">Days In Pipeline</span><span class="detail-value">{{ candidate.days_in_pipeline }}</span></div>
-        <div class="detail-item"><span class="detail-label">CV</span><span class="detail-value"><a href="{{ candidate.cv_file.url }}" target="_blank" rel="noopener">Open CV</a></span></div>
-        <div class="detail-item"><span class="detail-label">Offer Letter</span><span class="detail-value">{% if candidate.offer_letter_file %}<a href="{{ candidate.offer_letter_file.url }}" target="_blank" rel="noopener">Open Offer Letter</a>{% else %}--{% endif %}</span></div>
-        <div class="detail-item"><span class="detail-label">Offer Sent Date</span><span class="detail-value">{{ candidate.offer_sent_date|date:"F j, Y"|default:"--" }}</span></div>
-        <div class="detail-item"><span class="detail-label">Offer Expiry Date</span><span class="detail-value">{{ candidate.offer_expiry_date|date:"F j, Y"|default:"--" }}</span></div>
-        <div class="detail-item"><span class="detail-label">Offer Status</span><span class="detail-value">{{ candidate.get_offer_status_display }}</span></div>
-        <div class="detail-item"><span class="detail-label">Recruiter Owner</span><span class="detail-value">{% if candidate.recruiter_owner %}{{ candidate.recruiter_owner.get_full_name|default:candidate.recruiter_owner.username }}{% else %}Unassigned{% endif %}</span></div>
-        <div class="detail-item"><span class="detail-label">Offer Decision At</span><span class="detail-value">{% if candidate.offer_decision_at %}{{ candidate.offer_decision_at|date:"F j, Y - g:i A" }}{% else %}--{% endif %}</span></div>
-        <div class="detail-item"><span class="detail-label">Hired Employee</span><span class="detail-value">{% if candidate.hired_employee %}<a href="{% url 'employees:employee_detail' candidate.hired_employee.pk %}">{{ candidate.hired_employee.employee_id }} - {{ candidate.hired_employee.full_name }}</a>{% else %}--{% endif %}</span></div>
-    </div>
+{% block content %}
+<div class="platform-page recruitment-page recruitment-secondary-page">
+    <section class="platform-hero recruitment-secondary-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Recruitment Workspace</span>
+            <h1>{{ candidate.full_name }}</h1>
+            <p>{{ candidate.job_posting.title }} | {{ candidate.job_posting.branch.name }}</p>
+            <div class="platform-hero-meta">
+                <span class="platform-hero-chip">{{ candidate.get_status_display }}</span>
+                <span class="platform-hero-chip">Applied {{ candidate.applied_at|date:"M j, Y" }}</span>
+                <span class="platform-hero-chip">Pipeline Days {{ candidate.days_in_pipeline }}</span>
+            </div>
+        </div>
+        <div class="platform-hero-side">
+            <div class="platform-inline-actions recruitment-item-actions">
+                <a class="btn btn-light btn-sm" href="{% url 'recruitment:job_posting_detail' candidate.job_posting.pk %}">Back to Job Posting</a>
+                <a class="btn btn-light btn-sm" href="{% url 'recruitment:candidate_update' candidate.pk %}">Edit Candidate</a>
+                <a class="btn btn-danger btn-sm" href="{% url 'recruitment:candidate_delete' candidate.pk %}">Delete</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="platform-panel recruitment-panel">
+        <div class="platform-panel-head">
+            <h2>Candidate Snapshot</h2>
+            <p>Contact details, pipeline status, offer data, and linked employee information.</p>
+        </div>
+        <div class="recruitment-detail-grid">
+            <div class="platform-metric-box"><span>Email</span><strong>{{ candidate.email }}</strong></div>
+            <div class="platform-metric-box"><span>Phone</span><strong>{{ candidate.phone }}</strong></div>
+            <div class="platform-metric-box"><span>Nationality</span><strong>{{ candidate.nationality }}</strong></div>
+            <div class="platform-metric-box"><span>Status</span><strong>{{ candidate.get_status_display }}</strong></div>
+            <div class="platform-metric-box"><span>Applied At</span><strong>{{ candidate.applied_at|date:"F j, Y - g:i A" }}</strong></div>
+            <div class="platform-metric-box"><span>Days In Pipeline</span><strong>{{ candidate.days_in_pipeline }}</strong></div>
+            <div class="platform-metric-box"><span>CV</span><strong><a href="{{ candidate.cv_file.url }}" target="_blank" rel="noopener">Open CV</a></strong></div>
+            <div class="platform-metric-box"><span>Offer Letter</span><strong>{% if candidate.offer_letter_file %}<a href="{{ candidate.offer_letter_file.url }}" target="_blank" rel="noopener">Open Offer Letter</a>{% else %}--{% endif %}</strong></div>
+            <div class="platform-metric-box"><span>Offer Sent Date</span><strong>{{ candidate.offer_sent_date|date:"F j, Y"|default:"--" }}</strong></div>
+            <div class="platform-metric-box"><span>Offer Expiry Date</span><strong>{{ candidate.offer_expiry_date|date:"F j, Y"|default:"--" }}</strong></div>
+            <div class="platform-metric-box"><span>Offer Status</span><strong>{{ candidate.get_offer_status_display }}</strong></div>
+            <div class="platform-metric-box"><span>Recruiter Owner</span><strong>{% if candidate.recruiter_owner %}{{ candidate.recruiter_owner.get_full_name|default:candidate.recruiter_owner.username }}{% else %}Unassigned{% endif %}</strong></div>
+            <div class="platform-metric-box"><span>Offer Decision At</span><strong>{% if candidate.offer_decision_at %}{{ candidate.offer_decision_at|date:"F j, Y - g:i A" }}{% else %}--{% endif %}</strong></div>
+            <div class="platform-metric-box"><span>Hired Employee</span><strong>{% if candidate.hired_employee %}<a href="{% url 'employees:employee_detail' candidate.hired_employee.pk %}">{{ candidate.hired_employee.employee_id }} - {{ candidate.hired_employee.full_name }}</a>{% else %}--{% endif %}</strong></div>
+        </div>
+    </section>
 
     {% if candidate.cover_letter %}
-    <div class="card" style="padding:24px; margin-top:20px;">
-        <h3>Cover Letter</h3>
-        <div style="white-space:pre-line;">{{ candidate.cover_letter }}</div>
-    </div>
+    <section class="platform-panel recruitment-panel">
+        <div class="platform-panel-head">
+            <h2>Cover Letter</h2>
+        </div>
+        <div class="recruitment-rich-text">{{ candidate.cover_letter }}</div>
+    </section>
     {% endif %}
 
     {% if candidate.notes %}
-    <div class="card" style="padding:24px; margin-top:20px;">
-        <h3>Notes</h3>
-        <div style="white-space:pre-line;">{{ candidate.notes }}</div>
-    </div>
+    <section class="platform-panel recruitment-panel">
+        <div class="platform-panel-head">
+            <h2>Notes</h2>
+        </div>
+        <div class="recruitment-rich-text">{{ candidate.notes }}</div>
+    </section>
     {% endif %}
 
-    <div class="card" style="padding:24px; margin-top:20px;">
-        <h3>Interview Scheduling</h3>
-        <form method="post" action="{% url 'recruitment:candidate_schedule_interview' candidate.pk %}" style="margin-top:16px;">
+    <section class="platform-panel recruitment-panel">
+        <div class="platform-panel-head">
+            <h2>Interview Scheduling</h2>
+            <p>Schedule interviews, capture interviewer assessments, and keep the hiring team aligned.</p>
+        </div>
+        <form method="post" action="{% url 'recruitment:candidate_schedule_interview' candidate.pk %}" class="platform-form-grid recruitment-form-grid">
             {% csrf_token %}
-            <div class="form-grid two-col">
-                {% for field in interview_form %}
-                <div class="form-group">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                    {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
-                </div>
-                {% endfor %}
+            {% for field in interview_form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
             </div>
-            <div class="page-actions" style="margin-top:16px;">
+            {% endfor %}
+            <div class="platform-form-span platform-inline-actions recruitment-item-actions">
                 <button type="submit" class="btn btn-primary">Schedule Interview</button>
             </div>
         </form>
 
         {% if interviews %}
-        <div class="summary-list modern-list-gap" style="margin-top:20px;">
+        <div class="platform-list recruitment-section-stack">
             {% for interview in interviews %}
-            <div class="summary-list-item">
-                <div class="request-overview-top">
+            <div class="platform-list-item recruitment-candidate-item recruitment-stacked-item">
+                <div class="platform-list-item-stack">
                     <strong>{{ interview.get_interview_type_display }}</strong>
-                    <div class="page-actions">
+                    <small>Interviewer: {{ interview.interviewer.get_full_name|default:interview.interviewer.email|default:"Unassigned" }}</small>
+                    <div class="recruitment-candidate-meta">
                         <span class="badge badge-light">{{ interview.scheduled_at|date:"F j, Y - g:i A" }}</span>
-                        <a class="btn btn-light btn-sm" href="{% url 'recruitment:candidate_interview_update' interview.pk %}">Edit</a>
-                        <a class="btn btn-danger btn-sm" href="{% url 'recruitment:candidate_interview_delete' interview.pk %}">Delete</a>
+                        {% if interview.score is not None %}<span class="badge badge-light">Score {{ interview.score }}/100</span>{% endif %}
+                        {% if interview.recommendation %}<span class="badge badge-light">{{ interview.get_recommendation_display }}</span>{% endif %}
                     </div>
+                    {% if interview.location %}<span>Location: {{ interview.location }}</span>{% endif %}
+                    {% if interview.note %}<div class="recruitment-rich-text">{{ interview.note }}</div>{% endif %}
+                    {% if interview.outcome %}<div class="recruitment-rich-text">Outcome: {{ interview.outcome }}</div>{% endif %}
                 </div>
-                <div class="text-muted" style="margin-top:8px;">
-                    Interviewer: {{ interview.interviewer.get_full_name|default:interview.interviewer.email|default:"Unassigned" }}
+                <div class="platform-inline-actions recruitment-item-actions">
+                    <a class="btn btn-light btn-sm" href="{% url 'recruitment:candidate_interview_update' interview.pk %}">Edit</a>
+                    <a class="btn btn-danger btn-sm" href="{% url 'recruitment:candidate_interview_delete' interview.pk %}">Delete</a>
                 </div>
-                {% if interview.score is not None or interview.recommendation %}
-                <div class="page-actions" style="margin-top:12px;">
-                    {% if interview.score is not None %}<span class="badge badge-light">Score {{ interview.score }}/100</span>{% endif %}
-                    {% if interview.recommendation %}<span class="badge badge-light">{{ interview.get_recommendation_display }}</span>{% endif %}
-                </div>
-                {% endif %}
-                {% if interview.location %}<div style="margin-top:8px;">Location: {{ interview.location }}</div>{% endif %}
-                {% if interview.note %}<div style="margin-top:8px; white-space:pre-line;">{{ interview.note }}</div>{% endif %}
-                {% if interview.outcome %}<div style="margin-top:8px; white-space:pre-line;">Outcome: {{ interview.outcome }}</div>{% endif %}
-                <div class="card" style="padding:18px; margin-top:16px;">
-                    <h4 style="margin-top:0;">Interviewer Feedback</h4>
+
+                <div class="recruitment-nested-panel">
+                    <div class="platform-panel-head">
+                        <h2>Interviewer Feedback</h2>
+                    </div>
                     {% if interview.feedback_entries.all %}
-                    <div class="summary-list modern-list-gap" style="margin-top:12px;">
+                    <div class="platform-list">
                         {% for feedback in interview.feedback_entries.all %}
-                        <div class="summary-list-item">
-                            <div class="request-overview-top">
+                        <div class="platform-list-item recruitment-stacked-item">
+                            <div class="platform-list-item-stack">
                                 <strong>{{ feedback.interviewer.get_full_name|default:feedback.interviewer.username }}</strong>
-                                <span class="badge badge-light">{{ feedback.updated_at|date:"F j, Y - g:i A" }}</span>
+                                <small>{{ feedback.updated_at|date:"F j, Y - g:i A" }}</small>
+                                <div class="recruitment-candidate-meta">
+                                    {% if feedback.score is not None %}<span class="badge badge-light">Score {{ feedback.score }}/100</span>{% endif %}
+                                    {% if feedback.recommendation %}<span class="badge badge-light">{{ feedback.get_recommendation_display }}</span>{% endif %}
+                                </div>
+                                {% if feedback.strengths %}<div class="recruitment-rich-text"><strong>Strengths:</strong> {{ feedback.strengths }}</div>{% endif %}
+                                {% if feedback.concerns %}<div class="recruitment-rich-text"><strong>Concerns:</strong> {{ feedback.concerns }}</div>{% endif %}
+                                {% if feedback.note %}<div class="recruitment-rich-text"><strong>Note:</strong> {{ feedback.note }}</div>{% endif %}
                             </div>
-                            <div class="page-actions" style="margin-top:12px;">
-                                {% if feedback.score is not None %}<span class="badge badge-light">Score {{ feedback.score }}/100</span>{% endif %}
-                                {% if feedback.recommendation %}<span class="badge badge-light">{{ feedback.get_recommendation_display }}</span>{% endif %}
-                            </div>
-                            {% if feedback.strengths %}<div style="margin-top:8px; white-space:pre-line;"><strong>Strengths:</strong> {{ feedback.strengths }}</div>{% endif %}
-                            {% if feedback.concerns %}<div style="margin-top:8px; white-space:pre-line;"><strong>Concerns:</strong> {{ feedback.concerns }}</div>{% endif %}
-                            {% if feedback.note %}<div style="margin-top:8px; white-space:pre-line;"><strong>Note:</strong> {{ feedback.note }}</div>{% endif %}
                         </div>
                         {% endfor %}
                     </div>
                     {% else %}
-                    <p class="text-muted" style="margin:0 0 12px;">No interviewer feedback submitted yet.</p>
+                    <p class="text-muted">No interviewer feedback submitted yet.</p>
                     {% endif %}
-                    <form method="post" action="{% url 'recruitment:candidate_interview_feedback' interview.pk %}" style="margin-top:16px;">
+
+                    <form method="post" action="{% url 'recruitment:candidate_interview_feedback' interview.pk %}" class="platform-form-grid recruitment-form-grid">
                         {% csrf_token %}
-                        <div class="form-grid two-col">
-                            {% for field in interview.feedback_form %}
-                            <div class="form-group {% if field.name == 'strengths' or field.name == 'concerns' or field.name == 'note' %}full-width{% endif %}">
-                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                {{ field }}
-                                {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
-                            </div>
-                            {% endfor %}
+                        {% for field in interview.feedback_form %}
+                        <div class="form-group {% if field.name == 'strengths' or field.name == 'concerns' or field.name == 'note' %}platform-form-span{% endif %}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
                         </div>
-                        <div class="page-actions" style="margin-top:16px;">
+                        {% endfor %}
+                        <div class="platform-form-span platform-inline-actions recruitment-item-actions">
                             <button type="submit" class="btn btn-light btn-sm">Save My Feedback</button>
                         </div>
                     </form>
@@ -132,68 +155,68 @@
             {% endfor %}
         </div>
         {% endif %}
-    </div>
+    </section>
 
     {% if candidate.offer_letter_file %}
-    <div class="card" style="padding:24px; margin-top:20px;">
-        <h3>Offer Package</h3>
-        <p class="text-muted" style="margin:8px 0 16px;">The current offer letter attached to this candidate record is ready for recruiter review.</p>
-        <div class="page-actions">
-            <a class="btn btn-light" href="{{ candidate.offer_letter_file.url }}" target="_blank" rel="noopener">Open Offer Letter</a>
+    <section class="platform-panel recruitment-panel">
+        <div class="platform-panel-head">
+            <h2>Offer Package</h2>
+            <p>The current offer letter attached to this candidate record is ready for recruiter review.</p>
         </div>
-        <form method="post" action="{% url 'recruitment:candidate_offer_decision' candidate.pk %}" style="margin-top:16px;">
+        <div class="platform-inline-actions recruitment-item-actions">
+            <a class="btn btn-light btn-sm" href="{{ candidate.offer_letter_file.url }}" target="_blank" rel="noopener">Open Offer Letter</a>
+        </div>
+        <form method="post" action="{% url 'recruitment:candidate_offer_decision' candidate.pk %}" class="platform-form-grid recruitment-form-grid">
             {% csrf_token %}
-            <div class="form-grid two-col">
-                {% for field in offer_decision_form %}
-                <div class="form-group {% if field.name == 'offer_decision_note' %}full-width{% endif %}">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                    {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
-                </div>
-                {% endfor %}
+            {% for field in offer_decision_form %}
+            <div class="form-group {% if field.name == 'offer_decision_note' %}platform-form-span{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
             </div>
-            <div class="page-actions" style="margin-top:16px;">
+            {% endfor %}
+            <div class="platform-form-span platform-inline-actions recruitment-item-actions">
                 <button type="submit" class="btn btn-primary">Save Offer Decision</button>
             </div>
         </form>
         {% if candidate.offer_decision_note %}
-        <div class="document-description" style="margin-top:12px;"><strong>Decision Note:</strong> {{ candidate.offer_decision_note|linebreaksbr }}</div>
+        <div class="recruitment-rich-text"><strong>Decision Note:</strong> {{ candidate.offer_decision_note|linebreaksbr }}</div>
         {% endif %}
-    </div>
+    </section>
     {% endif %}
 
-    <div class="card" style="padding:24px; margin-top:20px;">
-        <h3>Candidate Attachments</h3>
-        <p class="text-muted" style="margin:8px 0 0;">Upload supporting documents beyond the main CV, such as portfolios, certificates, salary expectations, or interview scorecards.</p>
-        <form method="post" enctype="multipart/form-data" action="{% url 'recruitment:candidate_attachment_create' candidate.pk %}" style="margin-top:16px;">
+    <section class="platform-panel recruitment-panel">
+        <div class="platform-panel-head">
+            <h2>Candidate Attachments</h2>
+            <p>Upload supporting documents beyond the main CV, such as portfolios, certificates, salary expectations, or interview scorecards.</p>
+        </div>
+        <form method="post" enctype="multipart/form-data" action="{% url 'recruitment:candidate_attachment_create' candidate.pk %}" class="platform-form-grid recruitment-form-grid">
             {% csrf_token %}
-            <div class="form-grid two-col">
-                {% for field in attachment_form %}
-                <div class="form-group">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                    {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
-                </div>
-                {% endfor %}
+            {% for field in attachment_form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
             </div>
-            <div class="page-actions" style="margin-top:16px;">
+            {% endfor %}
+            <div class="platform-form-span platform-inline-actions recruitment-item-actions">
                 <button type="submit" class="btn btn-primary">Upload Attachment</button>
             </div>
         </form>
 
         {% if attachments %}
-        <div class="summary-list modern-list-gap" style="margin-top:20px;">
+        <div class="platform-list">
             {% for attachment in attachments %}
-            <div class="summary-list-item">
-                <div class="request-overview-top">
+            <div class="platform-list-item recruitment-stacked-item">
+                <div class="platform-list-item-stack">
                     <strong>{{ attachment.title }}</strong>
-                    <span class="badge badge-light">{{ attachment.created_at|date:"F j, Y - g:i A" }}</span>
+                    <small>Uploaded by {{ attachment.uploaded_by.get_full_name|default:attachment.uploaded_by.email|default:"System" }}</small>
+                    <div class="recruitment-candidate-meta">
+                        <span class="badge badge-light">{{ attachment.created_at|date:"F j, Y - g:i A" }}</span>
+                    </div>
+                    {% if attachment.notes %}<div class="recruitment-rich-text">{{ attachment.notes }}</div>{% endif %}
                 </div>
-                <div class="text-muted" style="margin-top:8px;">
-                    Uploaded by {{ attachment.uploaded_by.get_full_name|default:attachment.uploaded_by.email|default:"System" }}
-                </div>
-                {% if attachment.notes %}<div style="margin-top:8px; white-space:pre-line;">{{ attachment.notes }}</div>{% endif %}
-                <div class="page-actions" style="margin-top:16px;">
+                <div class="platform-inline-actions recruitment-item-actions">
                     <a class="btn btn-light btn-sm" href="{{ attachment.file.url }}" target="_blank" rel="noopener">Open File</a>
                     <form method="post" action="{% url 'recruitment:candidate_attachment_delete' candidate.pk attachment.pk %}">
                         {% csrf_token %}
@@ -204,52 +227,61 @@
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-muted" style="margin-top:16px;">No additional candidate attachments uploaded yet.</p>
+        <div class="empty-state">
+            <h3>No additional attachments yet</h3>
+            <p>No extra candidate documents have been uploaded for this record.</p>
+        </div>
         {% endif %}
-    </div>
+    </section>
 
     {% if not candidate.hired_employee %}
-    <div class="card" style="padding:24px; margin-top:20px;">
-        <h3>Hire Conversion</h3>
-        <p class="text-muted" style="margin:8px 0 0;">Convert this candidate into a live employee record using the selected organizational placement. The system will also create the default onboarding document submission checklist.</p>
-        <form method="post" action="{% url 'recruitment:candidate_hire' candidate.pk %}" style="margin-top:16px;">
+    <section class="platform-panel recruitment-panel">
+        <div class="platform-panel-head">
+            <h2>Hire Conversion</h2>
+            <p>Convert this candidate into a live employee record using the selected organizational placement.</p>
+        </div>
+        <form method="post" action="{% url 'recruitment:candidate_hire' candidate.pk %}" class="platform-form-grid recruitment-form-grid">
             {% csrf_token %}
-            <div class="form-grid two-col">
-                {% for field in hire_form %}
-                <div class="form-group">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                    {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
-                </div>
-                {% endfor %}
+            {% for field in hire_form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
             </div>
-            <div class="page-actions" style="margin-top:16px;">
+            {% endfor %}
+            <div class="platform-form-span platform-inline-actions recruitment-item-actions">
                 <button type="submit" class="btn btn-primary">Convert to Employee</button>
             </div>
         </form>
-    </div>
+    </section>
     {% endif %}
 
-    <div class="card" style="padding:24px; margin-top:20px;">
-        <h3>Stage History</h3>
+    <section class="platform-panel recruitment-panel">
+        <div class="platform-panel-head">
+            <h2>Stage History</h2>
+            <p>Chronological record of how this candidate moved through the hiring workflow.</p>
+        </div>
         {% if candidate.stage_actions.all %}
-        <div class="summary-list modern-list-gap" style="margin-top:16px;">
+        <div class="platform-list">
             {% for action in candidate.stage_actions.all %}
-            <div class="summary-list-item">
-                <div class="request-overview-top">
+            <div class="platform-list-item recruitment-stacked-item">
+                <div class="platform-list-item-stack">
                     <strong>{{ action.stage|title }}</strong>
-                    <span class="badge badge-light">{{ action.created_at|date:"F j, Y - g:i A" }}</span>
+                    <small>{{ action.action_by.get_full_name|default:action.action_by.email|default:action.action_by.username }}</small>
+                    <div class="recruitment-candidate-meta">
+                        <span class="badge badge-light">{{ action.created_at|date:"F j, Y - g:i A" }}</span>
+                    </div>
+                    <div class="recruitment-rich-text">{{ action.note }}</div>
                 </div>
-                <div class="text-muted" style="margin-top:8px;">
-                    {{ action.action_by.get_full_name|default:action.action_by.email|default:action.action_by.username }}
-                </div>
-                <div style="margin-top:10px; white-space:pre-line;">{{ action.note }}</div>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-muted" style="margin:0;">No stage actions recorded yet.</p>
+        <div class="empty-state">
+            <h3>No stage actions recorded yet</h3>
+            <p>This candidate has not logged any stage history entries yet.</p>
+        </div>
         {% endif %}
-    </div>
+    </section>
 </div>
 {% endblock %}

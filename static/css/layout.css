@@ -1,5 +1,5 @@
 .layout {
-    --app-shell-max-width: 1450px;
+    --app-shell-max-width: 1560px;
 }
 
 .layout {
@@ -438,6 +438,121 @@
     background: color-mix(in srgb, var(--status-danger-bg) 92%, transparent);
 }
 
+@media (min-width: 1024px) {
+    .topbar-inner {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 12px;
+        padding: 12px 14px;
+    }
+
+    .topbar-panel {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+    }
+
+    .topbar-links {
+        flex-wrap: nowrap;
+        gap: 4px;
+        overflow: visible;
+    }
+
+    .topbar-link,
+    .topbar-group-trigger {
+        min-height: 38px;
+        padding: 8px 10px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    .topbar-group {
+        flex: 0 0 auto;
+    }
+
+    .topbar-account {
+        flex-wrap: nowrap;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .topbar-notification-link {
+        width: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        border-radius: 16px;
+    }
+
+    .topbar-theme-switcher {
+        gap: 6px;
+        padding: 5px;
+        border-radius: 16px;
+    }
+
+    .topbar-theme-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+    }
+
+    .topbar-user-card {
+        min-width: 228px;
+        padding: 8px 12px;
+        gap: 10px;
+    }
+
+    .topbar-user-name {
+        font-size: 13px;
+        line-height: 1.2;
+    }
+
+    .topbar-user-role {
+        font-size: 11px;
+        line-height: 1.25;
+    }
+
+    .topbar-auth-btn {
+        min-height: 42px;
+        padding: 0 14px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+}
+
+@media (min-width: 1024px) and (max-width: 1320px) {
+    .topbar-brand {
+        padding: 8px 12px;
+        gap: 10px;
+    }
+
+    .topbar-brand-logo {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+    }
+
+    .topbar-brand-text strong {
+        font-size: 16px;
+    }
+
+    .topbar-brand-text small {
+        font-size: 10px;
+    }
+
+    .topbar-link,
+    .topbar-group-trigger {
+        padding: 8px 8px;
+        font-size: 11.5px;
+    }
+
+    .topbar-user-card {
+        min-width: 208px;
+        padding: 8px 10px;
+    }
+
+    .topbar-auth-btn {
+        padding: 0 12px;
+    }
+}
+
 .main-content {
     padding: 20px 22px 22px;
     min-width: 0;
@@ -531,7 +646,7 @@ html[data-theme="dark-accent"] .theme-switcher-btn[data-theme-choice="dark-accen
     box-shadow: var(--shadow-sm);
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1199px) {
     .topbar-inner {
         grid-template-columns: auto 1fr;
     }
@@ -541,7 +656,7 @@ html[data-theme="dark-accent"] .theme-switcher-btn[data-theme-choice="dark-accen
     }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
     .topbar {
         padding: 12px 14px 0;
     }
@@ -629,7 +744,7 @@ html[data-theme="dark-accent"] .theme-switcher-btn[data-theme-choice="dark-accen
     }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
     .topbar {
         padding: 10px 10px 0;
     }
@@ -806,7 +921,7 @@ body[data-theme="premium-light"] .topbar-panel,
     backdrop-filter: none !important;
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 1024px) {
     .topbar-panel {
         background: transparent !important;
         border-color: transparent !important;

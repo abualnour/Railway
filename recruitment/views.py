@@ -3,8 +3,6 @@ import csv
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import PermissionDenied
 from django.db.models import Avg, Count, Q
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404
@@ -13,6 +11,7 @@ from django.utils import timezone
 from django.views import View
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
+from config.access import RoleRequiredMixin, is_hr, is_superuser
 from employees.access import is_admin_compatible as is_admin_compatible_role, is_hr_user as is_hr_user_role
 from employees.models import Employee, EmployeeRequiredSubmission
 from notifications.models import InAppNotification, build_in_app_notification
@@ -239,11 +238,10 @@ def create_onboarding_submission_requests(*, employee, created_by, hire_date, jo
     return created_requests
 
 
-class RecruitmentAccessMixin(LoginRequiredMixin):
-    def dispatch(self, request, *args, **kwargs):
-        if not can_manage_recruitment(request.user):
-            raise PermissionDenied("You do not have permission to access recruitment.")
-        return super().dispatch(request, *args, **kwargs)
+class RecruitmentAccessMixin(RoleRequiredMixin):
+    allowed_roles = [is_admin_compatible_role, is_hr, is_superuser]
+    deny_message = "You do not have permission to access recruitment."
+    deny_redirect = "home"
 
 
 class JobPostingListView(RecruitmentAccessMixin, ListView):

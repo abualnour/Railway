@@ -609,7 +609,7 @@
     color: var(--muted);
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1023px) {
     .home-hero-panel,
     .home-content-grid,
     .home-content-grid-management {
@@ -646,7 +646,7 @@
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .dashboard-page-header {
         padding: 22px;
         border-radius: 24px;
@@ -683,7 +683,7 @@
     }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 639px) {
     .dashboard-page-header,
     .dashboard-page-header-minimal,
     .home-hero-panel,
@@ -756,5 +756,144 @@
     .home-aside-card strong,
     .home-stat-pill strong {
         font-size: 26px;
+    }
+}
+
+/*
+ KPI CARD SYSTEM — replaces home-stat-pill
+ */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+}
+
+.kpi-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px 20px 16px;
+    background: var(--color-surface-1);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    --kpi-accent: var(--color-hover-border);
+}
+
+.kpi-card::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--kpi-accent);
+    border-radius: 0 0 18px 18px;
+}
+
+.kpi-card:hover {
+    border-color: var(--kpi-accent);
+    box-shadow: 0 0 0 1px var(--kpi-accent), 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.kpi-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.kpi-card-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--kpi-accent) 16%, transparent);
+    color: var(--kpi-accent);
+    font-size: 16px;
+}
+
+.kpi-card-trend {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+}
+
+.kpi-card-trend.up {
+    background: var(--status-success-bg);
+    color: var(--status-success-text);
+}
+
+.kpi-card-trend.down {
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
+}
+
+.kpi-card-trend.flat {
+    background: var(--status-info-bg);
+    color: var(--status-info-text);
+}
+
+.kpi-card-value {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--color-text-strong);
+}
+
+.kpi-card-label {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    margin-top: -4px;
+}
+
+/* Colour variants — set via data-accent or a modifier class */
+.kpi-card.kpi-success {
+    --kpi-accent: #22c55e;
+}
+
+.kpi-card.kpi-warning {
+    --kpi-accent: #f59e0b;
+}
+
+.kpi-card.kpi-danger {
+    --kpi-accent: #ef4444;
+}
+
+.kpi-card.kpi-info {
+    --kpi-accent: #38bdf8;
+}
+
+.kpi-card.kpi-purple {
+    --kpi-accent: #8b5cf6;
+}
+
+/* Mobile */
+@media (max-width: 639px) {
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .kpi-card {
+        padding: 14px 14px 12px;
+        border-radius: 14px;
+    }
+
+    .kpi-card-value {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 399px) {
+    .kpi-grid {
+        grid-template-columns: 1fr;
     }
 }

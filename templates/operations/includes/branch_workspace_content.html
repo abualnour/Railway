@@ -34,6 +34,7 @@
             </div>
         </article>
 
+        {% if not branch_workspace_is_self_service %}
         <article class="card modern-soft-card platform-panel branch-workspace-panel">
             <div class="card-header">
                 <h2>Quick Links</h2>
@@ -53,6 +54,7 @@
                 </div>
             </div>
         </article>
+        {% endif %}
     </div>
 
     <div class="branch-workspace-layout">

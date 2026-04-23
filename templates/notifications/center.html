@@ -32,7 +32,7 @@
                 {% if unread_total %}
                 <form method="post" action="{% url 'notifications:mark_all_read' %}">
                     {% csrf_token %}
-                    <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#recent-notifications{% else %}{% url 'notifications:home' %}#recent-notifications{% endif %}">
+                    <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#feed{% else %}{% url 'notifications:home' %}#feed{% endif %}">
                     <button type="submit" class="btn btn-primary btn-sm">Mark All Read</button>
                 </form>
                 {% endif %}
@@ -40,14 +40,172 @@
         </div>
     </section>
 
-    <section class="platform-panel" id="notification-preferences">
+    <nav class="notification-page-tabs" aria-label="Notification sections">
+        <a href="#feed" class="notification-page-tab is-active" data-tab-target="feed">
+            <span>Notifications</span>
+            <strong>{{ all_notifications_total }}</strong>
+        </a>
+        <a href="#preferences" class="notification-page-tab" data-tab-target="preferences">
+            <span>Preferences</span>
+            <strong>Settings</strong>
+        </a>
+        {% if request.user.is_management_role or request.user.is_superuser %}
+        <a href="{% url 'notifications:performance' %}" class="notification-page-tab notification-page-tab-link">
+            <span>Delivery Performance</span>
+            <strong>Report</strong>
+        </a>
+        {% endif %}
+    </nav>
+
+    <section class="platform-panel" id="feed" data-tab-section="feed">
         <div class="platform-panel-head">
-            <h2>Delivery Preferences</h2>
-            <p>Choose how payroll delivery and in-app category alerts should reach you across the system.</p>
+            <div>
+                <h2>Recent Notifications</h2>
+                <p>Filter by category, review grouped source areas, and clear or delete tracked updates without leaving the feed.</p>
+            </div>
+            <div class="notification-feed-tools">
+                <a href="#preferences" class="btn btn-light btn-sm">Jump To Preferences</a>
+            </div>
+        </div>
+
+        <div class="notification-filter-bar">
+            <a href="{% url 'notifications:home' %}#feed" class="notification-filter-chip{% if not selected_category %} is-active{% endif %}">
+                <span>All Notifications</span>
+                <strong>{{ all_notifications_total }}</strong>
+                {% if unread_total %}
+                <small>{{ unread_total }} unread</small>
+                {% endif %}
+            </a>
+            {% for category in category_cards %}
+            <a href="{% url 'notifications:home' %}?category={{ category.key }}#feed" class="notification-filter-chip{% if selected_category == category.key %} is-active{% endif %}">
+                <span>{{ category.label }}</span>
+                <strong>{{ category.total }}</strong>
+                {% if category.unread_total %}
+                <small>{{ category.unread_total }} unread</small>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+
+        <form method="post" action="{% url 'notifications:bulk_delete' %}" class="platform-panel notification-bulk-panel" id="bulk-delete-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#feed{% else %}{% url 'notifications:home' %}#feed{% endif %}">
+            <input type="hidden" name="ids" value="" id="bulk-delete-ids">
+            <div class="platform-panel-head">
+                <div>
+                    <h3>Read Notification Cleanup</h3>
+                    <p>Select read items in the feed and remove them from your active workspace in one action.</p>
+                </div>
+                <div class="platform-inline-actions notification-bulk-actions">
+                    <button type="button" class="btn btn-light btn-sm" id="select-all-read-btn">Select All Read</button>
+                    <button type="submit" class="btn btn-secondary btn-sm" id="bulk-delete-btn" disabled>Bulk Delete</button>
+                </div>
+            </div>
+            <p class="notification-bulk-status" id="bulk-delete-status">0 read notifications selected.</p>
+        </form>
+
+        {% if notifications %}
+        <div class="notification-group-list">
+            {% for category in visible_category_cards %}
+            <section class="notification-category-group">
+                <div class="notification-category-group-head">
+                    <div>
+                        <h3>{{ category.label }}</h3>
+                        <p>{{ category.total }} item{{ category.total|pluralize }} in this area{% if category.unread_total %}, {{ category.unread_total }} unread{% endif %}.</p>
+                    </div>
+                    {% if category.unread_total %}
+                    <form method="post" action="{% url 'notifications:mark_category_read' category.key %}" class="notification-category-action">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#feed{% else %}{% url 'notifications:home' %}#feed{% endif %}">
+                        <button type="submit" class="btn btn-light btn-sm">Mark {{ category.label }} Read</button>
+                    </form>
+                    {% endif %}
+                </div>
+                <div class="platform-list notifications-list">
+                    {% for notification in category.notifications %}
+                    <div class="platform-list-item notification-row{% if not notification.is_read %} notification-row-unread{% endif %}">
+                        <div class="notification-select-cell">
+                            {% if notification.is_read %}
+                            <label class="notification-select-toggle" aria-label="Select {{ notification.title }} for bulk delete">
+                                <input type="checkbox" class="notification-bulk-checkbox" value="{{ notification.pk }}">
+                                <span>Select</span>
+                            </label>
+                            {% else %}
+                            <span class="notification-select-placeholder">Unread</span>
+                            {% endif %}
+                        </div>
+                        <div class="platform-list-item-stack notification-main">
+                            <div class="notification-head">
+                                <strong>{{ notification.title }}</strong>
+                                <span class="badge {% if notification.level == 'success' %}badge-success{% elif notification.level == 'warning' %}badge-warning{% else %}badge-light{% endif %}">
+                                    {% if notification.is_read %}Read{% else %}Unread{% endif %}
+                                </span>
+                            </div>
+                            <small>{{ notification.created_at|date:"M j, Y g:i A" }} | {{ notification.get_category_display }}</small>
+                            <span>{{ notification.body }}</span>
+                        </div>
+                        <div class="platform-inline-actions notification-actions">
+                            {% if notification.action_url %}
+                            <a href="{{ notification.action_url }}" class="btn btn-light btn-sm">Open</a>
+                            {% endif %}
+                            {% if not notification.is_read %}
+                            <form method="post" action="{% url 'notifications:mark_read' notification.pk %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#feed{% else %}{% url 'notifications:home' %}#feed{% endif %}">
+                                <button type="submit" class="btn btn-secondary btn-sm">Mark Read</button>
+                            </form>
+                            {% endif %}
+                            <form method="post" action="{% url 'notifications:delete' notification.pk %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#feed{% else %}{% url 'notifications:home' %}#feed{% endif %}">
+                                <button type="submit" class="btn btn-light btn-sm">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No notifications in {{ selected_category_label|lower }}</h3>
+            <p>Try another category filter or wait for the next tracked update to arrive.</p>
+        </div>
+        {% endif %}
+
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="page-actions" style="margin-top: 18px;">
+            {% if page_obj.has_previous %}
+            <a class="btn btn-light btn-sm" href="{% url 'notifications:home' %}?{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ page_obj.previous_page_number }}#feed">Previous</a>
+            {% endif %}
+            <span class="badge badge-light">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+            <a class="btn btn-light btn-sm" href="{% url 'notifications:home' %}?{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ page_obj.next_page_number }}#feed">Next</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if selected_category and not notifications %}
+        <div class="notification-empty-actions">
+            <a href="{% url 'notifications:home' %}#feed" class="btn btn-light btn-sm">Show All Categories</a>
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="platform-panel" id="preferences" data-tab-section="preferences">
+        <div class="platform-panel-head">
+            <div>
+                <h2>Delivery Preferences</h2>
+                <p>Choose how payroll delivery and in-app category alerts should reach you across the system.</p>
+            </div>
+            <div class="notification-feed-tools">
+                <a href="#feed" class="btn btn-light btn-sm">Back To Feed</a>
+            </div>
         </div>
         <form method="post" action="{% url 'notifications:preferences' %}" class="platform-form-grid notification-preferences-form">
             {% csrf_token %}
-            <input type="hidden" name="next" value="{% url 'notifications:home' %}#notification-preferences">
+            <input type="hidden" name="next" value="{% url 'notifications:home' %}#preferences">
             <div class="notification-preference-group platform-form-span">
                 <div class="notification-preference-group-head">
                     <h3>Management Workflow Alerts</h3>
@@ -68,6 +226,15 @@
                         <span>
                             <strong>{{ preference_form.payroll_management_email_enabled.label }}</strong>
                             <small>Send review, approval, and paid-status updates to your saved work email.</small>
+                        </span>
+                    </label>
+                </div>
+                <div class="form-group platform-form-span">
+                    <label class="notification-preference-toggle">
+                        {{ preference_form.email_enabled }}
+                        <span>
+                            <strong>{{ preference_form.email_enabled.label }}</strong>
+                            <small>Allow NourAxis to send email copies for in-app alerts when a category is enabled.</small>
                         </span>
                     </label>
                 </div>
@@ -147,6 +314,13 @@
                         </span>
                     </label>
                     <label class="notification-preference-toggle">
+                        {{ preference_form.contract_in_app_enabled }}
+                        <span>
+                            <strong>{{ preference_form.contract_in_app_enabled.label }}</strong>
+                            <small>Contract expiry reminders and agreement lifecycle alerts for HR follow-up.</small>
+                        </span>
+                    </label>
+                    <label class="notification-preference-toggle">
                         {{ preference_form.calendar_in_app_enabled }}
                         <span>
                             <strong>{{ preference_form.calendar_in_app_enabled.label }}</strong>
@@ -160,100 +334,79 @@
             </div>
         </form>
     </section>
-
-    <section class="platform-panel" id="recent-notifications">
-        <div class="platform-panel-head">
-            <h2>Recent Notifications</h2>
-            <p>Filter by category, review grouped source areas, and clear unread items category by category when needed.</p>
-        </div>
-        <div class="notification-filter-bar">
-            <a href="{% url 'notifications:home' %}#recent-notifications" class="notification-filter-chip{% if not selected_category %} is-active{% endif %}">
-                <span>All Notifications</span>
-                <strong>{{ all_notifications_total }}</strong>
-                {% if unread_total %}
-                <small>{{ unread_total }} unread</small>
-                {% endif %}
-            </a>
-            {% for category in category_cards %}
-            <a href="{% url 'notifications:home' %}?category={{ category.key }}#recent-notifications" class="notification-filter-chip{% if selected_category == category.key %} is-active{% endif %}">
-                <span>{{ category.label }}</span>
-                <strong>{{ category.total }}</strong>
-                {% if category.unread_total %}
-                <small>{{ category.unread_total }} unread</small>
-                {% endif %}
-            </a>
-            {% endfor %}
-        </div>
-        {% if notifications %}
-        <div class="notification-group-list">
-            {% for category in visible_category_cards %}
-            <section class="notification-category-group">
-                <div class="notification-category-group-head">
-                    <div>
-                        <h3>{{ category.label }}</h3>
-                        <p>{{ category.total }} item{{ category.total|pluralize }} in this area{% if category.unread_total %}, {{ category.unread_total }} unread{% endif %}.</p>
-                    </div>
-                    {% if category.unread_total %}
-                    <form method="post" action="{% url 'notifications:mark_category_read' category.key %}" class="notification-category-action">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#recent-notifications{% else %}{% url 'notifications:home' %}#recent-notifications{% endif %}">
-                        <button type="submit" class="btn btn-light btn-sm">Mark {{ category.label }} Read</button>
-                    </form>
-                    {% endif %}
-                </div>
-                <div class="platform-list notifications-list">
-                    {% for notification in category.notifications %}
-                    <div class="platform-list-item notification-row{% if not notification.is_read %} notification-row-unread{% endif %}">
-                        <div class="platform-list-item-stack notification-main">
-                            <div class="notification-head">
-                                <strong>{{ notification.title }}</strong>
-                                <span class="badge {% if notification.level == 'success' %}badge-success{% elif notification.level == 'warning' %}badge-warning{% else %}badge-light{% endif %}">
-                                    {% if notification.is_read %}Read{% else %}Unread{% endif %}
-                                </span>
-                            </div>
-                            <small>{{ notification.created_at|date:"M j, Y g:i A" }} | {{ notification.get_category_display }}</small>
-                            <span>{{ notification.body }}</span>
-                        </div>
-                        <div class="platform-inline-actions notification-actions">
-                            {% if notification.action_url %}
-                            <a href="{{ notification.action_url }}" class="btn btn-light btn-sm">Open</a>
-                            {% endif %}
-                            {% if not notification.is_read %}
-                            <form method="post" action="{% url 'notifications:mark_read' notification.pk %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#recent-notifications{% else %}{% url 'notifications:home' %}#recent-notifications{% endif %}">
-                                <button type="submit" class="btn btn-secondary btn-sm">Mark Read</button>
-                            </form>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state">
-            <h3>No notifications in {{ selected_category_label|lower }}</h3>
-            <p>Try another category filter or wait for the next tracked update to arrive.</p>
-        </div>
-        {% endif %}
-        {% if page_obj.paginator.num_pages > 1 %}
-        <div class="page-actions" style="margin-top: 18px;">
-            {% if page_obj.has_previous %}
-            <a class="btn btn-light btn-sm" href="{% url 'notifications:home' %}?{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ page_obj.previous_page_number }}#recent-notifications">Previous</a>
-            {% endif %}
-            <span class="badge badge-light">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-            {% if page_obj.has_next %}
-            <a class="btn btn-light btn-sm" href="{% url 'notifications:home' %}?{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ page_obj.next_page_number }}#recent-notifications">Next</a>
-            {% endif %}
-        </div>
-        {% endif %}
-        {% if selected_category and not notifications %}
-        <div class="notification-empty-actions">
-            <a href="{% url 'notifications:home' %}#recent-notifications" class="btn btn-light btn-sm">Show All Categories</a>
-        </div>
-        {% endif %}
-    </section>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tabLinks = Array.from(document.querySelectorAll(".notification-page-tab[data-tab-target]"));
+    const sections = Array.from(document.querySelectorAll("[data-tab-section]"));
+    const bulkCheckboxes = Array.from(document.querySelectorAll(".notification-bulk-checkbox"));
+    const bulkIdsInput = document.getElementById("bulk-delete-ids");
+    const bulkDeleteBtn = document.getElementById("bulk-delete-btn");
+    const bulkStatus = document.getElementById("bulk-delete-status");
+    const selectAllReadBtn = document.getElementById("select-all-read-btn");
+
+    function setActiveTab(hash) {
+        const activeId = hash === "#preferences" ? "preferences" : "feed";
+        tabLinks.forEach(function (link) {
+            link.classList.toggle("is-active", link.dataset.tabTarget === activeId);
+        });
+        sections.forEach(function (section) {
+            section.classList.toggle("is-current-section", section.dataset.tabSection === activeId);
+        });
+    }
+
+    function updateBulkDeleteState() {
+        const selectedIds = bulkCheckboxes
+            .filter(function (checkbox) { return checkbox.checked; })
+            .map(function (checkbox) { return checkbox.value; });
+        const selectedCount = selectedIds.length;
+
+        if (bulkIdsInput) {
+            bulkIdsInput.value = selectedIds.join(",");
+        }
+        if (bulkDeleteBtn) {
+            bulkDeleteBtn.disabled = selectedCount === 0;
+        }
+        if (bulkStatus) {
+            bulkStatus.textContent = selectedCount === 1
+                ? "1 read notification selected."
+                : selectedCount + " read notifications selected.";
+        }
+        if (selectAllReadBtn) {
+            const allSelected = bulkCheckboxes.length > 0 && selectedCount === bulkCheckboxes.length;
+            selectAllReadBtn.textContent = allSelected ? "Clear Selection" : "Select All Read";
+        }
+    }
+
+    tabLinks.forEach(function (link) {
+        link.addEventListener("click", function () {
+            setActiveTab(link.getAttribute("href"));
+        });
+    });
+
+    bulkCheckboxes.forEach(function (checkbox) {
+        checkbox.addEventListener("change", updateBulkDeleteState);
+    });
+
+    if (selectAllReadBtn) {
+        selectAllReadBtn.addEventListener("click", function () {
+            const shouldSelectAll = bulkCheckboxes.some(function (checkbox) { return !checkbox.checked; });
+            bulkCheckboxes.forEach(function (checkbox) {
+                checkbox.checked = shouldSelectAll;
+            });
+            updateBulkDeleteState();
+        });
+    }
+
+    window.addEventListener("hashchange", function () {
+        setActiveTab(window.location.hash);
+    });
+
+    setActiveTab(window.location.hash);
+    updateBulkDeleteState();
+});
+</script>
 {% endblock %}

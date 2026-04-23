@@ -239,8 +239,8 @@ def navbar_context(request):
         "nav_self_service_branch_url": nav_self_service_branch_url,
         "nav_self_service_my_schedule_url": nav_self_service_my_schedule_url,
         "nav_self_service_weekly_schedule_url": nav_self_service_weekly_schedule_url,
-            "nav_can_view_hr_workspace": bool(
-            is_admin_compatible or is_hr_user or is_operations_manager_user or nav_scoped_branch is not None
+        "nav_can_view_hr_workspace": bool(
+            is_admin_compatible or is_hr_user or is_operations_manager_user
         ),
         "nav_can_view_payroll_workspace": bool(
             is_admin_compatible or is_hr_user or is_operations_manager_user

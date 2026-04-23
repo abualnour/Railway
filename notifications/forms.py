@@ -18,6 +18,7 @@ class NotificationPreferenceForm(forms.ModelForm):
             "schedule_in_app_enabled",
             "employee_in_app_enabled",
             "hr_in_app_enabled",
+            "contract_in_app_enabled",
             "calendar_in_app_enabled",
         ]
         labels = {
@@ -32,6 +33,7 @@ class NotificationPreferenceForm(forms.ModelForm):
             "schedule_in_app_enabled": "Schedule updates",
             "employee_in_app_enabled": "Employee status and attendance",
             "hr_in_app_enabled": "HR announcements and policies",
+            "contract_in_app_enabled": "Contract reminders and expiries",
             "calendar_in_app_enabled": "Calendar and holiday updates",
         }
 

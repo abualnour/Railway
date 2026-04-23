@@ -1,62 +1,74 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Recruitment Kanban{% endblock %}
 
-{% block content %}
-<div class="page-section">
-    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
-        <div>
-            <h1 style="margin:0;">Recruitment Kanban</h1>
-            <p class="text-muted" style="margin:8px 0 0;">Review candidates by pipeline stage and ownership.</p>
-        </div>
-        <div class="page-actions">
-            <a class="btn btn-light" href="{% url 'recruitment:job_posting_list' %}">Recruitment Dashboard</a>
-            <a class="btn btn-light" href="{% url 'recruitment:candidate_list' %}">Candidate Directory</a>
-            {% if owner_filter == "mine" %}
-            <a class="btn btn-primary" href="{% url 'recruitment:kanban' %}">Show All</a>
-            {% else %}
-            <a class="btn btn-primary" href="{% url 'recruitment:kanban' %}?owner=mine">My Owned Candidates</a>
-            {% endif %}
-        </div>
-    </div>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/recruitment.css' %}">
+{% endblock %}
 
-    <div style="display:grid; grid-template-columns:repeat(6, minmax(220px, 1fr)); gap:16px; overflow-x:auto; padding-bottom:12px; margin-top:20px;">
+{% block content %}
+<div class="platform-page recruitment-page recruitment-kanban-page">
+    <section class="platform-hero recruitment-secondary-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Recruitment Workspace</span>
+            <h1>Recruitment Kanban</h1>
+            <p>Review candidates by pipeline stage, see ownership at a glance, and move quickly into candidate detail and update flows.</p>
+        </div>
+        <div class="platform-hero-side">
+            <div class="platform-inline-actions platform-hero-actions">
+                <a class="btn btn-light btn-sm" href="{% url 'recruitment:job_posting_list' %}">Recruitment Dashboard</a>
+                <a class="btn btn-light btn-sm" href="{% url 'recruitment:candidate_list' %}">Candidate Directory</a>
+                {% if owner_filter == "mine" %}
+                <a class="btn btn-primary btn-sm" href="{% url 'recruitment:kanban' %}">Show All</a>
+                {% else %}
+                <a class="btn btn-primary btn-sm" href="{% url 'recruitment:kanban' %}?owner=mine">My Owned Candidates</a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section class="recruitment-kanban-board">
         {% for column in kanban_columns %}
-        <div class="card" style="padding:16px; min-width:220px;">
-            <div class="request-overview-top">
-                <strong>{{ column.label }}</strong>
+        <article class="platform-panel recruitment-kanban-column">
+            <div class="platform-panel-head recruitment-kanban-column-head">
+                <h2>{{ column.label }}</h2>
                 <span class="badge badge-light">{{ column.candidates|length }}</span>
             </div>
-            <div class="summary-list modern-list-gap" style="margin-top:14px;">
+            <div class="recruitment-kanban-list">
                 {% for candidate in column.candidates %}
-                <div class="summary-list-item">
+                <div class="recruitment-kanban-card">
                     <strong>{{ candidate.full_name }}</strong>
-                    <div class="text-muted" style="margin-top:8px;">{{ candidate.job_posting.title }}</div>
-                    <div class="text-muted" style="margin-top:6px;">{{ candidate.job_posting.branch.name }}</div>
-                    <div class="page-actions" style="margin-top:10px;">
+                    <small>{{ candidate.job_posting.title }}</small>
+                    <span>{{ candidate.job_posting.branch.name }}</span>
+                    <div class="recruitment-kanban-meta">
                         <span class="badge badge-light">{{ candidate.days_in_pipeline }} Days</span>
                         {% if candidate.recruiter_owner %}
                         <span class="badge badge-light">{{ candidate.recruiter_owner.get_full_name|default:candidate.recruiter_owner.username }}</span>
                         {% endif %}
                     </div>
                     {% if candidate.offer_status != "not_sent" %}
-                    <div class="page-actions" style="margin-top:10px;">
+                    <div class="recruitment-kanban-meta">
                         <span class="badge badge-{% if candidate.offer_status == 'accepted' %}success{% elif candidate.offer_status == 'declined' %}danger{% else %}warning{% endif %}">
                             {{ candidate.get_offer_status_display }}
                         </span>
                     </div>
                     {% endif %}
-                    <div class="page-actions" style="margin-top:12px;">
+                    <div class="platform-inline-actions recruitment-item-actions">
                         <a class="btn btn-light btn-sm" href="{% url 'recruitment:candidate_detail' candidate.pk %}">Open</a>
                         <a class="btn btn-light btn-sm" href="{% url 'recruitment:candidate_update' candidate.pk %}">Move / Edit</a>
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-muted" style="margin:0;">No candidates in this stage.</p>
+                <div class="empty-state compact-empty-state">
+                    <h3>No candidates</h3>
+                    <p>No candidates are currently in this stage.</p>
+                </div>
                 {% endfor %}
             </div>
-        </div>
+        </article>
         {% endfor %}
-    </div>
+    </section>
 </div>
 {% endblock %}

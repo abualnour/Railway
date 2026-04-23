@@ -1479,19 +1479,21 @@
                                 <span class="badge badge-light">Cancelled {{ employee_leave_trends.cancelled_total }}</span>
                             </div>
 
-                            <div class="employee-360-mini-table">
-                                {% for row in employee_leave_trends.rows %}
-                                    <div class="employee-360-mini-row">
-                                        <div class="employee-360-mini-main">
-                                            <strong>{{ row.label }}</strong>
-                                            <span>{{ row.approved_days }} day(s)</span>
+                            <div class="table-responsive-wrap">
+                                <div class="employee-360-mini-table">
+                                    {% for row in employee_leave_trends.rows %}
+                                        <div class="employee-360-mini-row">
+                                            <div class="employee-360-mini-main">
+                                                <strong>{{ row.label }}</strong>
+                                                <span>{{ row.approved_days }} day(s)</span>
+                                            </div>
+                                            <div class="employee-360-progress-track">
+                                                <span class="employee-360-progress-fill" style="width: {{ row.share }}%;"></span>
+                                            </div>
+                                            <span class="employee-360-progress-label">{{ row.share }}%</span>
                                         </div>
-                                        <div class="employee-360-progress-track">
-                                            <span class="employee-360-progress-fill" style="width: {{ row.share }}%;"></span>
-                                        </div>
-                                        <span class="employee-360-progress-label">{{ row.share }}%</span>
-                                    </div>
-                                {% endfor %}
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
                     </div>

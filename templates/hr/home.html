@@ -111,28 +111,33 @@
 
         <article class="platform-panel">
             <div class="platform-panel-head">
-                <h2>Employment Mix</h2>
-                <p>Current employee status balance across the organization.</p>
+                <div>
+                    <h2>Employment Mix</h2>
+                    <p>Current employee status balance across the organization.</p>
+                </div>
+                <div class="platform-inline-actions hr-panel-actions">
+                    <a class="btn btn-light btn-sm" href="{% url 'employees:employee_list' %}">Open Workforce</a>
+                </div>
             </div>
             <div class="platform-list">
-                <div class="platform-list-item">
-                    <div><strong>Active</strong><small>Operational workforce currently active</small></div>
+                <div class="platform-list-item hr-list-item">
+                    <div class="platform-list-item-stack"><strong>Active</strong><small>Operational workforce currently active</small></div>
                     <span class="badge badge-success">{{ employment_mix.active }}</span>
                 </div>
-                <div class="platform-list-item">
-                    <div><strong>On Leave</strong><small>Approved leave status</small></div>
+                <div class="platform-list-item hr-list-item">
+                    <div class="platform-list-item-stack"><strong>On Leave</strong><small>Approved leave status</small></div>
                     <span class="badge badge-primary">{{ employment_mix.on_leave }}</span>
                 </div>
-                <div class="platform-list-item">
-                    <div><strong>Emergency Leave</strong><small>Emergency leave cases</small></div>
+                <div class="platform-list-item hr-list-item">
+                    <div class="platform-list-item-stack"><strong>Emergency Leave</strong><small>Emergency leave cases</small></div>
                     <span class="badge badge-warning">{{ employment_mix.emergency_leave }}</span>
                 </div>
-                <div class="platform-list-item">
-                    <div><strong>Unpaid Leave</strong><small>Unpaid leave cases</small></div>
+                <div class="platform-list-item hr-list-item">
+                    <div class="platform-list-item-stack"><strong>Unpaid Leave</strong><small>Unpaid leave cases</small></div>
                     <span class="badge badge-warning">{{ employment_mix.unpaid_leave }}</span>
                 </div>
-                <div class="platform-list-item">
-                    <div><strong>Inactive</strong><small>Profiles not currently operating</small></div>
+                <div class="platform-list-item hr-list-item">
+                    <div class="platform-list-item-stack"><strong>Inactive</strong><small>Profiles not currently operating</small></div>
                     <span class="badge badge-danger">{{ employment_mix.inactive }}</span>
                 </div>
             </div>
@@ -140,14 +145,19 @@
 
         <article class="platform-panel">
             <div class="platform-panel-head">
-                <h2>Branch Distribution</h2>
-                <p>Where people are currently concentrated.</p>
+                <div>
+                    <h2>Branch Distribution</h2>
+                    <p>Where people are currently concentrated.</p>
+                </div>
+                <div class="platform-inline-actions hr-panel-actions">
+                    <a class="btn btn-light btn-sm" href="{% url 'employees:employee_list' %}">Open Workforce</a>
+                </div>
             </div>
             {% if branch_distribution %}
                 <div class="platform-list">
                     {% for branch_name, branch_total in branch_distribution %}
-                        <div class="platform-list-item">
-                            <div><strong>{{ branch_name }}</strong><small>Employees linked to this branch</small></div>
+                        <div class="platform-list-item hr-list-item">
+                            <div class="platform-list-item-stack"><strong>{{ branch_name }}</strong><small>Employees linked to this branch</small></div>
                             <span class="badge badge-light">{{ branch_total }}</span>
                         </div>
                     {% endfor %}
@@ -164,18 +174,27 @@
     <section class="platform-grid">
         <article class="platform-panel" id="hr-leave-queue">
             <div class="platform-panel-head">
-                <h2>Leave Queue</h2>
-                <p>Pending leave approvals that need HR attention.</p>
+                <div>
+                    <h2>Leave Queue</h2>
+                    <p>Pending leave approvals that need HR attention.</p>
+                </div>
+                <div class="platform-inline-actions hr-panel-actions">
+                    <a class="btn btn-light btn-sm" href="{% url 'employees:employee_requests_overview' %}?status=pending">Open Leave Review</a>
+                </div>
             </div>
             {% if pending_leaves %}
                 <div class="platform-list">
                     {% for leave in pending_leaves %}
-                        <div class="platform-list-item">
-                            <div>
+                        <div class="platform-list-item hr-list-item">
+                            <div class="platform-list-item-stack">
                                 <strong>{{ leave.employee.full_name }}</strong>
                                 <small>{{ leave.get_leave_type_display }} | {{ leave.start_date|date:"M j" }} to {{ leave.end_date|date:"M j" }}</small>
                             </div>
-                            <span class="badge badge-warning">{{ leave.get_status_display }}</span>
+                            <div class="platform-inline-actions hr-item-actions">
+                                <span class="badge badge-warning">{{ leave.get_status_display }}</span>
+                                <a class="btn btn-primary btn-sm" href="{% url 'employees:employee_requests_overview' %}?search={{ leave.employee.employee_id }}&status=pending">Review &amp; Decide</a>
+                                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' leave.employee.pk %}?tab=leave">Open Employee</a>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -189,18 +208,27 @@
 
         <article class="platform-panel">
             <div class="platform-panel-head">
-                <h2>Attendance Exceptions Today</h2>
-                <p>Employees with attendance issues on {{ today|date:"F j, Y" }}.</p>
+                <div>
+                    <h2>Attendance Exceptions Today</h2>
+                    <p>Employees with attendance issues on {{ today|date:"F j, Y" }}.</p>
+                </div>
+                <div class="platform-inline-actions hr-panel-actions">
+                    <a class="btn btn-light btn-sm" href="{% url 'employees:attendance_management' %}">Open Attendance</a>
+                </div>
             </div>
             {% if attendance_exceptions %}
                 <div class="platform-list">
                     {% for entry in attendance_exceptions %}
-                        <div class="platform-list-item">
-                            <div>
+                        <div class="platform-list-item hr-list-item">
+                            <div class="platform-list-item-stack">
                                 <strong>{{ entry.employee.full_name }}</strong>
                                 <small>{{ entry.attendance_date|date:"M j, Y" }} | {{ entry.attendance_rule_label }}</small>
                             </div>
-                            <span class="badge {{ entry.day_status_badge_class }}">{{ entry.get_day_status_display }}</span>
+                            <div class="platform-inline-actions hr-item-actions">
+                                <span class="badge {{ entry.day_status_badge_class }}">{{ entry.get_day_status_display }}</span>
+                                <a class="btn btn-light btn-sm" href="{% url 'employees:attendance_management' %}">Review Attendance</a>
+                                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' entry.employee.pk %}?tab=overview">Open Employee</a>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -214,18 +242,27 @@
 
         <article class="platform-panel" id="hr-compliance-alerts">
             <div class="platform-panel-head">
-                <h2>Correction Queue</h2>
-                <p>Attendance corrections waiting to be reviewed or applied.</p>
+                <div>
+                    <h2>Correction Queue</h2>
+                    <p>Attendance corrections waiting to be reviewed or applied.</p>
+                </div>
+                <div class="platform-inline-actions hr-panel-actions">
+                    <a class="btn btn-light btn-sm" href="{% url 'employees:attendance_management' %}">Open Correction Queue</a>
+                </div>
             </div>
             {% if pending_attendance_corrections %}
                 <div class="platform-list">
                     {% for correction in pending_attendance_corrections %}
-                        <div class="platform-list-item">
-                            <div>
+                        <div class="platform-list-item hr-list-item">
+                            <div class="platform-list-item-stack">
                                 <strong>{{ correction.employee.full_name }}</strong>
                                 <small>{{ correction.linked_attendance.attendance_date|date:"M j, Y" }} | {{ correction.reason|truncatechars:70 }}</small>
                             </div>
-                            <span class="badge badge-warning">{{ correction.get_status_display }}</span>
+                            <div class="platform-inline-actions hr-item-actions">
+                                <span class="badge badge-warning">{{ correction.get_status_display }}</span>
+                                <a class="btn btn-primary btn-sm" href="{% url 'employees:attendance_management' %}">Review &amp; Decide</a>
+                                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' correction.employee.pk %}?tab=overview">Open Employee</a>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -239,18 +276,27 @@
 
         <article class="platform-panel">
             <div class="platform-panel-head">
-                <h2>Document Request Queue</h2>
-                <p>Employee-requested documents that are still waiting to be processed.</p>
+                <div>
+                    <h2>Document Request Queue</h2>
+                    <p>Employee-requested documents that are still waiting to be processed.</p>
+                </div>
+                <div class="platform-inline-actions hr-panel-actions">
+                    <a class="btn btn-light btn-sm" href="{% url 'employees:employee_requests_overview' %}">Open Request Queue</a>
+                </div>
             </div>
             {% if open_document_requests %}
                 <div class="platform-list">
                     {% for request_item in open_document_requests %}
-                        <div class="platform-list-item">
-                            <div>
+                        <div class="platform-list-item hr-list-item">
+                            <div class="platform-list-item-stack">
                                 <strong>{{ request_item.employee.full_name }}</strong>
                                 <small>{{ request_item.title }}{% if request_item.request_type %} | {{ request_item.get_request_type_display }}{% endif %}</small>
                             </div>
-                            <span class="badge badge-primary">{{ request_item.get_status_display }}</span>
+                            <div class="platform-inline-actions hr-item-actions">
+                                <span class="badge badge-primary">{{ request_item.get_status_display }}</span>
+                                <a class="btn btn-primary btn-sm" href="{% url 'employees:employee_requests_overview' %}?search={{ request_item.employee.employee_id }}">Review Request</a>
+                                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' request_item.employee.pk %}?tab=documents">Open Employee</a>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -266,27 +312,38 @@
     <section class="platform-grid">
         <article class="platform-panel">
             <div class="platform-panel-head">
-                <h2>Compliance Alerts</h2>
-                <p>Identity items that are near expiry and need follow-up.</p>
+                <div>
+                    <h2>Compliance Alerts</h2>
+                    <p>Identity items that are near expiry and need follow-up.</p>
+                </div>
+                <div class="platform-inline-actions hr-panel-actions">
+                    <a class="btn btn-light btn-sm" href="{% url 'employees:document_expiry_dashboard' %}">Open Compliance</a>
+                </div>
             </div>
             {% if passport_alerts or civil_id_alerts %}
                 <div class="platform-list">
                     {% for employee in passport_alerts %}
-                        <div class="platform-list-item">
-                            <div>
+                        <div class="platform-list-item hr-list-item">
+                            <div class="platform-list-item-stack">
                                 <strong>{{ employee.full_name }}</strong>
                                 <small>Passport expires {{ employee.passport_expiry_date|date:"M j, Y" }}</small>
                             </div>
-                            <span class="badge badge-warning">Passport</span>
+                            <div class="platform-inline-actions hr-item-actions">
+                                <span class="badge badge-warning">Passport</span>
+                                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' employee.pk %}?tab=documents">Open Employee</a>
+                            </div>
                         </div>
                     {% endfor %}
                     {% for employee in civil_id_alerts %}
-                        <div class="platform-list-item">
-                            <div>
+                        <div class="platform-list-item hr-list-item">
+                            <div class="platform-list-item-stack">
                                 <strong>{{ employee.full_name }}</strong>
                                 <small>Civil ID expires {{ employee.civil_id_expiry_date|date:"M j, Y" }}</small>
                             </div>
-                            <span class="badge badge-warning">Civil ID</span>
+                            <div class="platform-inline-actions hr-item-actions">
+                                <span class="badge badge-warning">Civil ID</span>
+                                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' employee.pk %}?tab=documents">Open Employee</a>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -300,18 +357,27 @@
 
         <article class="platform-panel">
             <div class="platform-panel-head">
-                <h2>Open Employee Submissions</h2>
-                <p>Required employee documents and actions still waiting to be completed.</p>
+                <div>
+                    <h2>Open Employee Submissions</h2>
+                    <p>Required employee documents and actions still waiting to be completed.</p>
+                </div>
+                <div class="platform-inline-actions hr-panel-actions">
+                    <a class="btn btn-light btn-sm" href="{% url 'employees:employee_requests_overview' %}">Open Submission Queue</a>
+                </div>
             </div>
             {% if open_submission_requests %}
                 <div class="platform-list">
                     {% for item in open_submission_requests %}
-                        <div class="platform-list-item">
-                            <div>
+                        <div class="platform-list-item hr-list-item">
+                            <div class="platform-list-item-stack">
                                 <strong>{{ item.employee.full_name }}</strong>
                                 <small>{{ item.title }}</small>
                             </div>
-                            <span class="badge badge-primary">{{ item.get_status_display }}</span>
+                            <div class="platform-inline-actions hr-item-actions">
+                                <span class="badge badge-primary">{{ item.get_status_display }}</span>
+                                <a class="btn btn-primary btn-sm" href="{% url 'employees:employee_requests_overview' %}?search={{ item.employee.employee_id }}">Review Submission</a>
+                                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' item.employee.pk %}?tab=compliance">Open Employee</a>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -325,27 +391,38 @@
 
         <article class="platform-panel">
             <div class="platform-panel-head">
-                <h2>Payroll Watch</h2>
-                <p>Payroll periods still in progress and linked compensation obligations.</p>
+                <div>
+                    <h2>Payroll Watch</h2>
+                    <p>Payroll periods still in progress and linked compensation obligations.</p>
+                </div>
+                <div class="platform-inline-actions hr-panel-actions">
+                    <a class="btn btn-light btn-sm" href="{% url 'payroll:home' %}">Open Payroll</a>
+                </div>
             </div>
             {% if recent_payroll_periods or active_obligations %}
                 <div class="platform-list">
                     {% for period in recent_payroll_periods %}
-                        <div class="platform-list-item">
-                            <div>
+                        <div class="platform-list-item hr-list-item">
+                            <div class="platform-list-item-stack">
                                 <strong>{{ period.title }}</strong>
                                 <small>{{ period.company.name }} | {{ period.period_start|date:"M j" }} to {{ period.period_end|date:"M j, Y" }}</small>
                             </div>
-                            <span class="badge badge-light">{{ period.get_status_display }}</span>
+                            <div class="platform-inline-actions hr-item-actions">
+                                <span class="badge badge-light">{{ period.get_status_display }}</span>
+                                <a class="btn btn-light btn-sm" href="{% url 'payroll:period_detail' period.pk %}">Open Period</a>
+                            </div>
                         </div>
                     {% endfor %}
                     {% for obligation in active_obligations %}
-                        <div class="platform-list-item">
-                            <div>
+                        <div class="platform-list-item hr-list-item">
+                            <div class="platform-list-item-stack">
                                 <strong>{{ obligation.employee.full_name }} | {{ obligation.title }}</strong>
                                 <small>{{ obligation.get_obligation_type_display }} | Remaining {{ obligation.remaining_installments }} installment{{ obligation.remaining_installments|pluralize }}</small>
                             </div>
-                            <span class="badge badge-warning">{{ obligation.remaining_balance }}</span>
+                            <div class="platform-inline-actions hr-item-actions">
+                                <span class="badge badge-warning">{{ obligation.remaining_balance }}</span>
+                                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' obligation.employee.pk %}?tab=payroll">Open Employee</a>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -384,18 +461,26 @@
     <section class="platform-grid">
         <article class="platform-panel">
             <div class="platform-panel-head">
-                <h2>Recent Employee Actions</h2>
-                <p>Latest movement and action records affecting the workforce.</p>
+                <div>
+                    <h2>Recent Employee Actions</h2>
+                    <p>Latest movement and action records affecting the workforce.</p>
+                </div>
+                <div class="platform-inline-actions hr-panel-actions">
+                    <a class="btn btn-light btn-sm" href="{% url 'employees:employee_list' %}">Open Employees</a>
+                </div>
             </div>
             {% if recent_actions %}
                 <div class="platform-list">
                     {% for action in recent_actions %}
-                        <div class="platform-list-item">
-                            <div>
+                        <div class="platform-list-item hr-list-item">
+                            <div class="platform-list-item-stack">
                                 <strong>{{ action.employee.full_name }}</strong>
                                 <small>{{ action.title }} | {{ action.action_date|date:"M j, Y" }}</small>
                             </div>
-                            <span class="badge badge-light">{{ action.get_action_type_display }}</span>
+                            <div class="platform-inline-actions hr-item-actions">
+                                <span class="badge badge-light">{{ action.get_action_type_display }}</span>
+                                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' action.employee.pk %}?tab=overview">Open Employee</a>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -409,14 +494,19 @@
 
         <article class="platform-panel">
             <div class="platform-panel-head">
-                <h2>Company Distribution</h2>
-                <p>Top companies by employee count in the current workspace.</p>
+                <div>
+                    <h2>Company Distribution</h2>
+                    <p>Top companies by employee count in the current workspace.</p>
+                </div>
+                <div class="platform-inline-actions hr-panel-actions">
+                    <a class="btn btn-light btn-sm" href="{% url 'employees:employee_list' %}">Open Workforce</a>
+                </div>
             </div>
             {% if company_distribution %}
                 <div class="platform-list">
                     {% for company_name, company_total in company_distribution %}
-                        <div class="platform-list-item">
-                            <div><strong>{{ company_name }}</strong><small>Employees linked to this company</small></div>
+                        <div class="platform-list-item hr-list-item">
+                            <div class="platform-list-item-stack"><strong>{{ company_name }}</strong><small>Employees linked to this company</small></div>
                             <span class="badge badge-light">{{ company_total }}</span>
                         </div>
                     {% endfor %}

@@ -98,10 +98,19 @@
 
     <section class="platform-grid branch-schedule-overview-branch-grid">
         {% for card in branch_cards %}
-        <a href="{{ card.select_url }}" class="platform-panel branch-schedule-overview-branch-card{% if card.is_selected %} is-selected{% endif %}">
-            <div class="platform-panel-head">
-                <h2>{{ card.branch.name }}</h2>
-                <p>{{ card.branch.company.name }}</p>
+        <article class="platform-panel branch-schedule-overview-branch-card{% if card.is_selected %} is-selected{% endif %}">
+            <div class="platform-panel-head branch-schedule-overview-branch-head">
+                <div>
+                    <h2>{{ card.branch.name }}</h2>
+                    <p>{{ card.branch.company.name }}</p>
+                </div>
+                <div class="platform-inline-actions branch-schedule-overview-branch-actions">
+                    {% if card.is_selected %}
+                    <span class="badge badge-success">Selected Branch</span>
+                    {% else %}
+                    <a href="{{ card.select_url }}" class="btn btn-light btn-sm">Open Branch</a>
+                    {% endif %}
+                </div>
             </div>
             <div class="branch-schedule-overview-branch-stats">
                 <span class="badge badge-light">Team {{ card.branch.active_employee_total }}</span>
@@ -111,7 +120,7 @@
                     Exceptions {{ card.exception_total }}
                 </span>
             </div>
-        </a>
+        </article>
         {% empty %}
         <div class="empty-state">
             <h3>No active branches found</h3>

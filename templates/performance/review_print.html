@@ -1,59 +1,98 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Performance Review Export{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/performance.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="page-section">
-    <div class="card" style="padding:24px;">
-        <div class="card-header" style="padding:0; margin-bottom:16px;">
-            <div>
-                <h1 style="margin:0;">Performance Review</h1>
-                <p class="text-muted" style="margin:8px 0 0;">{{ review.employee.full_name }} - {{ review.cycle.title }}</p>
+<div class="platform-page performance-dashboard-page performance-secondary-page">
+    <section class="platform-hero performance-dashboard-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Performance Workspace</span>
+            <h1>Performance Review</h1>
+            <p>{{ review.employee.full_name }} | {{ review.cycle.title }}</p>
+            <div class="platform-hero-meta">
+                <span class="platform-hero-chip">{{ review.get_status_display }}</span>
+                <span class="platform-hero-chip">{{ review.get_overall_rating_display }}</span>
+                {% if review.is_locked %}
+                <span class="platform-hero-chip">Locked Review</span>
+                {% endif %}
             </div>
         </div>
-        <div class="detail-grid two-col">
-            <div class="detail-item"><span class="detail-label">Employee</span><span class="detail-value">{{ review.employee.full_name }}</span></div>
-            <div class="detail-item"><span class="detail-label">Employee ID</span><span class="detail-value">{{ review.employee.employee_id }}</span></div>
-            <div class="detail-item"><span class="detail-label">Reviewer</span><span class="detail-value">{{ review.reviewer.full_name }}</span></div>
-            <div class="detail-item"><span class="detail-label">Cycle</span><span class="detail-value">{{ review.cycle.title }}</span></div>
-            <div class="detail-item"><span class="detail-label">Rating</span><span class="detail-value">{{ review.get_overall_rating_display }}</span></div>
-            <div class="detail-item"><span class="detail-label">Status</span><span class="detail-value">{{ review.get_status_display }}</span></div>
+    </section>
+
+    <section class="platform-panel performance-panel">
+        <div class="platform-panel-head">
+            <h2>Review Snapshot</h2>
+            <p>Summary information for this performance review record.</p>
+        </div>
+        <div class="recruitment-detail-grid performance-detail-grid">
+            <div class="platform-metric-box"><span>Employee</span><strong>{{ review.employee.full_name }}</strong></div>
+            <div class="platform-metric-box"><span>Employee ID</span><strong>{{ review.employee.employee_id }}</strong></div>
+            <div class="platform-metric-box"><span>Reviewer</span><strong>{{ review.reviewer.full_name }}</strong></div>
+            <div class="platform-metric-box"><span>Cycle</span><strong>{{ review.cycle.title }}</strong></div>
+            <div class="platform-metric-box"><span>Rating</span><strong>{{ review.get_overall_rating_display }}</strong></div>
+            <div class="platform-metric-box"><span>Status</span><strong>{{ review.get_status_display }}</strong></div>
         </div>
         {% if review.is_locked %}
-        <div class="text-muted" style="margin-top:16px;">This review belongs to a closed cycle and is locked for standard edits.</div>
+        <p class="text-muted">This review belongs to a closed cycle and is locked for standard edits.</p>
         {% endif %}
-        <div class="document-description" style="margin-top:16px;">
-            <strong>Strengths</strong><br>{{ review.strengths|linebreaksbr }}
-        </div>
-        <div class="document-description" style="margin-top:16px;">
-            <strong>Areas for Improvement</strong><br>{{ review.areas_for_improvement|linebreaksbr }}
-        </div>
-        <div class="document-description" style="margin-top:16px;">
-            <strong>Goals for Next Period</strong><br>{{ review.goals_next_period|linebreaksbr }}
-        </div>
+    </section>
+
+    <section class="platform-grid performance-dashboard-grid">
+        <article class="platform-panel performance-panel">
+            <div class="platform-panel-head">
+                <h2>Strengths</h2>
+            </div>
+            <div class="performance-rich-text">{{ review.strengths|linebreaksbr }}</div>
+        </article>
+
+        <article class="platform-panel performance-panel">
+            <div class="platform-panel-head">
+                <h2>Areas for Improvement</h2>
+            </div>
+            <div class="performance-rich-text">{{ review.areas_for_improvement|linebreaksbr }}</div>
+        </article>
+
+        <article class="platform-panel performance-panel">
+            <div class="platform-panel-head">
+                <h2>Goals for Next Period</h2>
+            </div>
+            <div class="performance-rich-text">{{ review.goals_next_period|linebreaksbr }}</div>
+        </article>
+
         {% if review.employee_comments %}
-        <div class="document-description" style="margin-top:16px;">
-            <strong>Employee Comments</strong><br>{{ review.employee_comments|linebreaksbr }}
-        </div>
-        {% endif %}
-        {% if review.comments.all %}
-        <div class="card" style="padding:20px; margin-top:20px;">
-            <div class="card-header" style="padding:0; margin-bottom:12px;">
-                <h3 style="margin:0;">Reviewer Notes History</h3>
+        <article class="platform-panel performance-panel">
+            <div class="platform-panel-head">
+                <h2>Employee Comments</h2>
             </div>
-            <div class="summary-list modern-list-gap">
-                {% for performance_comment in review.comments.all %}
-                <div class="summary-list-item">
-                    <div class="request-overview-top">
-                        <strong>{{ performance_comment.author_display_name }}</strong>
-                        <span class="badge badge-light">{{ performance_comment.created_at|date:"M j, Y - g:i A" }}</span>
-                    </div>
-                    <div class="document-description" style="margin-top:10px;">{{ performance_comment.note|linebreaksbr }}</div>
+            <div class="performance-rich-text">{{ review.employee_comments|linebreaksbr }}</div>
+        </article>
+        {% endif %}
+    </section>
+
+    {% if review.comments.all %}
+    <section class="platform-panel performance-panel">
+        <div class="platform-panel-head">
+            <h2>Reviewer Notes History</h2>
+            <p>Historical review notes captured during the review lifecycle.</p>
+        </div>
+        <div class="platform-list">
+            {% for performance_comment in review.comments.all %}
+            <div class="platform-list-item">
+                <div class="platform-list-item-stack">
+                    <strong>{{ performance_comment.author_display_name }}</strong>
+                    <small>{{ performance_comment.created_at|date:"M j, Y - g:i A" }}</small>
+                    <div class="performance-rich-text">{{ performance_comment.note|linebreaksbr }}</div>
                 </div>
-                {% endfor %}
             </div>
+            {% endfor %}
         </div>
-        {% endif %}
-    </div>
+    </section>
+    {% endif %}
 </div>
 {% endblock %}

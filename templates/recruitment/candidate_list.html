@@ -1,19 +1,34 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Candidate Directory{% endblock %}
 
-{% block content %}
-<div class="page-section">
-    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
-        <div>
-            <h1 style="margin:0;">Candidate Directory</h1>
-            <p class="text-muted" style="margin:8px 0 0;">Search and filter the recruitment pipeline across all job postings.</p>
-        </div>
-        <a class="btn btn-light" href="{% url 'recruitment:job_posting_list' %}">Back to Recruitment</a>
-    </div>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/recruitment.css' %}">
+{% endblock %}
 
-    <form method="get" class="card" style="padding:20px; margin-top:20px;">
-        <div class="form-grid two-col">
+{% block content %}
+<div class="platform-page recruitment-page recruitment-directory-page">
+    <section class="platform-hero recruitment-secondary-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Recruitment Workspace</span>
+            <h1>Candidate Directory</h1>
+            <p>Search and filter the recruitment pipeline across all active job postings, then jump into candidate records without leaving the shared recruitment view.</p>
+        </div>
+        <div class="platform-hero-side">
+            <div class="platform-inline-actions platform-hero-actions">
+                <a class="btn btn-light btn-sm" href="{% url 'recruitment:job_posting_list' %}">Back To Recruitment</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="platform-panel recruitment-panel">
+        <div class="platform-panel-head">
+            <h2>Directory Filters</h2>
+            <p>Filter by recruiter, stage, posting, branch, and search terms.</p>
+        </div>
+        <form method="get" class="platform-form-grid recruitment-filter-form">
             {% for field in filter_form %}
             <div class="form-group">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -21,47 +36,49 @@
                 {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
             </div>
             {% endfor %}
-        </div>
-        <div class="page-actions" style="margin-top:16px;">
-            <button type="submit" class="btn btn-primary">Apply Filters</button>
-            <a class="btn btn-light" href="{% url 'recruitment:candidate_list' %}">Clear</a>
-        </div>
-    </form>
+            <div class="platform-form-actions">
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <a class="btn btn-light" href="{% url 'recruitment:candidate_list' %}">Clear</a>
+            </div>
+        </form>
+    </section>
 
-    {% if candidates %}
-    <div class="summary-list modern-list-gap" style="margin-top:20px;">
-        {% for candidate in candidates %}
-        <div class="summary-list-item">
-            <div class="request-overview-top">
-                <div>
-                    <h3 style="margin:0;">{{ candidate.full_name }}</h3>
-                    <div class="text-muted" style="margin-top:8px;">{{ candidate.job_posting.title }} - {{ candidate.job_posting.department.name }} - {{ candidate.job_posting.branch.name }}</div>
+    <section class="platform-panel recruitment-panel">
+        <div class="platform-panel-head">
+            <h2>Candidate Results</h2>
+            <p>Visible candidates across the filtered recruitment pipeline.</p>
+        </div>
+        {% if candidates %}
+        <div class="platform-list">
+            {% for candidate in candidates %}
+            <div class="platform-list-item recruitment-candidate-item">
+                <div class="platform-list-item-stack">
+                    <strong>{{ candidate.full_name }}</strong>
+                    <small>{{ candidate.job_posting.title }} | {{ candidate.job_posting.department.name }} | {{ candidate.job_posting.branch.name }}</small>
+                    <span class="recruitment-candidate-meta">
+                        <span class="badge badge-light">{{ candidate.email }}</span>
+                        <span class="badge badge-light">{{ candidate.phone }}</span>
+                        <span class="badge badge-light">{{ candidate.nationality }}</span>
+                        <span class="badge badge-light">{{ candidate.applied_at|date:"F j, Y - g:i A" }}</span>
+                    </span>
                 </div>
-                <div class="page-actions">
+                <div class="platform-inline-actions recruitment-item-actions">
                     <span class="badge badge-light">{{ candidate.get_status_display }}</span>
                     {% if candidate.hired_employee %}
                     <span class="badge badge-success">Employee Created</span>
                     {% endif %}
+                    <a class="btn btn-light btn-sm" href="{% url 'recruitment:candidate_detail' candidate.pk %}">Open Candidate</a>
+                    <a class="btn btn-light btn-sm" href="{% url 'recruitment:candidate_update' candidate.pk %}">Edit</a>
                 </div>
             </div>
-            <div class="detail-grid two-col" style="margin-top:18px;">
-                <div class="detail-item"><span class="detail-label">Email</span><span class="detail-value">{{ candidate.email }}</span></div>
-                <div class="detail-item"><span class="detail-label">Phone</span><span class="detail-value">{{ candidate.phone }}</span></div>
-                <div class="detail-item"><span class="detail-label">Nationality</span><span class="detail-value">{{ candidate.nationality }}</span></div>
-                <div class="detail-item"><span class="detail-label">Applied At</span><span class="detail-value">{{ candidate.applied_at|date:"F j, Y - g:i A" }}</span></div>
-            </div>
-            <div class="page-actions" style="margin-top:18px;">
-                <a class="btn btn-light" href="{% url 'recruitment:candidate_detail' candidate.pk %}">Open Candidate</a>
-                <a class="btn btn-light" href="{% url 'recruitment:candidate_update' candidate.pk %}">Edit</a>
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="empty-state" style="margin-top:20px;">
-        <h3>No candidates found</h3>
-        <p>Adjust the filters or add candidates from a job posting.</p>
-    </div>
-    {% endif %}
+        {% else %}
+        <div class="empty-state">
+            <h3>No candidates found</h3>
+            <p>Adjust the filters or add candidates from a job posting.</p>
+        </div>
+        {% endif %}
+    </section>
 </div>
 {% endblock %}

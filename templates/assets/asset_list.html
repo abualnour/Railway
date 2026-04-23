@@ -1,28 +1,70 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Assets{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/assets.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="page-section">
-    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
-        <div>
-            <h1 style="margin:0;">Company Assets</h1>
-            <p class="text-muted" style="margin:8px 0 0;">Track company equipment, assignment status, and employee custody records.</p>
+<div class="platform-page assets-page">
+    <section class="platform-hero assets-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Asset Management</span>
+            <h1>Company Assets</h1>
+            <p>Track company equipment, assignment status, and employee custody records from one shared asset workspace.</p>
+            <div class="platform-hero-meta">
+                <span class="platform-hero-chip">Tracked Assets: {{ asset_total }}</span>
+                <span class="platform-hero-chip">Available: {{ available_total }}</span>
+                <span class="platform-hero-chip">Assigned: {{ assigned_total }}</span>
+            </div>
         </div>
-        <div class="page-actions">
-            <a class="btn btn-light" href="{% url 'assets:assignment_create' %}">Assign Asset</a>
-            <a class="btn btn-primary" href="{% url 'assets:asset_create' %}">Create Asset</a>
+        <div class="platform-hero-side">
+            <div class="platform-side-card">
+                <span>Availability Rate</span>
+                <strong>{% if asset_total %}{{ available_total }} / {{ asset_total }}{% else %}0 / 0{% endif %}</strong>
+                <small>Current split between ready inventory and items already in custody.</small>
+            </div>
+            <div class="platform-hero-actions">
+                <a class="btn btn-light" href="{% url 'assets:assignment_create' %}">Assign Asset</a>
+                <a class="btn btn-primary" href="{% url 'assets:asset_create' %}">Create Asset</a>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <div class="summary-grid" style="margin-top:20px;">
-        <div class="summary-card"><span class="summary-label">Total Assets</span><span class="summary-value">{{ asset_total }}</span></div>
-        <div class="summary-card"><span class="summary-label">Available</span><span class="summary-value">{{ available_total }}</span></div>
-        <div class="summary-card"><span class="summary-label">Assigned</span><span class="summary-value">{{ assigned_total }}</span></div>
-    </div>
+    <section class="kpi-grid assets-kpi-grid">
+        <article class="kpi-card kpi-info">
+            <div class="kpi-card-head">
+                <div class="kpi-card-icon">AT</div>
+            </div>
+            <div class="kpi-card-value">{{ asset_total }}</div>
+            <div class="kpi-card-label">Total Assets</div>
+        </article>
+        <article class="kpi-card kpi-success">
+            <div class="kpi-card-head">
+                <div class="kpi-card-icon">AV</div>
+            </div>
+            <div class="kpi-card-value">{{ available_total }}</div>
+            <div class="kpi-card-label">Available</div>
+        </article>
+        <article class="kpi-card kpi-warning">
+            <div class="kpi-card-head">
+                <div class="kpi-card-icon">AS</div>
+            </div>
+            <div class="kpi-card-value">{{ assigned_total }}</div>
+            <div class="kpi-card-label">Assigned</div>
+        </article>
+    </section>
 
-    <div class="card" style="padding:20px; margin-top:20px;">
-        <form method="get" class="form-grid three-col">
+    <section class="platform-panel">
+        <div class="platform-panel-head">
+            <h2>Filter Assets</h2>
+            <p>Search by asset code, equipment name, serial number, status, or category.</p>
+        </div>
+        <form method="get" class="platform-form-grid">
             <div class="form-group">
                 <label for="asset-search">Search</label>
                 <input id="asset-search" class="form-control" type="search" name="q" value="{{ search_query }}" placeholder="Asset code, name, or serial number">
@@ -44,55 +86,57 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="page-actions">
-                <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
-                <a class="btn btn-light btn-sm" href="{% url 'assets:asset_list' %}">Reset</a>
+            <div class="platform-form-span platform-form-actions">
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <a class="btn btn-light" href="{% url 'assets:asset_list' %}">Reset</a>
             </div>
         </form>
-    </div>
+    </section>
 
-    <div class="card" style="padding:24px; margin-top:20px;">
+    <section class="platform-panel">
+        <div class="platform-panel-head">
+            <h2>Asset Inventory</h2>
+            <p>Open an asset record to review details, assignment status, and custody history.</p>
+        </div>
         {% if assets %}
-        <div class="summary-list modern-list-gap">
+        <div class="platform-list assets-list">
             {% for asset in assets %}
-            <div class="summary-list-item">
-                <div class="request-overview-top">
-                    <div>
-                        <strong>{{ asset.asset_code }} - {{ asset.name }}</strong>
-                        <div class="text-muted" style="margin-top:8px;">
-                            {{ asset.get_category_display }}{% if asset.serial_number %} - Serial {{ asset.serial_number }}{% endif %}
+            <article class="platform-list-item assets-list-item">
+                <div class="assets-list-main">
+                    <strong>{{ asset.asset_code }} - {{ asset.name }}</strong>
+                    <span>{{ asset.get_category_display }}{% if asset.serial_number %} | Serial {{ asset.serial_number }}{% endif %}</span>
+                    <div class="assets-meta-grid">
+                        <div class="assets-meta-item">
+                            <small>Current Assignee</small>
+                            <strong>{% if asset.current_assignee %}{{ asset.current_assignee.full_name }}{% else %}--{% endif %}</strong>
+                        </div>
+                        <div class="assets-meta-item">
+                            <small>Purchase Date</small>
+                            <strong>{% if asset.purchase_date %}{{ asset.purchase_date|date:"M j, Y" }}{% else %}--{% endif %}</strong>
                         </div>
                     </div>
-                    <div class="page-actions">
+                </div>
+                <div class="assets-list-side">
+                    <div class="platform-inline-actions">
                         <span class="badge badge-{% if asset.is_available %}success{% else %}warning{% endif %}">
                             {% if asset.is_available %}Available{% else %}Assigned{% endif %}
                         </span>
                         <span class="badge badge-light">{{ asset.get_condition_display }}</span>
                     </div>
-                </div>
-                <div class="detail-grid two-col" style="margin-top:14px;">
-                    <div class="detail-item">
-                        <span class="detail-label">Current Assignee</span>
-                        <span class="detail-value">{% if asset.current_assignee %}{{ asset.current_assignee.full_name }}{% else %}--{% endif %}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Purchase Date</span>
-                        <span class="detail-value">{% if asset.purchase_date %}{{ asset.purchase_date|date:"M j, Y" }}{% else %}--{% endif %}</span>
+                    <div class="platform-inline-actions">
+                        <a class="btn btn-light btn-sm" href="{% url 'assets:asset_detail' asset.pk %}">Open</a>
+                        <a class="btn btn-light btn-sm" href="{% url 'assets:asset_update' asset.pk %}">Edit</a>
                     </div>
                 </div>
-                <div class="page-actions document-actions-row" style="margin-top:12px;">
-                    <a class="btn btn-light btn-sm" href="{% url 'assets:asset_detail' asset.pk %}">Open</a>
-                    <a class="btn btn-light btn-sm" href="{% url 'assets:asset_update' asset.pk %}">Edit</a>
-                </div>
-            </div>
+            </article>
             {% endfor %}
         </div>
         {% else %}
-        <div class="empty-state compact-empty-state">
+        <div class="empty-state">
             <h3>No assets found</h3>
             <p>Create the first company asset or adjust the current filters.</p>
         </div>
         {% endif %}
-    </div>
+    </section>
 </div>
 {% endblock %}

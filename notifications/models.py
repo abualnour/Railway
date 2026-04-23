@@ -46,11 +46,17 @@ class InAppNotification(models.Model):
     action_url = models.CharField(max_length=255, blank=True)
     is_read = models.BooleanField(default=False)
     email_sent = models.BooleanField(default=False)
+    email_failed = models.BooleanField(default=False)
+    email_failed_reason = models.CharField(max_length=255, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
     read_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["is_read", "-created_at", "-id"]
+        indexes = [models.Index(fields=["recipient", "is_read", "is_deleted"])]
         verbose_name = "In-App Notification"
         verbose_name_plural = "In-App Notifications"
 
@@ -82,6 +88,7 @@ class NotificationPreference(models.Model):
     schedule_in_app_enabled = models.BooleanField(default=True)
     employee_in_app_enabled = models.BooleanField(default=True)
     hr_in_app_enabled = models.BooleanField(default=True)
+    contract_in_app_enabled = models.BooleanField(default=True)
     calendar_in_app_enabled = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -107,7 +114,7 @@ CATEGORY_PREFERENCE_FIELD_MAP = {
     InAppNotification.CATEGORY_SCHEDULE: "schedule_in_app_enabled",
     InAppNotification.CATEGORY_EMPLOYEE: "employee_in_app_enabled",
     InAppNotification.CATEGORY_HR: "hr_in_app_enabled",
-    InAppNotification.CATEGORY_CONTRACT: "hr_in_app_enabled",
+    InAppNotification.CATEGORY_CONTRACT: "contract_in_app_enabled",
     InAppNotification.CATEGORY_CALENDAR: "calendar_in_app_enabled",
 }
 

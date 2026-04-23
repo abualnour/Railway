@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Delivery Performance{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="platform-page notifications-page">
+    <section class="platform-hero notifications-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Notification Center</span>
+            <h1>Delivery Performance</h1>
+            <p>Email delivery stats, failure tracking, and opt-out overview.</p>
+        </div>
+        <div class="platform-hero-side">
+            <div class="platform-side-card">
+                <span>Failure Rate</span>
+                <strong>{{ summary.failure_rate }}%</strong>
+                {% if summary.failure_rate < 5 %}
+                <small><span class="badge badge-success">Healthy delivery</span></small>
+                {% elif summary.failure_rate <= 20 %}
+                <small><span class="badge badge-warning">Needs attention</span></small>
+                {% else %}
+                <small><span class="badge badge-danger">High failure risk</span></small>
+                {% endif %}
+            </div>
+            <div class="platform-inline-actions platform-hero-actions">
+                <a href="{% url 'notifications:home' %}#feed" class="btn btn-light btn-sm">Back To Notifications</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="platform-stats-grid">
+        <article class="platform-stat-card">
+            <span>Total Notifications</span>
+            <strong>{{ summary.total }}</strong>
+            <small>All tracked notification records</small>
+        </article>
+        <article class="platform-stat-card">
+            <span>Emails Sent</span>
+            <strong>{{ summary.email_sent }}</strong>
+            <small>Successful email delivery attempts</small>
+        </article>
+        <article class="platform-stat-card">
+            <span>Emails Failed</span>
+            <strong>{{ summary.email_failed }}</strong>
+            <small>Failed email delivery attempts</small>
+        </article>
+        <article class="platform-stat-card">
+            <span>Failure Rate</span>
+            <strong>{{ summary.failure_rate }}%</strong>
+            <small>Failure share against successful sends</small>
+        </article>
+    </section>
+
+    <section class="platform-panel">
+        <div class="platform-panel-head">
+            <h2>Category Breakdown</h2>
+            <p>Read volume and delivery results for each notification category.</p>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Total</th>
+                        <th>Emails Sent</th>
+                        <th>Emails Failed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in category_breakdown %}
+                    <tr>
+                        <td>{{ item.label }}</td>
+                        <td>{{ item.total }}</td>
+                        <td>{{ item.email_sent }}</td>
+                        <td>{{ item.email_failed }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="platform-panel">
+        <div class="platform-panel-head">
+            <h2>Recent Delivery Failures</h2>
+            <p>The latest notifications where email delivery did not complete successfully.</p>
+        </div>
+        {% if recent_failures %}
+        <div class="platform-list">
+            {% for item in recent_failures %}
+            <div class="platform-list-item">
+                <div class="platform-list-item-stack">
+                    <strong>{{ item.recipient.email }}</strong>
+                    <small>{{ item.title }}</small>
+                    <span>{{ item.email_failed_reason|default:"Unknown delivery error" }}</span>
+                </div>
+                <span class="badge badge-light">{{ item.created_at|date:"M j, Y g:i A" }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No delivery failures</h3>
+            <p>Failed email attempts will appear here once the system records an exception.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="platform-panel">
+        <div class="platform-panel-head">
+            <h2>Email Opt-Outs</h2>
+            <p>Users who disabled email delivery for notification copies.</p>
+        </div>
+        {% if opt_outs %}
+        <div class="platform-list">
+            {% for preference in opt_outs %}
+            <div class="platform-list-item">
+                <div class="platform-list-item-stack">
+                    <strong>{{ preference.user.email }}</strong>
+                    <small>{{ preference.user.get_role_display|default:"No Role" }}</small>
+                </div>
+                <span class="badge badge-light">Email Disabled</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No email opt-outs</h3>
+            <p>Users with email delivery disabled will appear here for management review.</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

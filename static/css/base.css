@@ -120,6 +120,24 @@ html[data-theme="premium-dark"] {
     --surface-card-shadow-strong: var(--shadow-md);
 }
 
+/*
+  NourAxis Responsive Breakpoint System
+  Use these values in ALL media queries across every CSS file.
+  XS: 0–479px
+  SM: 480–639px
+  MD: 640–767px
+  LG: 768–1023px
+  XL: 1024–1199px
+  2XL: 1200px+
+*/
+:root {
+    --bp-xs: 479px;
+    --bp-sm: 639px;
+    --bp-md: 767px;
+    --bp-lg: 1023px;
+    --bp-xl: 1199px;
+}
+
 html[data-theme="premium-light"] {
     color-scheme: light;
 

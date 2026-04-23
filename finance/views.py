@@ -1,9 +1,8 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from config.access import is_finance, is_hr, is_superuser, role_required
 from employees.access import is_admin_compatible, is_finance_manager_user, is_hr_user
 
 from .forms import ExpenseClaimReviewForm
@@ -18,11 +17,14 @@ def can_review_expense_claims(user):
     )
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_finance,
+    is_superuser,
+    message="You do not have permission to access finance expense claims.",
+)
 def expense_claim_dashboard(request):
-    if not can_review_expense_claims(request.user):
-        raise PermissionDenied("You do not have permission to access finance expense claims.")
-
     status_filter = (request.GET.get("status") or "").strip()
     claims = ExpenseClaim.objects.select_related(
         "employee",
@@ -46,14 +48,19 @@ def expense_claim_dashboard(request):
     return render(request, "finance/expense_claim_dashboard.html", context)
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_finance,
+    is_superuser,
+    message="You do not have permission to review expense claims.",
+    redirect_to="finance:expense_claim_dashboard",
+)
 def expense_claim_review(request, claim_pk):
     claim = get_object_or_404(
         ExpenseClaim.objects.select_related("employee", "reviewed_by"),
         pk=claim_pk,
     )
-    if not can_review_expense_claims(request.user):
-        raise PermissionDenied("You do not have permission to review expense claims.")
 
     if request.method == "POST":
         form = ExpenseClaimReviewForm(request.POST, instance=claim)

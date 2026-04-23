@@ -1,0 +1,70 @@
+.finance-expense-page {
+    gap: 24px;
+}
+
+.finance-expense-hero,
+.finance-expense-review-hero {
+    background:
+        radial-gradient(circle at top right, rgba(245, 158, 11, 0.18), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.1), transparent 28%),
+        var(--surface-hero-gradient);
+}
+
+.finance-expense-filter-form,
+.finance-expense-review-form {
+    gap: 16px;
+}
+
+.finance-expense-filter-actions,
+.finance-expense-actions {
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.finance-expense-item {
+    align-items: flex-start;
+}
+
+.finance-expense-main {
+    gap: 10px;
+}
+
+.finance-expense-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.finance-expense-review-grid {
+    align-items: start;
+}
+
+.finance-expense-detail-grid {
+    margin-bottom: 16px;
+}
+
+.finance-expense-description {
+    padding: 14px 16px;
+    border: 1px solid var(--surface-soft-border);
+    border-radius: 18px;
+    background: var(--surface-inner);
+    line-height: 1.65;
+}
+
+@media (max-width: 767px) {
+    .finance-expense-page {
+        gap: 18px;
+    }
+
+    .finance-expense-filter-actions,
+    .finance-expense-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .finance-expense-filter-actions .btn,
+    .finance-expense-actions .btn {
+        width: 100%;
+    }
+}

@@ -372,7 +372,7 @@
     background: var(--surface-gradient-3);
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1023px) {
     .platform-hero,
     .platform-grid,
     .platform-stats-grid,
@@ -388,7 +388,7 @@
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
     .platform-page {
         gap: 18px;
     }
@@ -430,7 +430,7 @@
     }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 639px) {
     .platform-hero,
     .platform-panel {
         padding: 16px;
@@ -479,7 +479,7 @@
     }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
     .platform-page {
         gap: 16px;
     }

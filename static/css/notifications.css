@@ -3,6 +3,68 @@
     gap: 24px;
 }
 
+.notification-page-tabs {
+    position: sticky;
+    top: 16px;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 10px;
+    border-radius: 22px;
+    border: 1px solid var(--surface-interactive-neutral-border);
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--color-surface-2) 92%, transparent), color-mix(in srgb, var(--color-surface-1) 96%, transparent)),
+        var(--surface-gradient-3);
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(18px);
+}
+
+.notification-page-tab {
+    display: grid;
+    gap: 4px;
+    align-items: center;
+    justify-items: center;
+    min-height: 62px;
+    padding: 12px 16px;
+    border-radius: 18px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--color-text);
+    text-decoration: none;
+    text-align: center;
+    transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.notification-page-tab strong {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 84px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-surface-2) 84%, transparent);
+    font-size: 0.78rem;
+    color: var(--color-text-soft);
+}
+
+.notification-page-tab.is-active,
+.notification-page-tab:hover,
+.notification-page-tab:focus-visible {
+    border-color: var(--surface-interactive-neutral-border-hover);
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--color-primary, #f59e0b) 18%, transparent) 0%, transparent 100%),
+        var(--surface-interactive-neutral-bg-hover);
+    color: var(--color-text-strong);
+    transform: translateY(-1px);
+}
+
+.notification-page-tab.is-active strong,
+.notification-page-tab:hover strong,
+.notification-page-tab:focus-visible strong {
+    color: var(--color-text-strong);
+}
+
 .notifications-hero {
     background:
         radial-gradient(circle at top right, rgba(245, 158, 11, 0.2), transparent 34%),
@@ -82,6 +144,13 @@
     margin-bottom: 18px;
 }
 
+.notification-feed-tools {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 .notification-filter-chip {
     display: inline-flex;
     align-items: center;
@@ -123,6 +192,21 @@
 .notification-group-list {
     display: grid;
     gap: 22px;
+}
+
+.notification-bulk-panel {
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.notification-bulk-actions {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.notification-bulk-status {
+    margin: 0;
+    color: var(--color-text-soft);
 }
 
 .notification-category-group {
@@ -171,6 +255,33 @@
     flex: 1;
 }
 
+.notification-select-cell {
+    min-width: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.notification-select-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--color-text-soft);
+}
+
+.notification-select-placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 62px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-surface-2) 84%, transparent);
+    color: var(--color-text-soft);
+    font-size: 0.8rem;
+}
+
 .notification-head {
     display: flex;
     align-items: center;
@@ -186,9 +297,22 @@
     flex-wrap: wrap;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .notifications-page {
         gap: 18px;
+    }
+
+    .notification-page-tabs {
+        top: 10px;
+        grid-template-columns: 1fr;
+        padding: 8px;
+        border-radius: 18px;
+    }
+
+    .notification-page-tab {
+        width: 100%;
+        min-height: 56px;
+        padding: 10px 12px;
     }
 
     .notification-preference-group {
@@ -225,6 +349,11 @@
         border-radius: 16px;
     }
 
+    .notification-select-cell {
+        min-width: 0;
+        width: 100%;
+    }
+
     .notification-category-group-head {
         align-items: flex-start;
     }
@@ -235,8 +364,8 @@
     }
 
     .notification-actions .btn {
-        width: auto;
-        flex: 0 1 auto;
+        width: 100%;
+        flex: 1 1 100%;
     }
 
     .notification-main {
@@ -255,7 +384,8 @@
     .notification-main small,
     .notification-main span,
     .notification-category-group-head p,
-    .notification-preference-group-head p {
+    .notification-preference-group-head p,
+    .notification-bulk-status {
         font-size: 12px;
         line-height: 1.5;
     }

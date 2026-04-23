@@ -1,41 +1,56 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Reviewer Queue{% endblock %}
 
-{% block content %}
-<div class="page-section">
-    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
-        <div>
-            <h1 style="margin:0;">Reviewer Queue</h1>
-            <p class="text-muted" style="margin:8px 0 0;">Open review items currently assigned to your reviewer profile.</p>
-        </div>
-        <div class="page-actions">
-            <a class="btn btn-light" href="{% url 'performance:dashboard' %}">Back to Performance Workspace</a>
-        </div>
-    </div>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/performance.css' %}">
+{% endblock %}
 
-    {% if queue_reviews %}
-    <div class="summary-list modern-list-gap" style="margin-top:20px;">
-        {% for review in queue_reviews %}
-        <div class="summary-list-item">
-            <div class="request-overview-top">
-                <strong>{{ review.employee.full_name }}</strong>
-                <span class="badge badge-light">{{ review.get_status_display }}</span>
-            </div>
-            <div class="text-muted" style="margin-top:8px;">{{ review.cycle.title }} - due {{ review.cycle.period_end|date:"M j, Y" }}</div>
-            <div class="page-actions" style="margin-top:12px;">
-                <a class="btn btn-light btn-sm" href="{% url 'performance:performance_review_update' review.pk %}">Edit Review</a>
-                <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' review.employee.pk %}?tab=performance">Open Employee</a>
-                <a class="btn btn-light btn-sm" href="{% url 'performance:performance_review_print' review.pk %}" target="_blank" rel="noopener">Print</a>
+{% block content %}
+<div class="platform-page performance-dashboard-page performance-secondary-page">
+    <section class="platform-hero performance-dashboard-hero">
+        <div class="platform-hero-copy">
+            <span class="platform-kicker">Performance Workspace</span>
+            <h1>Reviewer Queue</h1>
+            <p>Open review items currently assigned to your reviewer profile.</p>
+        </div>
+        <div class="platform-hero-side">
+            <div class="platform-inline-actions platform-hero-actions">
+                <a class="btn btn-light btn-sm" href="{% url 'performance:dashboard' %}">Back To Performance Workspace</a>
             </div>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="empty-state" style="margin-top:20px;">
-        <h3>No queue items</h3>
-        <p>No draft or submitted performance reviews are currently assigned to your reviewer profile.</p>
-    </div>
-    {% endif %}
+    </section>
+
+    <section class="platform-panel performance-panel">
+        <div class="platform-panel-head">
+            <h2>Queue Items</h2>
+            <p>Draft and submitted reviews that currently require your action.</p>
+        </div>
+        {% if queue_reviews %}
+        <div class="platform-list">
+            {% for review in queue_reviews %}
+            <div class="platform-list-item">
+                <div class="platform-list-item-stack">
+                    <strong>{{ review.employee.full_name }}</strong>
+                    <small>{{ review.cycle.title }} | Due {{ review.cycle.period_end|date:"M j, Y" }}</small>
+                </div>
+                <div class="platform-inline-actions performance-item-actions">
+                    <span class="badge badge-light">{{ review.get_status_display }}</span>
+                    <a class="btn btn-light btn-sm" href="{% url 'performance:performance_review_update' review.pk %}">Edit Review</a>
+                    <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' review.employee.pk %}?tab=performance">Open Employee</a>
+                    <a class="btn btn-light btn-sm" href="{% url 'performance:performance_review_print' review.pk %}" target="_blank" rel="noopener">Print</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No queue items</h3>
+            <p>No draft or submitted performance reviews are currently assigned to your reviewer profile.</p>
+        </div>
+        {% endif %}
+    </section>
 </div>
 {% endblock %}

@@ -1,0 +1,208 @@
+.recruitment-page {
+    gap: 24px;
+}
+
+.recruitment-hero,
+.recruitment-secondary-hero {
+    background:
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.16), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(245, 158, 11, 0.12), transparent 28%),
+        var(--surface-hero-gradient);
+}
+
+.recruitment-overview-grid {
+    align-items: start;
+}
+
+.recruitment-panel {
+    display: grid;
+    gap: 16px;
+}
+
+.recruitment-secondary-page {
+    gap: 20px;
+}
+
+.recruitment-form-grid,
+.recruitment-detail-grid {
+    align-items: start;
+}
+
+.recruitment-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.recruitment-rich-text {
+    color: var(--color-text-soft);
+    line-height: 1.75;
+    white-space: pre-line;
+}
+
+.recruitment-section-stack {
+    gap: 16px;
+}
+
+.recruitment-stacked-item {
+    display: grid;
+    align-items: start;
+}
+
+.recruitment-nested-panel {
+    display: grid;
+    gap: 14px;
+    margin-top: 16px;
+    padding: 18px;
+    border: 1px solid var(--surface-soft-border);
+    border-radius: 18px;
+    background: var(--surface-inner);
+}
+
+.recruitment-confirm-panel {
+    max-width: 760px;
+}
+
+.recruitment-filter-form {
+    gap: 16px;
+}
+
+.recruitment-item-actions {
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.recruitment-funnel-list {
+    display: grid;
+    gap: 14px;
+}
+
+.recruitment-funnel-item {
+    display: grid;
+    gap: 10px;
+    padding: 14px 16px;
+    border: 1px solid var(--surface-soft-border);
+    border-radius: 18px;
+    background: var(--surface-inner);
+}
+
+.recruitment-funnel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.recruitment-funnel-track {
+    height: 10px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--color-surface-2) 88%, transparent);
+}
+
+.recruitment-funnel-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(249, 110, 11, 0.95), rgba(249, 158, 11, 0.75));
+}
+
+.recruitment-job-item,
+.recruitment-candidate-item {
+    align-items: flex-start;
+}
+
+.recruitment-job-meta,
+.recruitment-candidate-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.recruitment-kanban-board {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(240px, 1fr));
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.recruitment-kanban-column {
+    min-width: 240px;
+    gap: 14px;
+}
+
+.recruitment-kanban-column-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 0;
+}
+
+.recruitment-kanban-column-head h2 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.recruitment-kanban-list {
+    display: grid;
+    gap: 12px;
+}
+
+.recruitment-kanban-card {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+    border: 1px solid var(--surface-soft-border);
+    border-radius: 18px;
+    background: var(--surface-inner);
+}
+
+.recruitment-kanban-card small,
+.recruitment-kanban-card span {
+    color: var(--color-text-soft);
+}
+
+.recruitment-kanban-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+@media (max-width: 767px) {
+    .recruitment-page {
+        gap: 18px;
+    }
+
+    .recruitment-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .recruitment-item-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .recruitment-item-actions .btn {
+        width: 100%;
+    }
+
+    .recruitment-kanban-board {
+        grid-template-columns: repeat(6, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 639px) {
+    .recruitment-funnel-item,
+    .recruitment-kanban-card,
+    .recruitment-nested-panel {
+        border-radius: 16px;
+    }
+
+    .recruitment-funnel-head,
+    .recruitment-kanban-column-head {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

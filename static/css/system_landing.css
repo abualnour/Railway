@@ -4,6 +4,34 @@
     gap: 26px;
 }
 
+.system-home-page {
+    gap: 18px;
+}
+
+.system-home-compact-hero {
+    background:
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.16), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(249, 115, 22, 0.12), transparent 28%),
+        var(--surface-hero-gradient);
+}
+
+.system-home-kpi-grid {
+    margin-top: 2px;
+}
+
+.system-home-grid {
+    align-items: start;
+}
+
+.system-home-panel {
+    display: grid;
+    gap: 12px;
+}
+
+.system-home-entry-actions {
+    justify-content: flex-start;
+}
+
 .system-home-shell {
     width: 100%;
     max-width: 100%;

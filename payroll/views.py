@@ -2,7 +2,6 @@ import logging
 from decimal import Decimal
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.core.exceptions import PermissionDenied
@@ -18,6 +17,7 @@ try:
 except ImportError:
     pisa = None
 
+from config.access import is_employee_role, is_finance, is_hr, is_operations, is_superuser, role_required
 from employees.access import is_admin_compatible as is_admin_compatible_role
 from employees.models import Employee, EmployeeAttendanceLedger, OvertimeRequest
 from notifications.models import InAppNotification, get_notification_preferences_for_user
@@ -46,9 +46,9 @@ def can_access_payroll_workspace(user):
         and user.is_authenticated
         and (
             is_admin_compatible_role(user)
-            or getattr(user, "is_hr", False)
-            or getattr(user, "is_finance_manager", False)
-            or getattr(user, "is_operations_manager", False)
+            or is_hr(user)
+            or is_finance(user)
+            or is_operations(user)
         )
     )
 
@@ -59,8 +59,8 @@ def can_prepare_payroll(user):
         and user.is_authenticated
         and (
             is_admin_compatible_role(user)
-            or getattr(user, "is_hr", False)
-            or getattr(user, "is_operations_manager", False)
+            or is_hr(user)
+            or is_operations(user)
         )
     )
 
@@ -71,9 +71,9 @@ def can_return_payroll_to_draft(user):
         and user.is_authenticated
         and (
             is_admin_compatible_role(user)
-            or getattr(user, "is_hr", False)
-            or getattr(user, "is_finance_manager", False)
-            or getattr(user, "is_operations_manager", False)
+            or is_hr(user)
+            or is_finance(user)
+            or is_operations(user)
         )
     )
 
@@ -84,7 +84,7 @@ def can_approve_payroll(user):
         and user.is_authenticated
         and (
             is_admin_compatible_role(user)
-            or getattr(user, "is_finance_manager", False)
+            or is_finance(user)
         )
     )
 
@@ -95,7 +95,7 @@ def can_mark_payroll_paid(user):
         and user.is_authenticated
         and (
             is_admin_compatible_role(user)
-            or getattr(user, "is_finance_manager", False)
+            or is_finance(user)
         )
     )
 
@@ -685,11 +685,15 @@ def update_payroll_period_status(payroll_period, target_status):
     return True
 
 
-@login_required
+@role_required(
+    is_admin_compatible_role,
+    is_hr,
+    is_finance,
+    is_operations,
+    is_superuser,
+    message="You do not have permission to access the payroll workspace.",
+)
 def payroll_home(request):
-    if not can_access_payroll_workspace(request.user):
-        raise PermissionDenied("You do not have permission to access the payroll workspace.")
-
     period_form = PayrollPeriodForm()
     generation_form = PayrollLineGenerationForm()
     obligation_form = PayrollObligationForm()
@@ -867,11 +871,15 @@ def payroll_home(request):
     return render(request, "payroll/home.html", context)
 
 
-@login_required
+@role_required(
+    is_admin_compatible_role,
+    is_hr,
+    is_finance,
+    is_operations,
+    is_superuser,
+    message="You do not have permission to access the payroll workspace.",
+)
 def payroll_period_detail(request, pk):
-    if not can_access_payroll_workspace(request.user):
-        raise PermissionDenied("You do not have permission to access the payroll workspace.")
-
     payroll_period = get_object_or_404(
         PayrollPeriod.objects.select_related("company").prefetch_related("lines", "lines__employee", "lines__adjustments"),
         pk=pk,
@@ -1010,11 +1018,15 @@ def payroll_period_detail(request, pk):
     return render(request, "payroll/period_detail.html", context)
 
 
-@login_required
+@role_required(
+    is_admin_compatible_role,
+    is_hr,
+    is_finance,
+    is_operations,
+    is_superuser,
+    message="You do not have permission to access the payroll workspace.",
+)
 def payroll_line_payslip(request, pk):
-    if not can_access_payroll_workspace(request.user):
-        raise PermissionDenied("You do not have permission to access the payroll workspace.")
-
     payroll_line = get_object_or_404(
         PayrollLine.objects.select_related("employee", "employee__company", "employee__branch", "employee__job_title", "payroll_period", "payroll_period__company").prefetch_related("adjustments", "adjustments__payroll_obligation", "adjustments__payroll_bonus"),
         pk=pk,
@@ -1023,11 +1035,15 @@ def payroll_line_payslip(request, pk):
     return render(request, "payroll/payslip.html", context)
 
 
-@login_required
+@role_required(
+    is_admin_compatible_role,
+    is_hr,
+    is_finance,
+    is_operations,
+    is_superuser,
+    message="You do not have permission to access the payroll workspace.",
+)
 def payroll_line_payslip_pdf(request, pk):
-    if not can_access_payroll_workspace(request.user):
-        raise PermissionDenied("You do not have permission to access the payroll workspace.")
-
     payroll_line = get_object_or_404(
         PayrollLine.objects.select_related(
             "employee",
@@ -1050,7 +1066,15 @@ def payroll_line_payslip_pdf(request, pk):
     return render_payslip_pdf_response("payroll/payslip_pdf.html", context, filename)
 
 
-@login_required
+@role_required(
+    is_admin_compatible_role,
+    is_hr,
+    is_finance,
+    is_operations,
+    is_superuser,
+    is_employee_role,
+    message="You do not have permission to access this payslip.",
+)
 def employee_payroll_line_payslip(request, pk):
     payroll_line = get_object_or_404(
         PayrollLine.objects.select_related(
@@ -1074,7 +1098,15 @@ def employee_payroll_line_payslip(request, pk):
     return render(request, "payroll/payslip.html", context)
 
 
-@login_required
+@role_required(
+    is_admin_compatible_role,
+    is_hr,
+    is_finance,
+    is_operations,
+    is_superuser,
+    is_employee_role,
+    message="You do not have permission to access this payslip PDF.",
+)
 def employee_payroll_line_payslip_pdf(request, pk):
     payroll_line = get_object_or_404(
         PayrollLine.objects.select_related(
