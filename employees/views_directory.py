@@ -2240,6 +2240,73 @@ class EmployeeDetailView(LoginRequiredMixin, DetailView):
         context["can_create_employee_document_request"] = can_create_employee_document_request(current_user, employee)
         context["can_cancel_employee_document_request"] = True
 
+        PerformanceReview = apps.get_model("performance", "PerformanceReview")
+        from performance.forms import (
+            PerformanceAcknowledgementForm,
+            PerformanceReviewCommentForm,
+            PerformanceReviewForm,
+        )
+        from performance.views import (
+            can_acknowledge_performance_review,
+            can_comment_on_performance_review,
+            can_force_complete_performance_review,
+            can_manage_performance_reviews,
+        )
+
+        performance_reviews = list(
+            PerformanceReview.objects.select_related(
+                "cycle",
+                "reviewer",
+                "reviewer__job_title",
+                "created_by",
+            ).prefetch_related(
+                "comments__author",
+            ).filter(employee=employee).order_by("-cycle__period_start", "-updated_at", "-id")
+        )
+        performance_review_form = kwargs.get("performance_review_form") or PerformanceReviewForm(employee=employee)
+        performance_acknowledgement_forms = {}
+        performance_comment_forms = {}
+        for performance_review in performance_reviews:
+            if can_acknowledge_performance_review(current_user, performance_review):
+                acknowledgement_form = PerformanceAcknowledgementForm(instance=performance_review)
+                performance_acknowledgement_forms[performance_review.pk] = acknowledgement_form
+                performance_review.acknowledgement_form = acknowledgement_form
+            if can_comment_on_performance_review(current_user, performance_review):
+                comment_form = PerformanceReviewCommentForm()
+                performance_comment_forms[performance_review.pk] = comment_form
+                performance_review.comment_form = comment_form
+            performance_review.can_force_complete = can_force_complete_performance_review(current_user, performance_review)
+
+        context["performance_reviews"] = performance_reviews
+        context["performance_review_form"] = performance_review_form
+        context["performance_acknowledgement_forms"] = performance_acknowledgement_forms
+        context["performance_comment_forms"] = performance_comment_forms
+        context["performance_review_total"] = len(performance_reviews)
+        context["performance_review_submitted_count"] = sum(
+            1 for performance_review in performance_reviews if performance_review.status == PerformanceReview.STATUS_SUBMITTED
+        )
+        context["performance_review_acknowledged_count"] = sum(
+            1 for performance_review in performance_reviews if performance_review.status == PerformanceReview.STATUS_ACKNOWLEDGED
+        )
+        context["performance_review_draft_count"] = sum(
+            1 for performance_review in performance_reviews if performance_review.status == PerformanceReview.STATUS_DRAFT
+        )
+        context["can_manage_performance_reviews"] = can_manage_performance_reviews(current_user, employee)
+        context["can_acknowledge_performance_reviews"] = bool(performance_acknowledgement_forms)
+        context["can_comment_on_performance_reviews"] = bool(performance_comment_forms)
+        context["performance_review_create_url"] = reverse("performance:performance_review_create", kwargs={"employee_pk": employee.pk})
+        context["performance_latest_review"] = performance_reviews[0] if performance_reviews else None
+        context["performance_active_review"] = next(
+            (performance_review for performance_review in performance_reviews if performance_review.cycle.status == "active"),
+            None,
+        )
+        context["performance_locked_review_count"] = sum(
+            1 for performance_review in performance_reviews if performance_review.cycle.status == "closed"
+        )
+        context["performance_pending_ack_count"] = sum(
+            1 for performance_review in performance_reviews if performance_review.status == PerformanceReview.STATUS_SUBMITTED
+        )
+
         PayrollProfile = apps.get_model("payroll", "PayrollProfile")
         PayrollLine = apps.get_model("payroll", "PayrollLine")
         PayrollObligation = apps.get_model("payroll", "PayrollObligation")

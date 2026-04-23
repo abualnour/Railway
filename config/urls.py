@@ -23,6 +23,8 @@ urlpatterns = [
     path("payroll/", include(("payroll.urls", "payroll"), namespace="payroll")),
     path("notifications/", include(("notifications.urls", "notifications"), namespace="notifications")),
     path("work-calendar/", include(("workcalendar.urls", "workcalendar"), namespace="workcalendar")),
+    path("recruitment/", include(("recruitment.urls", "recruitment"), namespace="recruitment")),
+    path("performance/", include(("performance.urls", "performance"), namespace="performance")),
 ]
 
 urlpatterns += [

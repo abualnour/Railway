@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job_posting.title }}{% endblock %}
+
+{% block content %}
+<div class="page-section">
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+        <div>
+            <h1 style="margin:0;">{{ job_posting.title }}</h1>
+            <p class="text-muted" style="margin:8px 0 0;">{{ job_posting.department.name }} - {{ job_posting.branch.name }} - {{ job_posting.department.company.name }}</p>
+        </div>
+        <div class="page-actions">
+            <a class="btn btn-light" href="{% url 'recruitment:candidate_list' %}?job_posting={{ job_posting.pk }}">Candidate Directory</a>
+            <a class="btn btn-primary" href="{% url 'recruitment:candidate_create' job_posting.pk %}">Add Candidate</a>
+            <a class="btn btn-light" href="{% url 'recruitment:job_posting_update' job_posting.pk %}">Edit Posting</a>
+        </div>
+    </div>
+
+    <div class="detail-grid two-col" style="margin-top:20px;">
+        <div class="detail-item">
+            <span class="detail-label">Status</span>
+            <span class="detail-value">{{ job_posting.get_status_display }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Posted By</span>
+            <span class="detail-value">{{ job_posting.created_by.get_full_name|default:job_posting.created_by.email|default:"--" }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Posted Date</span>
+            <span class="detail-value">{{ job_posting.posted_date|date:"F j, Y" }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Closing Date</span>
+            <span class="detail-value">{{ job_posting.closing_date|date:"F j, Y"|default:"--" }}</span>
+        </div>
+    </div>
+
+    <div class="card" style="padding:24px; margin-top:20px;">
+        <h3>Description</h3>
+        <div style="white-space:pre-line;">{{ job_posting.description }}</div>
+    </div>
+
+    <div class="card" style="padding:24px; margin-top:20px;">
+        <h3>Requirements</h3>
+        <div style="white-space:pre-line;">{{ job_posting.requirements }}</div>
+    </div>
+
+    <div class="card" style="padding:24px; margin-top:20px;">
+        <div class="card-header" style="padding:0; margin-bottom:16px;">
+            <h3 style="margin:0;">Candidates</h3>
+        </div>
+        {% if filtered_candidates %}
+        <div class="summary-list modern-list-gap">
+            {% for candidate in filtered_candidates %}
+            <div class="summary-list-item">
+                <div class="request-overview-top">
+                    <div>
+                        <h4 style="margin:0;">{{ candidate.full_name }}</h4>
+                        <div class="text-muted" style="margin-top:8px;">{{ candidate.email }} - {{ candidate.phone }} - {{ candidate.nationality }}</div>
+                    </div>
+                    <div class="page-actions">
+                        <span class="badge badge-light">{{ candidate.get_status_display }}</span>
+                        {% if candidate.latest_interview %}
+                        <span class="badge badge-light">Interview {{ candidate.latest_interview.scheduled_at|date:"M j" }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="page-actions" style="margin-top:18px;">
+                    <a class="btn btn-light" href="{% url 'recruitment:candidate_detail' candidate.pk %}">Open Candidate</a>
+                    <a class="btn btn-light" href="{% url 'recruitment:candidate_update' candidate.pk %}">Edit</a>
+                    <a class="btn btn-danger" href="{% url 'recruitment:candidate_delete' candidate.pk %}">Delete</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted" style="margin:0;">No candidates added yet for this job posting.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

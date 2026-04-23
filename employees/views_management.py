@@ -1114,6 +1114,7 @@ def overtime_request_review(request, request_pk):
                 category=InAppNotification.CATEGORY_REQUEST,
                 level=InAppNotification.LEVEL_SUCCESS,
                 action_url=reverse("employees:overtime_request_list"),
+                exclude_users=[request.user],
             )
             persist_in_app_notifications([notification])
 

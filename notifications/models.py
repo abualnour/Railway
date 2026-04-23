@@ -127,8 +127,24 @@ def user_allows_in_app_notification(user, category):
     return bool(preferences and getattr(preferences, preference_field, True))
 
 
-def build_in_app_notification(*, recipient, title, body, category, action_url="", level=InAppNotification.LEVEL_INFO):
+def build_in_app_notification(
+    *,
+    recipient,
+    title,
+    body,
+    category,
+    action_url="",
+    level=InAppNotification.LEVEL_INFO,
+    exclude_users=None,
+):
     if not recipient or not getattr(recipient, "is_active", False):
+        return None
+    excluded_user_ids = {
+        user.pk
+        for user in exclude_users or []
+        if user and getattr(user, "pk", None) is not None
+    }
+    if recipient.pk in excluded_user_ids:
         return None
     if not user_allows_in_app_notification(recipient, category):
         return None

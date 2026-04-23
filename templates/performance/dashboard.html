@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Performance Workspace{% endblock %}
+
+{% block content %}
+<div class="page-section">
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+        <div>
+            <h1 style="margin:0;">Performance Workspace</h1>
+            <p class="text-muted" style="margin:8px 0 0;">Manage review cycles, monitor review completion, and follow acknowledgement progress.</p>
+        </div>
+        <div class="page-actions">
+            <a class="btn btn-light" href="{% url 'performance:reviews_export' %}">Export Reviews</a>
+            <a class="btn btn-light" href="{% url 'performance:reviewer_queue' %}">Reviewer Queue</a>
+            {% if can_manage_cycles %}
+            <a class="btn btn-primary" href="{% url 'performance:review_cycle_create' %}">Create Review Cycle</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="summary-grid" style="margin-top:20px;">
+        <div class="summary-card"><span class="summary-label">Review Cycles</span><span class="summary-value">{{ cycle_total }}</span></div>
+        <div class="summary-card"><span class="summary-label">Active Cycles</span><span class="summary-value">{{ active_cycle_total }}</span></div>
+        <div class="summary-card"><span class="summary-label">Closed Cycles</span><span class="summary-value">{{ closed_cycle_total }}</span></div>
+        <div class="summary-card"><span class="summary-label">Draft Reviews</span><span class="summary-value">{{ draft_review_total }}</span></div>
+        <div class="summary-card"><span class="summary-label">Submitted Reviews</span><span class="summary-value">{{ submitted_review_total }}</span></div>
+        <div class="summary-card"><span class="summary-label">Acknowledged Reviews</span><span class="summary-value">{{ acknowledged_review_total }}</span></div>
+        <div class="summary-card"><span class="summary-label">Average Rating</span><span class="summary-value">{% if average_rating %}{{ average_rating|floatformat:1 }}{% else %}--{% endif %}</span></div>
+    </div>
+
+    <div class="detail-grid two-col" style="margin-top:20px;">
+        <div class="card" style="padding:24px;">
+            <div class="card-header" style="padding:0; margin-bottom:16px;">
+                <h3 style="margin:0;">Calibration Summary</h3>
+            </div>
+            {% if calibration_bands %}
+            <div class="summary-list modern-list-gap">
+                {% for band in calibration_bands %}
+                <div class="summary-list-item">
+                    <div class="request-overview-top">
+                        <strong>{{ band.label }}</strong>
+                        <span class="badge badge-light">{{ band.count }}</span>
+                    </div>
+                    <div style="height:10px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; margin-top:12px;">
+                        <div style="width:{{ band.width }}%; height:100%; background:linear-gradient(90deg, rgba(249,110,11,.95), rgba(249,158,11,.75));"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="card" style="padding:24px;">
+            <div class="card-header" style="padding:0; margin-bottom:16px;">
+                <h3 style="margin:0;">Assigned Reviews</h3>
+            </div>
+            {% if assigned_reviews %}
+            <div class="summary-list modern-list-gap">
+                {% for review in assigned_reviews %}
+                <div class="summary-list-item">
+                    <div class="request-overview-top">
+                        <strong>{{ review.employee.full_name }}</strong>
+                        <div class="page-actions">
+                            <span class="badge badge-light">{{ review.get_status_display }}</span>
+                            <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' review.employee.pk %}?tab=performance">Open Employee</a>
+                        </div>
+                    </div>
+                    <div class="text-muted" style="margin-top:8px;">{{ review.cycle.title }} - Rating {{ review.get_overall_rating_display }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted" style="margin:0;">No assigned reviews are linked to your employee profile.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="detail-grid two-col" style="margin-top:20px;">
+        <div class="card" style="padding:24px;">
+            <div class="card-header" style="padding:0; margin-bottom:16px;">
+                <h3 style="margin:0;">Department Rating Snapshot</h3>
+            </div>
+            {% if department_rating_summary %}
+            <div class="summary-list modern-list-gap">
+                {% for row in department_rating_summary %}
+                <div class="summary-list-item">
+                    <div class="request-overview-top">
+                        <strong>{{ row.label }}</strong>
+                        <span class="badge badge-light">{{ row.review_total }} Review{{ row.review_total|pluralize }}</span>
+                    </div>
+                    <div class="page-actions" style="margin-top:12px;">
+                        <span class="badge badge-light">Avg {{ row.average_rating|floatformat:1 }}</span>
+                        <span class="badge badge-success">Outstanding {{ row.outstanding_total }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted" style="margin:0;">Department analytics will appear once reviews are available.</p>
+            {% endif %}
+        </div>
+
+        <div class="card" style="padding:24px;">
+            <div class="card-header" style="padding:0; margin-bottom:16px;">
+                <h3 style="margin:0;">Branch Rating Snapshot</h3>
+            </div>
+            {% if branch_rating_summary %}
+            <div class="summary-list modern-list-gap">
+                {% for row in branch_rating_summary %}
+                <div class="summary-list-item">
+                    <div class="request-overview-top">
+                        <strong>{{ row.label }}</strong>
+                        <span class="badge badge-light">{{ row.review_total }} Review{{ row.review_total|pluralize }}</span>
+                    </div>
+                    <div class="page-actions" style="margin-top:12px;">
+                        <span class="badge badge-light">Avg {{ row.average_rating|floatformat:1 }}</span>
+                        <span class="badge badge-warning">Needs Support {{ row.needs_support_total }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted" style="margin:0;">Branch analytics will appear once reviews are available.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="detail-grid two-col" style="margin-top:20px;">
+        <div class="card" style="padding:24px;">
+            <div class="card-header" style="padding:0; margin-bottom:16px;">
+                <h3 style="margin:0;">Review Cycles</h3>
+            </div>
+            {% if cycles %}
+            <div class="summary-list modern-list-gap">
+                {% for cycle in cycles %}
+                <div class="summary-list-item">
+                    <div class="request-overview-top">
+                        <strong>{{ cycle.title }}</strong>
+                        <div class="page-actions">
+                            <span class="badge badge-light">{{ cycle.get_status_display }}</span>
+                            {% if can_manage_cycles %}
+                            <a class="btn btn-light btn-sm" href="{% url 'performance:review_cycle_update' cycle.pk %}">Edit</a>
+                            <form method="post" action="{% url 'performance:review_cycle_clone' cycle.pk %}" style="display:inline-flex;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-light btn-sm">Clone</button>
+                            </form>
+                            {% if cycle.status != 'closed' %}
+                            <form method="post" action="{% url 'performance:review_cycle_close' cycle.pk %}" style="display:inline-flex;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-sm">Close &amp; Lock</button>
+                            </form>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="text-muted" style="margin-top:8px;">{{ cycle.company.name }} - {{ cycle.period_start|date:"M j, Y" }} to {{ cycle.period_end|date:"M j, Y" }}</div>
+                    <div class="page-actions" style="margin-top:12px;">
+                        <span class="badge badge-light">{{ cycle.review_total }} Review{{ cycle.review_total|pluralize }}</span>
+                        <span class="badge badge-light">Submitted {{ cycle.submitted_total }}</span>
+                        <span class="badge badge-success">Acknowledged {{ cycle.acknowledged_total }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted" style="margin:0;">No review cycles created yet.</p>
+            {% endif %}
+        </div>
+
+        <div class="card" style="padding:24px;">
+            <div class="card-header" style="padding:0; margin-bottom:16px;">
+                <h3 style="margin:0;">Reviewer Queue</h3>
+            </div>
+            {% if reviewer_queue %}
+            <div class="summary-list modern-list-gap">
+                {% for review in reviewer_queue %}
+                <div class="summary-list-item">
+                    <div class="request-overview-top">
+                        <strong>{{ review.employee.full_name }}</strong>
+                        <span class="badge badge-light">{{ review.get_status_display }}</span>
+                    </div>
+                    <div class="text-muted" style="margin-top:8px;">{{ review.cycle.title }} - due {{ review.cycle.period_end|date:"M j, Y" }}</div>
+                    <div class="page-actions" style="margin-top:12px;">
+                        <a class="btn btn-light btn-sm" href="{% url 'performance:performance_review_update' review.pk %}">Open Review</a>
+                        <a class="btn btn-light btn-sm" href="{% url 'performance:performance_review_print' review.pk %}" target="_blank" rel="noopener">Print</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted" style="margin:0;">No open reviewer queue items are assigned to you.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="detail-grid two-col" style="margin-top:20px;">
+        <div class="card" style="padding:24px;">
+            <div class="card-header" style="padding:0; margin-bottom:16px;">
+                <h3 style="margin:0;">Overdue Draft Reviews</h3>
+            </div>
+            {% if overdue_reviews %}
+            <div class="summary-list modern-list-gap">
+                {% for review in overdue_reviews %}
+                <div class="summary-list-item">
+                    <div class="request-overview-top">
+                        <strong>{{ review.employee.full_name }}</strong>
+                        <span class="badge badge-warning">{{ review.cycle.period_end|date:"M j, Y" }}</span>
+                    </div>
+                    <div class="text-muted" style="margin-top:8px;">Reviewer: {{ review.reviewer.full_name }} - {{ review.cycle.title }}</div>
+                    <div class="page-actions" style="margin-top:12px;">
+                        <a class="btn btn-light btn-sm" href="{% url 'performance:performance_review_update' review.pk %}">Edit Review</a>
+                        <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' review.employee.pk %}?tab=performance">Open Employee</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted" style="margin:0;">No overdue draft reviews right now.</p>
+            {% endif %}
+        </div>
+
+        <div class="card" style="padding:24px;">
+            <div class="card-header" style="padding:0; margin-bottom:16px;">
+                <h3 style="margin:0;">Pending Acknowledgements</h3>
+            </div>
+            {% if pending_ack_reviews %}
+            <div class="summary-list modern-list-gap">
+                {% for review in pending_ack_reviews %}
+                <div class="summary-list-item">
+                    <div class="request-overview-top">
+                        <strong>{{ review.employee.full_name }}</strong>
+                        <span class="badge badge-primary">{{ review.get_status_display }}</span>
+                    </div>
+                    <div class="text-muted" style="margin-top:8px;">{{ review.cycle.title }} - Submitted {{ review.submitted_at|date:"M j, Y" }}</div>
+                    <div class="page-actions" style="margin-top:12px;">
+                        <a class="btn btn-light btn-sm" href="{% url 'employees:employee_detail' review.employee.pk %}?tab=performance">Open Employee</a>
+                        <a class="btn btn-light btn-sm" href="{% url 'performance:performance_review_print' review.pk %}" target="_blank" rel="noopener">Print</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted" style="margin:0;">No submitted reviews are waiting for acknowledgement.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

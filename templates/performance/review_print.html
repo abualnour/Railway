@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Performance Review Export{% endblock %}
+
+{% block content %}
+<div class="page-section">
+    <div class="card" style="padding:24px;">
+        <div class="card-header" style="padding:0; margin-bottom:16px;">
+            <div>
+                <h1 style="margin:0;">Performance Review</h1>
+                <p class="text-muted" style="margin:8px 0 0;">{{ review.employee.full_name }} - {{ review.cycle.title }}</p>
+            </div>
+        </div>
+        <div class="detail-grid two-col">
+            <div class="detail-item"><span class="detail-label">Employee</span><span class="detail-value">{{ review.employee.full_name }}</span></div>
+            <div class="detail-item"><span class="detail-label">Employee ID</span><span class="detail-value">{{ review.employee.employee_id }}</span></div>
+            <div class="detail-item"><span class="detail-label">Reviewer</span><span class="detail-value">{{ review.reviewer.full_name }}</span></div>
+            <div class="detail-item"><span class="detail-label">Cycle</span><span class="detail-value">{{ review.cycle.title }}</span></div>
+            <div class="detail-item"><span class="detail-label">Rating</span><span class="detail-value">{{ review.get_overall_rating_display }}</span></div>
+            <div class="detail-item"><span class="detail-label">Status</span><span class="detail-value">{{ review.get_status_display }}</span></div>
+        </div>
+        {% if review.is_locked %}
+        <div class="text-muted" style="margin-top:16px;">This review belongs to a closed cycle and is locked for standard edits.</div>
+        {% endif %}
+        <div class="document-description" style="margin-top:16px;">
+            <strong>Strengths</strong><br>{{ review.strengths|linebreaksbr }}
+        </div>
+        <div class="document-description" style="margin-top:16px;">
+            <strong>Areas for Improvement</strong><br>{{ review.areas_for_improvement|linebreaksbr }}
+        </div>
+        <div class="document-description" style="margin-top:16px;">
+            <strong>Goals for Next Period</strong><br>{{ review.goals_next_period|linebreaksbr }}
+        </div>
+        {% if review.employee_comments %}
+        <div class="document-description" style="margin-top:16px;">
+            <strong>Employee Comments</strong><br>{{ review.employee_comments|linebreaksbr }}
+        </div>
+        {% endif %}
+        {% if review.comments.all %}
+        <div class="card" style="padding:20px; margin-top:20px;">
+            <div class="card-header" style="padding:0; margin-bottom:12px;">
+                <h3 style="margin:0;">Reviewer Notes History</h3>
+            </div>
+            <div class="summary-list modern-list-gap">
+                {% for performance_comment in review.comments.all %}
+                <div class="summary-list-item">
+                    <div class="request-overview-top">
+                        <strong>{{ performance_comment.author_display_name }}</strong>
+                        <span class="badge badge-light">{{ performance_comment.created_at|date:"M j, Y - g:i A" }}</span>
+                    </div>
+                    <div class="document-description" style="margin-top:10px;">{{ performance_comment.note|linebreaksbr }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

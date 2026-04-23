@@ -284,8 +284,8 @@ def employee_requests_overview(request):
         leave_queryset = leave_queryset.filter(employee__branch_id=selected_branch)
 
     scoped_branch = get_user_scope_branch(request.user)
-    is_branch_scoped_supervisor = is_branch_scoped_supervisor_for_role(request.user)
-    if is_branch_scoped_supervisor and scoped_branch:
+    branch_scoped_supervisor = is_branch_scoped_supervisor(request.user)
+    if branch_scoped_supervisor and scoped_branch:
         leave_queryset = leave_queryset.filter(employee__branch_id=scoped_branch.id)
         selected_branch = str(scoped_branch.id)
 
@@ -322,7 +322,7 @@ def employee_requests_overview(request):
     )
     documents_total = sum(card["supporting_documents_count"] for card in request_cards)
 
-    if is_branch_scoped_supervisor:
+    if branch_scoped_supervisor:
         current_leave_review_stage_label = "Supervisor Review Queue"
     elif is_operations_manager_user(request.user):
         current_leave_review_stage_label = "Operations Review Queue"
@@ -479,7 +479,8 @@ def employee_requests_overview(request):
         "branches": Branch.objects.filter(is_active=True).select_related("company").order_by("company__name", "name"),
         "grouped_request_weeks": grouped_request_weeks,
         "scoped_branch": scoped_branch,
-        "is_branch_scoped_supervisor": is_branch_scoped_supervisor,
+        "is_branch_scoped_supervisor": branch_scoped_supervisor,
+        "can_review_leave": can_review_leave(request.user),
         "employee_documents_total": employee_documents_total,
         "latest_employee_document_groups": latest_employee_document_groups,
         "submission_request_total": submission_request_total,

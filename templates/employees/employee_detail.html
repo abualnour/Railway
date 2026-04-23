@@ -2246,9 +2246,216 @@
                 <div class="employee-360-tab-panel" data-tab-panel="performance">
                 <div class="card detail-card modern-soft-card management-workspace-links-card">
                     <div class="card-header">
-                        <h2>Performance &amp; Action Workspaces</h2>
+                        <div class="section-heading">
+                            <div>
+                                <h2>Performance Reviews</h2>
+                                <p class="page-subtitle">Review cycles, manager feedback, and employee acknowledgement in one workspace.</p>
+                            </div>
+                            <span class="badge badge-light">{{ performance_review_total }} Review{{ performance_review_total|pluralize }}</span>
+                        </div>
                     </div>
                     <div class="card-body">
+                        <div class="detail-grid two-col employee-org-grid" style="margin-bottom: 18px;">
+                            <div class="detail-item">
+                                <span class="detail-label">Draft Reviews</span>
+                                <span class="detail-value">{{ performance_review_draft_count }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Submitted Reviews</span>
+                                <span class="detail-value">{{ performance_review_submitted_count }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Acknowledged Reviews</span>
+                                <span class="detail-value">{{ performance_review_acknowledged_count }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Current Employee</span>
+                                <span class="detail-value">{{ employee.full_name }}</span>
+                            </div>
+                        </div>
+                        <div class="detail-grid two-col employee-org-grid" style="margin-bottom: 18px;">
+                            <div class="detail-item">
+                                <span class="detail-label">Latest Rating Snapshot</span>
+                                <span class="detail-value">
+                                    {% if performance_latest_review %}
+                                        {{ performance_latest_review.get_overall_rating_display }}
+                                    {% else %}
+                                        No rating yet
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Active Cycle Focus</span>
+                                <span class="detail-value">
+                                    {% if performance_active_review %}
+                                        {{ performance_active_review.cycle.title }}
+                                    {% else %}
+                                        No active review cycle linked yet
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Current Reviewer</span>
+                                <span class="detail-value">
+                                    {% if performance_active_review %}
+                                        {{ performance_active_review.reviewer.full_name }}
+                                    {% elif performance_latest_review %}
+                                        {{ performance_latest_review.reviewer.full_name }}
+                                    {% else %}
+                                        --
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Pending / Locked Reviews</span>
+                                <span class="detail-value">{{ performance_pending_ack_count }} Pending Acknowledgement | {{ performance_locked_review_count }} Locked</span>
+                            </div>
+                        </div>
+
+                        {% if can_manage_performance_reviews %}
+                        <div class="card detail-card modern-soft-card" style="margin-bottom: 18px;">
+                            <div class="card-header">
+                                <h3>Create Performance Review</h3>
+                            </div>
+                            <div class="card-body">
+                                <form method="post" action="{{ performance_review_create_url }}">
+                                    {% csrf_token %}
+                                    <div class="form-grid two-col">
+                                        {% for field in performance_review_form %}
+                                        <div class="form-group">
+                                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                            {{ field }}
+                                            {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="page-actions document-actions-row" style="margin-top: 12px;">
+                                        <button type="submit" class="btn btn-primary btn-sm">Save Review</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if performance_reviews %}
+                        <div class="summary-list modern-list-gap">
+                            {% for performance_review in performance_reviews %}
+                            <div class="summary-list-item">
+                                <div class="request-overview-top">
+                                    <div>
+                                        <strong>{{ performance_review.cycle.title }}</strong>
+                                        <div class="text-muted" style="margin-top: 8px;">
+                                            Reviewer: {{ performance_review.reviewer.full_name }}{% if performance_review.reviewer.job_title %} - {{ performance_review.reviewer.job_title.name }}{% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="page-actions">
+                                        <span class="badge badge-light">{{ performance_review.get_overall_rating_display }}</span>
+                                        <span class="badge badge-{% if performance_review.status == 'acknowledged' %}success{% elif performance_review.status == 'submitted' %}primary{% else %}light{% endif %}">{{ performance_review.get_status_display }}</span>
+                                    </div>
+                                </div>
+                                <div class="detail-grid two-col employee-org-grid" style="margin-top: 14px;">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Review Period</span>
+                                        <span class="detail-value">{{ performance_review.cycle.period_start|date:"M j, Y" }} - {{ performance_review.cycle.period_end|date:"M j, Y" }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Submitted</span>
+                                        <span class="detail-value">{% if performance_review.submitted_at %}{{ performance_review.submitted_at|date:"F j, Y - g:i A" }}{% else %}—{% endif %}</span>
+                                    </div>
+                                </div>
+                                {% if can_manage_performance_reviews and not performance_review.is_locked %}
+                                <div class="page-actions document-actions-row" style="margin-top: 12px;">
+                                    <a class="btn btn-light btn-sm" href="{% url 'performance:performance_review_update' performance_review.pk %}">Edit Review</a>
+                                </div>
+                                {% endif %}
+                                <div class="page-actions document-actions-row" style="margin-top: 12px;">
+                                    <a class="btn btn-light btn-sm" href="{% url 'performance:performance_review_print' performance_review.pk %}" target="_blank" rel="noopener">Print Review</a>
+                                    {% if performance_review.can_force_complete %}
+                                    <form method="post" action="{% url 'performance:performance_review_force_complete' performance_review.pk %}" style="display:inline-flex;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary btn-sm">Force Complete</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                {% if performance_review.is_locked %}
+                                <div class="text-muted" style="margin-top: 12px;">This review belongs to a closed cycle and standard edits are locked.</div>
+                                {% endif %}
+                                <div class="document-description" style="margin-top: 12px;">
+                                    <strong>Strengths:</strong><br>{{ performance_review.strengths|linebreaksbr }}
+                                </div>
+                                <div class="document-description" style="margin-top: 12px;">
+                                    <strong>Areas for Improvement:</strong><br>{{ performance_review.areas_for_improvement|linebreaksbr }}
+                                </div>
+                                <div class="document-description" style="margin-top: 12px;">
+                                    <strong>Goals for Next Period:</strong><br>{{ performance_review.goals_next_period|linebreaksbr }}
+                                </div>
+                                {% if performance_review.employee_comments %}
+                                <div class="document-description" style="margin-top: 12px;">
+                                    <strong>Employee Comments:</strong><br>{{ performance_review.employee_comments|linebreaksbr }}
+                                </div>
+                                {% endif %}
+                                {% if performance_review.comments.all or performance_review.comment_form %}
+                                <div class="card detail-card modern-soft-card" style="margin-top: 16px;">
+                                    <div class="card-header">
+                                        <h3>Reviewer Notes History</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if performance_review.comments.all %}
+                                        <div class="summary-list modern-list-gap">
+                                            {% for performance_comment in performance_review.comments.all %}
+                                            <div class="summary-list-item">
+                                                <div class="request-overview-top">
+                                                    <strong>{{ performance_comment.author_display_name }}</strong>
+                                                    <span class="badge badge-light">{{ performance_comment.created_at|date:"M j, Y - g:i A" }}</span>
+                                                </div>
+                                                <div class="document-description" style="margin-top: 10px;">{{ performance_comment.note|linebreaksbr }}</div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% else %}
+                                        <p class="text-muted" style="margin: 0 0 12px;">No review notes have been added yet.</p>
+                                        {% endif %}
+                                        {% if performance_review.comment_form %}
+                                        <form method="post" action="{% url 'performance:performance_review_comment_create' performance_review.pk %}" style="margin-top: 14px;">
+                                            {% csrf_token %}
+                                            <div class="form-group">
+                                                <label for="{{ performance_review.comment_form.note.id_for_label }}">Add Review Note</label>
+                                                {{ performance_review.comment_form.note }}
+                                                {% for error in performance_review.comment_form.note.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                                            </div>
+                                            <div class="page-actions document-actions-row" style="margin-top: 12px;">
+                                                <button type="submit" class="btn btn-light btn-sm">Save Note</button>
+                                            </div>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if performance_review.acknowledgement_form %}
+                                <form method="post" action="{% url 'performance:performance_review_acknowledge' performance_review.pk %}" style="margin-top: 14px;">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label for="{{ performance_review.acknowledgement_form.employee_comments.id_for_label }}">Employee Acknowledgement Comment</label>
+                                        {{ performance_review.acknowledgement_form.employee_comments }}
+                                        {% for error in performance_review.acknowledgement_form.employee_comments.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                                    </div>
+                                    <div class="page-actions document-actions-row" style="margin-top: 12px;">
+                                        <button type="submit" class="btn btn-primary btn-sm">Acknowledge Review</button>
+                                    </div>
+                                </form>
+                                {% elif performance_review.acknowledged_at %}
+                                <div class="text-muted" style="margin-top: 12px;">Acknowledged on {{ performance_review.acknowledged_at|date:"F j, Y - g:i A" }}</div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="empty-state compact-empty-state">
+                            <h3>No performance reviews yet</h3>
+                            <p>Performance reviews will appear here once a review cycle entry is created for this employee.</p>
+                        </div>
+                        {% endif %}
+
                         <div class="detail-grid two-col employee-org-grid">
                             <div class="detail-item">
                                 <span class="detail-label">Employee Action Center</span>
@@ -2258,10 +2465,10 @@
                                 </div>
                             </div>
                             <div class="detail-item">
-                                <span class="detail-label">Attendance Management</span>
-                                <span class="detail-value">Attendance filtering, ledger entries, correction workflow, and attendance review now stay in Attendance Management.</span>
+                                <span class="detail-label">Performance Workspace</span>
+                                <span class="detail-value">Cycle planning, overdue draft reviews, reviewer assignments, and acknowledgement follow-up now stay in the Performance workspace.</span>
                                 <div class="page-actions document-actions-row" style="margin-top: 12px;">
-                                    <a class="btn btn-light btn-sm" href="{{ employee_360_attendance_management_url }}">Open Attendance Management</a>
+                                    <a class="btn btn-light btn-sm" href="{% url 'performance:dashboard' %}">Open Performance Workspace</a>
                                 </div>
                             </div>
                         </div>

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="page-section">
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+        <div>
+            <h1 style="margin:0;">{{ page_title }}</h1>
+            <p class="text-muted" style="margin:8px 0 0;">{{ candidate.full_name }} - {{ candidate.job_posting.title }}</p>
+        </div>
+        <a class="btn btn-light" href="{% url 'recruitment:candidate_detail' candidate.pk %}">Back to Candidate</a>
+    </div>
+
+    <form method="post" class="card" style="padding:24px; margin-top:20px;">
+        {% csrf_token %}
+        <div class="form-grid two-col">
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="page-actions" style="margin-top:16px;">
+            <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

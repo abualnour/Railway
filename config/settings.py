@@ -105,6 +105,8 @@ INSTALLED_APPS = [
     "payroll",
     "notifications",
     "workcalendar",
+    "recruitment",
+    "performance",
 ]
 
 MIDDLEWARE = [
@@ -349,6 +351,8 @@ HR_BACKUP_INCLUDE_PATHS = [
     "hr",
     "payroll",
     "workcalendar",
+    "recruitment",
+    "performance",
     "templates",
     "static",
     "config",

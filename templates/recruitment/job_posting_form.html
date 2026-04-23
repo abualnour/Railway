@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="page-section">
+    <div class="card-header">
+        <h1 style="margin:0;">{{ page_title }}</h1>
+    </div>
+    <form method="post" class="card" style="padding:24px; margin-top:18px;">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="form-grid two-col">
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<small class="text-muted">{{ field.help_text }}</small>{% endif %}
+                {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="page-actions" style="margin-top:20px;">
+            <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
+            <a class="btn btn-light" href="{% url 'recruitment:job_posting_list' %}">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

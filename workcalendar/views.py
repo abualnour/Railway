@@ -27,7 +27,7 @@ def get_calendar_notification_users():
     return list(user_model.objects.filter(is_active=True).order_by("email"))
 
 
-def dispatch_calendar_notifications(*, title, body, level=InAppNotification.LEVEL_INFO):
+def dispatch_calendar_notifications(*, title, body, level=InAppNotification.LEVEL_INFO, excluded_users=None):
     notifications = []
     for user in get_calendar_notification_users():
         notifications.append(
@@ -38,6 +38,7 @@ def dispatch_calendar_notifications(*, title, body, level=InAppNotification.LEVE
                 category=InAppNotification.CATEGORY_CALENDAR,
                 level=level,
                 action_url="/work-calendar/",
+                exclude_users=excluded_users,
             )
         )
     notifications = [notification for notification in notifications if notification is not None]
@@ -74,6 +75,7 @@ def work_calendar_home(request):
                         f"for region {saved_calendar.region_code}."
                     ),
                     level=InAppNotification.LEVEL_INFO,
+                    excluded_users=[request.user],
                 )
                 recalculated_count = recalculate_employee_leave_totals()
                 messages.success(request, "Regional work calendar saved successfully.")
@@ -102,6 +104,7 @@ def work_calendar_home(request):
                             )
                         ),
                         level=InAppNotification.LEVEL_WARNING if holiday.is_non_working_day else InAppNotification.LEVEL_INFO,
+                        excluded_users=[request.user],
                     )
                     messages.success(request, f"{holiday.title} added to the work calendar.")
                     recalculated_count = recalculate_employee_leave_totals()
@@ -119,6 +122,7 @@ def work_calendar_home(request):
                 title=f"Holiday removed: {holiday_title}",
                 body=f"{holiday_title} on {holiday_date:%b %d, %Y} was removed from the work calendar.",
                 level=InAppNotification.LEVEL_INFO,
+                excluded_users=[request.user],
             )
             messages.success(request, f"{holiday_title} was removed from the work calendar.")
             recalculated_count = recalculate_employee_leave_totals()

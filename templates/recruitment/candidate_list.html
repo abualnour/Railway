@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate Directory{% endblock %}
+
+{% block content %}
+<div class="page-section">
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+        <div>
+            <h1 style="margin:0;">Candidate Directory</h1>
+            <p class="text-muted" style="margin:8px 0 0;">Search and filter the recruitment pipeline across all job postings.</p>
+        </div>
+        <a class="btn btn-light" href="{% url 'recruitment:job_posting_list' %}">Back to Recruitment</a>
+    </div>
+
+    <form method="get" class="card" style="padding:20px; margin-top:20px;">
+        <div class="form-grid two-col">
+            {% for field in filter_form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="page-actions" style="margin-top:16px;">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a class="btn btn-light" href="{% url 'recruitment:candidate_list' %}">Clear</a>
+        </div>
+    </form>
+
+    {% if candidates %}
+    <div class="summary-list modern-list-gap" style="margin-top:20px;">
+        {% for candidate in candidates %}
+        <div class="summary-list-item">
+            <div class="request-overview-top">
+                <div>
+                    <h3 style="margin:0;">{{ candidate.full_name }}</h3>
+                    <div class="text-muted" style="margin-top:8px;">{{ candidate.job_posting.title }} - {{ candidate.job_posting.department.name }} - {{ candidate.job_posting.branch.name }}</div>
+                </div>
+                <div class="page-actions">
+                    <span class="badge badge-light">{{ candidate.get_status_display }}</span>
+                    {% if candidate.hired_employee %}
+                    <span class="badge badge-success">Employee Created</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="detail-grid two-col" style="margin-top:18px;">
+                <div class="detail-item"><span class="detail-label">Email</span><span class="detail-value">{{ candidate.email }}</span></div>
+                <div class="detail-item"><span class="detail-label">Phone</span><span class="detail-value">{{ candidate.phone }}</span></div>
+                <div class="detail-item"><span class="detail-label">Nationality</span><span class="detail-value">{{ candidate.nationality }}</span></div>
+                <div class="detail-item"><span class="detail-label">Applied At</span><span class="detail-value">{{ candidate.applied_at|date:"F j, Y - g:i A" }}</span></div>
+            </div>
+            <div class="page-actions" style="margin-top:18px;">
+                <a class="btn btn-light" href="{% url 'recruitment:candidate_detail' candidate.pk %}">Open Candidate</a>
+                <a class="btn btn-light" href="{% url 'recruitment:candidate_update' candidate.pk %}">Edit</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state" style="margin-top:20px;">
+        <h3>No candidates found</h3>
+        <p>Adjust the filters or add candidates from a job posting.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
