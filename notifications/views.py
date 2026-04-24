@@ -16,7 +16,6 @@ from django.views.decorators.http import require_POST
 from config.access import is_hr, is_operations, is_superuser, role_required
 from employees.access import is_admin_compatible
 
-from .email_sender import send_notification_email
 from .forms import NotificationPreferenceForm
 from .models import (
     InAppNotification,
@@ -24,6 +23,7 @@ from .models import (
     build_in_app_notification,
     get_notification_preferences_for_user,
 )
+from .services import persist_in_app_notifications
 
 
 NOTIFICATION_CATEGORY_ORDER = [
@@ -268,55 +268,6 @@ def trigger_contract_expiry_notifications(reference_date=None):
             pending_notifications.append(notification)
 
     return persist_in_app_notifications(pending_notifications)
-
-
-def persist_in_app_notifications(notifications):
-    deduped_notifications = []
-    seen_keys = set()
-
-    for notification in notifications:
-        if notification is None:
-            continue
-        notification_key = (
-            notification.recipient_id,
-            notification.title,
-            notification.body,
-            notification.category,
-            notification.action_url,
-        )
-        if notification_key in seen_keys:
-            continue
-        seen_keys.add(notification_key)
-        deduped_notifications.append(notification)
-
-    saved_notifications = []
-    for notification in deduped_notifications:
-        notification.save()
-
-        preferences = get_notification_preferences_for_user(notification.recipient)
-        allow_email = bool(
-            preferences
-            and getattr(preferences, "email_enabled", True)
-            and getattr(notification.recipient, "email", "").strip()
-        )
-        if allow_email:
-            try:
-                send_notification_email(
-                    recipient_email=notification.recipient.email,
-                    subject=notification.title,
-                    body_text=notification.body,
-                )
-            except Exception as exc:
-                notification.email_failed = True
-                notification.email_failed_reason = str(exc)[:255]
-                notification.save(update_fields=["email_failed", "email_failed_reason"])
-            else:
-                notification.email_sent = True
-                notification.save(update_fields=["email_sent"])
-
-        saved_notifications.append(notification)
-
-    return saved_notifications
 
 
 def build_notification_category_cards(notifications):

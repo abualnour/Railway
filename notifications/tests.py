@@ -7,10 +7,12 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils import timezone
+from unittest.mock import patch
 
 from config.context_processors import navbar_context
 
 from .models import InAppNotification, NotificationPreference
+from .services import persist_in_app_notifications
 
 
 @override_settings(
@@ -454,3 +456,58 @@ class NotificationCenterTests(TestCase):
             reverse("notifications:home"),
             fetch_redirect_response=False,
         )
+
+    @patch("notifications.services.send_notification_email", return_value=1)
+    def test_service_persists_deduped_notifications_and_records_email_success(self, mocked_send):
+        first_notification = InAppNotification(
+            recipient=self.user,
+            title="Service alert",
+            body="Saved once.",
+            category=InAppNotification.CATEGORY_HR,
+            action_url="/hr/",
+        )
+        duplicate_notification = InAppNotification(
+            recipient=self.user,
+            title="Service alert",
+            body="Saved once.",
+            category=InAppNotification.CATEGORY_HR,
+            action_url="/hr/",
+        )
+
+        saved_notifications = persist_in_app_notifications(
+            [first_notification, duplicate_notification, None]
+        )
+
+        self.assertEqual(len(saved_notifications), 1)
+        saved_notification = saved_notifications[0]
+        saved_notification.refresh_from_db()
+        self.assertTrue(saved_notification.email_sent)
+        self.assertFalse(saved_notification.email_failed)
+        self.assertEqual(
+            InAppNotification.objects.filter(title="Service alert").count(),
+            1,
+        )
+        mocked_send.assert_called_once_with(
+            recipient_email=self.user.email,
+            subject="Service alert",
+            body_text="Saved once.",
+        )
+
+    @patch("notifications.services.send_notification_email", side_effect=RuntimeError("SMTP down"))
+    def test_service_records_email_failure(self, mocked_send):
+        notification = InAppNotification(
+            recipient=self.user,
+            title="Failure alert",
+            body="Delivery fails.",
+            category=InAppNotification.CATEGORY_HR,
+            action_url="/hr/",
+        )
+
+        saved_notifications = persist_in_app_notifications([notification])
+
+        saved_notification = saved_notifications[0]
+        saved_notification.refresh_from_db()
+        self.assertFalse(saved_notification.email_sent)
+        self.assertTrue(saved_notification.email_failed)
+        self.assertEqual(saved_notification.email_failed_reason, "SMTP down")
+        mocked_send.assert_called_once()
