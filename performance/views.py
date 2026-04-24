@@ -18,8 +18,8 @@ from employees.access import (
     is_operations_manager_user,
 )
 from employees.models import Employee
-from notifications.models import InAppNotification, build_in_app_notification
-from notifications.views import persist_in_app_notifications
+from notifications.models import InAppNotification
+from notifications.services import build_in_app_notification, persist_in_app_notifications
 
 from .forms import (
     PerformanceAcknowledgementForm,
