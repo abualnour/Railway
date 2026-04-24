@@ -9,6 +9,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
@@ -43,6 +44,17 @@ NOTIFICATION_STATUS_FILTERS = {
     NOTIFICATION_STATUS_ALL,
     NOTIFICATION_STATUS_UNREAD,
     NOTIFICATION_STATUS_READ,
+}
+
+DELIVERY_STATUS_ALL = "all"
+DELIVERY_STATUS_SENT = "sent"
+DELIVERY_STATUS_FAILED = "failed"
+DELIVERY_STATUS_UNATTEMPTED = "unattempted"
+DELIVERY_STATUS_FILTERS = {
+    DELIVERY_STATUS_ALL,
+    DELIVERY_STATUS_SENT,
+    DELIVERY_STATUS_FAILED,
+    DELIVERY_STATUS_UNATTEMPTED,
 }
 
 
@@ -83,6 +95,45 @@ def build_notification_filter_url(*, category="", status=NOTIFICATION_STATUS_ALL
     if anchor:
         url = f"{url}#{anchor}"
     return url
+
+
+def get_valid_notification_category(category):
+    category = (category or "").strip()
+    valid_categories = {choice[0] for choice in InAppNotification.CATEGORY_CHOICES}
+    if category in valid_categories:
+        return category
+    return ""
+
+
+def get_delivery_filter_state(request):
+    selected_category = get_valid_notification_category(request.GET.get("category"))
+    selected_status = (request.GET.get("delivery_status") or DELIVERY_STATUS_ALL).strip().lower()
+    if selected_status not in DELIVERY_STATUS_FILTERS:
+        selected_status = DELIVERY_STATUS_ALL
+
+    start_date_value = (request.GET.get("start_date") or "").strip()
+    end_date_value = (request.GET.get("end_date") or "").strip()
+    start_date = parse_date(start_date_value) if start_date_value else None
+    end_date = parse_date(end_date_value) if end_date_value else None
+
+    if start_date and end_date and start_date > end_date:
+        start_date = None
+        end_date = None
+        start_date_value = ""
+        end_date_value = ""
+    if not start_date:
+        start_date_value = ""
+    if not end_date:
+        end_date_value = ""
+
+    return {
+        "category": selected_category,
+        "delivery_status": selected_status,
+        "start_date": start_date,
+        "end_date": end_date,
+        "start_date_value": start_date_value,
+        "end_date_value": end_date_value,
+    }
 
 
 def trigger_document_expiry_notifications(reference_date=None):
@@ -492,49 +543,90 @@ def bulk_delete_notifications(request):
     redirect_to="notifications:home",
 )
 def delivery_performance(request):
-    base_qs = InAppNotification.objects.all()
+    filter_state = get_delivery_filter_state(request)
+    base_qs = InAppNotification.objects.filter(is_deleted=False)
+    filtered_qs = base_qs
+    if filter_state["category"]:
+        filtered_qs = filtered_qs.filter(category=filter_state["category"])
+    if filter_state["start_date"]:
+        filtered_qs = filtered_qs.filter(created_at__date__gte=filter_state["start_date"])
+    if filter_state["end_date"]:
+        filtered_qs = filtered_qs.filter(created_at__date__lte=filter_state["end_date"])
+
+    if filter_state["delivery_status"] == DELIVERY_STATUS_SENT:
+        filtered_qs = filtered_qs.filter(email_sent=True)
+    elif filter_state["delivery_status"] == DELIVERY_STATUS_FAILED:
+        filtered_qs = filtered_qs.filter(email_failed=True)
+    elif filter_state["delivery_status"] == DELIVERY_STATUS_UNATTEMPTED:
+        filtered_qs = filtered_qs.filter(email_sent=False, email_failed=False)
+
     summary_counts = base_qs.aggregate(
         total=Count("id"),
         email_sent=Count("id", filter=Q(email_sent=True)),
         email_failed=Count("id", filter=Q(email_failed=True)),
     )
+    filtered_counts = filtered_qs.aggregate(
+        total=Count("id"),
+        email_sent=Count("id", filter=Q(email_sent=True)),
+        email_failed=Count("id", filter=Q(email_failed=True)),
+    )
+    attempted = (filtered_counts["email_sent"] or 0) + (filtered_counts["email_failed"] or 0)
     summary = {
-        "total": summary_counts["total"] or 0,
-        "email_sent": summary_counts["email_sent"] or 0,
-        "email_failed": summary_counts["email_failed"] or 0,
-        "last_sent": base_qs.filter(email_sent=True).order_by("-created_at").values_list("created_at", flat=True).first(),
+        "total": filtered_counts["total"] or 0,
+        "all_total": summary_counts["total"] or 0,
+        "attempted": attempted,
+        "email_sent": filtered_counts["email_sent"] or 0,
+        "email_failed": filtered_counts["email_failed"] or 0,
+        "unattempted": (filtered_counts["total"] or 0) - attempted,
+        "last_sent": filtered_qs.filter(email_sent=True).order_by("-created_at").values_list("created_at", flat=True).first(),
     }
     summary["failure_rate"] = (
-        round(summary["email_failed"] / summary["email_sent"] * 100, 1)
-        if summary["email_sent"]
+        round(summary["email_failed"] / summary["attempted"] * 100, 1)
+        if summary["attempted"]
         else 0
     )
 
     category_label_map = dict(InAppNotification.CATEGORY_CHOICES)
     category_breakdown = []
     for cat in NOTIFICATION_CATEGORY_ORDER:
-        qs = base_qs.filter(category=cat)
+        qs = filtered_qs.filter(category=cat)
+        cat_sent = qs.filter(email_sent=True).count()
+        cat_failed = qs.filter(email_failed=True).count()
         category_breakdown.append(
             {
+                "key": cat,
                 "label": category_label_map.get(cat, cat),
                 "total": qs.count(),
-                "email_sent": qs.filter(email_sent=True).count(),
-                "email_failed": qs.filter(email_failed=True).count(),
+                "attempted": cat_sent + cat_failed,
+                "email_sent": cat_sent,
+                "email_failed": cat_failed,
             }
         )
 
     recent_failures = (
-        base_qs.filter(email_failed=True)
+        filtered_qs.filter(email_failed=True)
         .select_related("recipient")
         .order_by("-created_at")[:20]
     )
-    opt_outs = NotificationPreference.objects.filter(email_enabled=False).select_related("user").order_by("user__role")
+    opt_outs_qs = NotificationPreference.objects.filter(email_enabled=False).select_related("user").order_by("user__role", "user__email")
+    opt_outs_total = opt_outs_qs.count()
+    opt_outs = opt_outs_qs[:50]
 
     context = {
         "summary": summary,
         "category_breakdown": category_breakdown,
         "recent_failures": recent_failures,
         "opt_outs": opt_outs,
+        "opt_outs_total": opt_outs_total,
+        "opt_outs_remaining": max(opt_outs_total - 50, 0),
+        "filter_state": filter_state,
+        "delivery_categories": InAppNotification.CATEGORY_CHOICES,
+        "delivery_status_options": [
+            (DELIVERY_STATUS_ALL, "All delivery states"),
+            (DELIVERY_STATUS_SENT, "Sent"),
+            (DELIVERY_STATUS_FAILED, "Failed"),
+            (DELIVERY_STATUS_UNATTEMPTED, "No email attempt recorded"),
+        ],
     }
     return render(request, "notifications/performance.html", context)
 

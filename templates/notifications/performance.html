@@ -27,6 +27,7 @@
                 {% else %}
                 <small><span class="badge badge-danger">High failure risk</span></small>
                 {% endif %}
+                <small>Failed / attempted email deliveries</small>
             </div>
             <div class="platform-inline-actions platform-hero-actions">
                 <a href="{% url 'notifications:home' %}#feed" class="btn btn-light btn-sm">Back To Notifications</a>
@@ -34,11 +35,56 @@
         </div>
     </section>
 
+    <section class="platform-panel">
+        <div class="platform-panel-head">
+            <div>
+                <h2>Delivery Filters</h2>
+                <p>Filter active notification records by date, category, and email delivery state.</p>
+            </div>
+        </div>
+        <form method="get" class="platform-form-grid">
+            <div class="form-group">
+                <label for="delivery-start-date">Start date</label>
+                <input type="date" id="delivery-start-date" name="start_date" value="{{ filter_state.start_date_value }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="delivery-end-date">End date</label>
+                <input type="date" id="delivery-end-date" name="end_date" value="{{ filter_state.end_date_value }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="delivery-category">Category</label>
+                <select id="delivery-category" name="category" class="form-control">
+                    <option value="">All categories</option>
+                    {% for value, label in delivery_categories %}
+                    <option value="{{ value }}"{% if filter_state.category == value %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="delivery-status">Delivery status</label>
+                <select id="delivery-status" name="delivery_status" class="form-control">
+                    {% for value, label in delivery_status_options %}
+                    <option value="{{ value }}"{% if filter_state.delivery_status == value %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="platform-form-actions platform-form-span">
+                <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+                <a href="{% url 'notifications:performance' %}" class="btn btn-light btn-sm">Clear Filters</a>
+            </div>
+        </form>
+    </section>
+
     <section class="platform-stats-grid">
         <article class="platform-stat-card">
-            <span>Total Notifications</span>
+            <span>Filtered Notifications</span>
             <strong>{{ summary.total }}</strong>
-            <small>All tracked notification records</small>
+            <small>Active records matching the current filters</small>
+        </article>
+        <article class="platform-stat-card">
+            <span>Email Attempts</span>
+            <strong>{{ summary.attempted }}</strong>
+            <small>Sent plus failed email delivery records</small>
         </article>
         <article class="platform-stat-card">
             <span>Emails Sent</span>
@@ -53,7 +99,12 @@
         <article class="platform-stat-card">
             <span>Failure Rate</span>
             <strong>{{ summary.failure_rate }}%</strong>
-            <small>Failure share against successful sends</small>
+            <small>Failed divided by attempted deliveries</small>
+        </article>
+        <article class="platform-stat-card">
+            <span>No Email Attempt</span>
+            <strong>{{ summary.unattempted }}</strong>
+            <small>Records without sent or failed email flags</small>
         </article>
     </section>
 
@@ -68,6 +119,7 @@
                     <tr>
                         <th>Category</th>
                         <th>Total</th>
+                        <th>Attempted</th>
                         <th>Emails Sent</th>
                         <th>Emails Failed</th>
                     </tr>
@@ -77,6 +129,7 @@
                     <tr>
                         <td>{{ item.label }}</td>
                         <td>{{ item.total }}</td>
+                        <td>{{ item.attempted }}</td>
                         <td>{{ item.email_sent }}</td>
                         <td>{{ item.email_failed }}</td>
                     </tr>
@@ -89,7 +142,7 @@
     <section class="platform-panel">
         <div class="platform-panel-head">
             <h2>Recent Delivery Failures</h2>
-            <p>The latest notifications where email delivery did not complete successfully.</p>
+            <p>The latest matching notifications where email delivery did not complete successfully. Limited to 20 records.</p>
         </div>
         {% if recent_failures %}
         <div class="platform-list">
@@ -115,7 +168,7 @@
     <section class="platform-panel">
         <div class="platform-panel-head">
             <h2>Email Opt-Outs</h2>
-            <p>Users who disabled email delivery for notification copies.</p>
+            <p>Users who disabled email delivery for notification copies. Showing up to 50 users.</p>
         </div>
         {% if opt_outs %}
         <div class="platform-list">
@@ -129,6 +182,9 @@
             </div>
             {% endfor %}
         </div>
+        {% if opt_outs_remaining %}
+        <p class="notification-bulk-status">{{ opt_outs_remaining }} more opt-out{{ opt_outs_remaining|pluralize }} not shown.</p>
+        {% endif %}
         {% else %}
         <div class="empty-state">
             <h3>No email opt-outs</h3>
