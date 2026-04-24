@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator, MaxValueValidator
 from django.db import models
 from django.utils import timezone
 
@@ -73,6 +74,13 @@ class JobPosting(models.Model):
 
     class Meta:
         ordering = ["-posted_date", "-created_at", "title"]
+        indexes = [
+            models.Index(fields=["status", "-posted_date"]),
+            models.Index(fields=["department", "status"]),
+            models.Index(fields=["branch", "status"]),
+        ]
+        verbose_name = "Job Posting"
+        verbose_name_plural = "Job Postings"
 
     def __str__(self):
         return self.title
@@ -125,7 +133,12 @@ class Candidate(models.Model):
     email = models.EmailField()
     phone = models.CharField(max_length=50)
     nationality = models.CharField(max_length=100)
-    cv_file = models.FileField(upload_to=candidate_cv_upload_to)
+    cv_file = models.FileField(
+        upload_to=candidate_cv_upload_to,
+        validators=[
+            FileExtensionValidator(allowed_extensions=["pdf", "doc", "docx"])
+        ],
+    )
     cover_letter = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_APPLIED)
     applied_at = models.DateTimeField(auto_now_add=True)
@@ -134,6 +147,9 @@ class Candidate(models.Model):
         upload_to=candidate_offer_letter_upload_to,
         null=True,
         blank=True,
+        validators=[
+            FileExtensionValidator(allowed_extensions=["pdf", "doc", "docx"])
+        ],
     )
     offer_sent_date = models.DateField(null=True, blank=True)
     offer_expiry_date = models.DateField(null=True, blank=True)
@@ -161,6 +177,13 @@ class Candidate(models.Model):
 
     class Meta:
         ordering = ["-applied_at", "full_name"]
+        indexes = [
+            models.Index(fields=["job_posting", "status", "-applied_at"]),
+            models.Index(fields=["recruiter_owner", "status"]),
+            models.Index(fields=["offer_status", "offer_expiry_date"]),
+        ]
+        verbose_name = "Candidate"
+        verbose_name_plural = "Candidates"
 
     def __str__(self):
         return f"{self.full_name} - {self.job_posting.title}"
@@ -201,6 +224,12 @@ class CandidateStageAction(models.Model):
 
     class Meta:
         ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["candidate", "-created_at"]),
+            models.Index(fields=["stage", "-created_at"]),
+        ]
+        verbose_name = "Candidate Stage Action"
+        verbose_name_plural = "Candidate Stage Actions"
 
     def __str__(self):
         return f"{self.candidate.full_name} - {self.stage}"
@@ -246,7 +275,11 @@ class CandidateInterview(models.Model):
     location = models.CharField(max_length=255, blank=True)
     note = models.TextField(blank=True)
     outcome = models.TextField(blank=True)
-    score = models.PositiveSmallIntegerField(null=True, blank=True)
+    score = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MaxValueValidator(100)],
+    )
     recommendation = models.CharField(
         max_length=20,
         choices=RECOMMENDATION_CHOICES,
@@ -258,6 +291,12 @@ class CandidateInterview(models.Model):
 
     class Meta:
         ordering = ["scheduled_at", "id"]
+        indexes = [
+            models.Index(fields=["candidate", "scheduled_at"]),
+            models.Index(fields=["interviewer", "scheduled_at"]),
+        ]
+        verbose_name = "Candidate Interview"
+        verbose_name_plural = "Candidate Interviews"
 
     def __str__(self):
         return f"{self.candidate.full_name} interview on {self.scheduled_at:%Y-%m-%d %H:%M}"
@@ -283,7 +322,11 @@ class CandidateInterviewFeedback(models.Model):
         on_delete=models.PROTECT,
         related_name="candidate_interview_feedback",
     )
-    score = models.PositiveSmallIntegerField(null=True, blank=True)
+    score = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MaxValueValidator(100)],
+    )
     recommendation = models.CharField(
         max_length=20,
         choices=CandidateInterview.RECOMMENDATION_CHOICES,
@@ -297,7 +340,14 @@ class CandidateInterviewFeedback(models.Model):
 
     class Meta:
         ordering = ["-updated_at", "-id"]
-        unique_together = ("interview", "interviewer")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["interview", "interviewer"],
+                name="recruit_feedback_interviewer_uniq",
+            )
+        ]
+        verbose_name = "Candidate Interview Feedback"
+        verbose_name_plural = "Candidate Interview Feedback"
 
     def __str__(self):
         return f"{self.interview.candidate.full_name} feedback by {self.interviewer}"
@@ -317,7 +367,25 @@ class CandidateAttachment(models.Model):
         related_name="attachments",
     )
     title = models.CharField(max_length=255)
-    file = models.FileField(upload_to=candidate_attachment_upload_to)
+    file = models.FileField(
+        upload_to=candidate_attachment_upload_to,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=[
+                    "pdf",
+                    "doc",
+                    "docx",
+                    "xls",
+                    "xlsx",
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "webp",
+                    "txt",
+                ]
+            )
+        ],
+    )
     notes = models.TextField(blank=True)
     uploaded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -330,6 +398,9 @@ class CandidateAttachment(models.Model):
 
     class Meta:
         ordering = ["-created_at", "-id"]
+        indexes = [models.Index(fields=["candidate", "-created_at"])]
+        verbose_name = "Candidate Attachment"
+        verbose_name_plural = "Candidate Attachments"
 
     def __str__(self):
         return f"{self.candidate.full_name} - {self.title}"

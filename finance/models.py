@@ -1,13 +1,20 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator, MinValueValidator, RegexValidator
 from django.db import models
 
 from employees.models import Employee
 
 
 def expense_receipt_upload_path(instance, filename):
+    from pathlib import Path
+    from uuid import uuid4
+
+    extension = Path(filename).suffix.lower()
     employee_id = instance.employee.employee_id if instance.employee_id else "unassigned"
-    return f"finance/expense-claims/{employee_id}/{filename}"
+    return f"finance/expense-claims/{employee_id}/{uuid4().hex}{extension}"
 
 
 class ExpenseClaim(models.Model):
@@ -48,10 +55,32 @@ class ExpenseClaim(models.Model):
     )
     title = models.CharField(max_length=255)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default=CATEGORY_OTHER)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    currency = models.CharField(max_length=3, default="KWD")
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    currency = models.CharField(
+        max_length=3,
+        default="KWD",
+        validators=[
+            RegexValidator(
+                regex=r"^[A-Z]{3}$",
+                message="Currency must be a 3-letter ISO code.",
+            )
+        ],
+    )
     expense_date = models.DateField()
-    receipt_file = models.FileField(upload_to=expense_receipt_upload_path, null=True, blank=True)
+    receipt_file = models.FileField(
+        upload_to=expense_receipt_upload_path,
+        null=True,
+        blank=True,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["pdf", "jpg", "jpeg", "png", "webp"]
+            )
+        ],
+    )
     description = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
     submitted_at = models.DateTimeField(null=True, blank=True)
@@ -69,6 +98,12 @@ class ExpenseClaim(models.Model):
 
     class Meta:
         ordering = ["-expense_date", "-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["employee", "status", "-expense_date"]),
+            models.Index(fields=["status", "-created_at"]),
+        ]
+        verbose_name = "Expense Claim"
+        verbose_name_plural = "Expense Claims"
 
     def __str__(self):
         return f"{self.employee.full_name} - {self.title} ({self.amount} {self.currency})"

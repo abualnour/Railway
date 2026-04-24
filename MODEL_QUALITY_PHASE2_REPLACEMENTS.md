@@ -1,3 +1,8 @@
+# Phase 2 Model Quality Replacement Files
+
+## employees/models.py
+
+```python
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from decimal import Decimal, ROUND_HALF_UP
@@ -3452,3 +3457,2229 @@ def build_employee_working_time_summary(employee):
         total_working_days=total_working_days,
         total_working_hours=total_working_hours.quantize(Decimal("0.01")),
     )
+```
+
+## operations/models.py
+
+```python
+from pathlib import Path
+from uuid import uuid4
+
+from django.conf import settings
+from django.core.validators import FileExtensionValidator
+from django.db import models
+from django.utils import timezone
+
+from employees.models import Employee
+from organization.models import Branch
+
+
+def branch_post_attachment_upload_to(instance, filename):
+    extension = Path(filename).suffix.lower()
+    branch_slug = (instance.branch.name or f"branch-{instance.branch_id}").strip().replace(" ", "-").lower()
+    unique_name = uuid4().hex
+    return f"operations/branch-posts/{branch_slug}/{unique_name}{extension}"
+
+
+class BranchPost(models.Model):
+    POST_TYPE_ANNOUNCEMENT = "announcement"
+    POST_TYPE_UPDATE = "update"
+    POST_TYPE_TASK = "task"
+    POST_TYPE_ISSUE = "issue"
+
+    POST_TYPE_CHOICES = [
+        (POST_TYPE_ANNOUNCEMENT, "Announcement"),
+        (POST_TYPE_UPDATE, "Update"),
+        (POST_TYPE_TASK, "Task"),
+        (POST_TYPE_ISSUE, "Issue"),
+    ]
+
+    STATUS_OPEN = "open"
+    STATUS_IN_PROGRESS = "in_progress"
+    STATUS_DONE = "done"
+    STATUS_APPROVED = "approved"
+    STATUS_REJECTED = "rejected"
+    STATUS_CLOSED = "closed"
+
+    STATUS_CHOICES = [
+        (STATUS_OPEN, "Open"),
+        (STATUS_IN_PROGRESS, "In Progress"),
+        (STATUS_DONE, "Done"),
+        (STATUS_APPROVED, "Approved"),
+        (STATUS_REJECTED, "Rejected"),
+        (STATUS_CLOSED, "Closed"),
+    ]
+
+    PRIORITY_LOW = "low"
+    PRIORITY_MEDIUM = "medium"
+    PRIORITY_HIGH = "high"
+    PRIORITY_URGENT = "urgent"
+
+    PRIORITY_CHOICES = [
+        (PRIORITY_LOW, "Low"),
+        (PRIORITY_MEDIUM, "Medium"),
+        (PRIORITY_HIGH, "High"),
+        (PRIORITY_URGENT, "Urgent"),
+    ]
+
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name="posts")
+    author_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="branch_posts",
+        null=True,
+        blank=True,
+    )
+    author_employee = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        related_name="authored_branch_posts",
+        null=True,
+        blank=True,
+    )
+    assignee = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        related_name="assigned_branch_posts",
+        null=True,
+        blank=True,
+    )
+    title = models.CharField(max_length=255)
+    body = models.TextField(blank=True)
+    post_type = models.CharField(max_length=20, choices=POST_TYPE_CHOICES, default=POST_TYPE_UPDATE)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_OPEN)
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, blank=True, default="")
+    is_pinned = models.BooleanField(default=False)
+    is_published = models.BooleanField(default=True)
+    attachment = models.FileField(
+        upload_to=branch_post_attachment_upload_to,
+        blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=[
+                    "pdf",
+                    "png",
+                    "jpg",
+                    "jpeg",
+                    "webp",
+                    "gif",
+                    "bmp",
+                    "txt",
+                    "doc",
+                    "docx",
+                    "xls",
+                    "xlsx",
+                ]
+            )
+        ],
+    )
+    due_date = models.DateField(null=True, blank=True)
+    requires_acknowledgement = models.BooleanField(default=False)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="approved_branch_posts",
+        null=True,
+        blank=True,
+    )
+    closed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-is_pinned", "-updated_at", "-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["branch", "status", "-updated_at"]),
+            models.Index(fields=["assignee", "status", "due_date"]),
+            models.Index(fields=["post_type", "status"]),
+        ]
+        verbose_name = "Branch Post"
+        verbose_name_plural = "Branch Posts"
+
+    def __str__(self):
+        return f"{self.branch.name} | {self.title}"
+
+    @property
+    def is_task_like(self):
+        return self.post_type in {self.POST_TYPE_TASK, self.POST_TYPE_ISSUE}
+
+    @property
+    def author_display(self):
+        if self.author_employee_id:
+            return self.author_employee.full_name
+        if self.author_user_id:
+            return self.author_user.get_full_name() or self.author_user.email
+        return "System"
+
+    def mark_approved(self, user=None):
+        self.status = self.STATUS_APPROVED
+        self.approved_at = timezone.now()
+        self.approved_by = user
+        self.closed_at = None
+
+    def mark_closed(self):
+        self.status = self.STATUS_CLOSED
+        self.closed_at = timezone.now()
+
+
+class BranchPostReply(models.Model):
+    post = models.ForeignKey(BranchPost, on_delete=models.CASCADE, related_name="replies")
+    author_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="branch_post_replies",
+        null=True,
+        blank=True,
+    )
+    author_employee = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        related_name="branch_post_replies",
+        null=True,
+        blank=True,
+    )
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+        indexes = [models.Index(fields=["post", "created_at"])]
+        verbose_name = "Branch Post Reply"
+        verbose_name_plural = "Branch Post Replies"
+
+    def __str__(self):
+        return f"Reply #{self.pk or 'new'} on {self.post_id}"
+
+    @property
+    def author_display(self):
+        if self.author_employee_id:
+            return self.author_employee.full_name
+        if self.author_user_id:
+            return self.author_user.get_full_name() or self.author_user.email
+        return "System"
+
+
+class BranchTaskAction(models.Model):
+    ACTION_CREATED = "created"
+    ACTION_STATUS_CHANGED = "status_changed"
+    ACTION_ASSIGNED = "assigned"
+    ACTION_REPLIED = "replied"
+    ACTION_ACKNOWLEDGED = "acknowledged"
+    ACTION_APPROVED = "approved"
+    ACTION_REJECTED = "rejected"
+    ACTION_PINNED = "pinned"
+    ACTION_UNPINNED = "unpinned"
+    ACTION_CLOSED = "closed"
+
+    ACTION_CHOICES = [
+        (ACTION_CREATED, "Created"),
+        (ACTION_STATUS_CHANGED, "Status Changed"),
+        (ACTION_ASSIGNED, "Assigned"),
+        (ACTION_REPLIED, "Replied"),
+        (ACTION_ACKNOWLEDGED, "Acknowledged"),
+        (ACTION_APPROVED, "Approved"),
+        (ACTION_REJECTED, "Rejected"),
+        (ACTION_PINNED, "Pinned"),
+        (ACTION_UNPINNED, "Unpinned"),
+        (ACTION_CLOSED, "Closed"),
+    ]
+
+    post = models.ForeignKey(BranchPost, on_delete=models.CASCADE, related_name="actions")
+    actor_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="branch_task_actions",
+        null=True,
+        blank=True,
+    )
+    actor_employee = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        related_name="branch_task_actions",
+        null=True,
+        blank=True,
+    )
+    action_type = models.CharField(max_length=30, choices=ACTION_CHOICES)
+    from_status = models.CharField(max_length=20, blank=True, default="")
+    to_status = models.CharField(max_length=20, blank=True, default="")
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["post", "-created_at"]),
+            models.Index(fields=["action_type", "-created_at"]),
+        ]
+        verbose_name = "Branch Task Action"
+        verbose_name_plural = "Branch Task Actions"
+
+    def __str__(self):
+        return f"{self.post_id} | {self.action_type}"
+
+    @property
+    def actor_display(self):
+        if self.actor_employee_id:
+            return self.actor_employee.full_name
+        if self.actor_user_id:
+            return self.actor_user.get_full_name() or self.actor_user.email
+        return "System"
+
+
+class BranchPostAcknowledgement(models.Model):
+    post = models.ForeignKey(BranchPost, on_delete=models.CASCADE, related_name="acknowledgements")
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="branch_post_acknowledgements")
+    acknowledged_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-acknowledged_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["post", "employee"],
+                name="ops_post_ack_post_employee_uniq",
+            )
+        ]
+        verbose_name = "Branch Post Acknowledgement"
+        verbose_name_plural = "Branch Post Acknowledgements"
+
+    def __str__(self):
+        return f"{self.post_id} | {self.employee.full_name}"
+```
+
+## organization/models.py
+
+```python
+from pathlib import Path
+from uuid import uuid4
+
+from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
+from django.db import models
+
+
+class TimeStampedModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
+def company_logo_upload_to(instance, filename):
+    extension = Path(filename).suffix.lower()
+    company_slug = (instance.name or f"company-{instance.pk or 'new'}").strip().replace(" ", "-").lower()
+    unique_name = uuid4().hex
+    return f"companies/logos/{company_slug}/{unique_name}{extension}"
+
+
+def branch_image_upload_to(instance, filename):
+    extension = Path(filename).suffix.lower()
+    company_name = instance.company.name if getattr(instance, "company_id", None) and instance.company_id else f"company-{getattr(instance, 'company_id', 'new')}"
+    company_slug = str(company_name).strip().replace(" ", "-").lower()
+    branch_slug = (instance.name or f"branch-{instance.pk or 'new'}").strip().replace(" ", "-").lower()
+    unique_name = uuid4().hex
+    return f"branches/images/{company_slug}/{branch_slug}/{unique_name}{extension}"
+
+
+class Company(TimeStampedModel):
+    name = models.CharField(max_length=255, unique=True)
+
+    # Current active business field
+    legal_name = models.CharField(max_length=255, blank=True)
+
+    # Compatibility-only legacy fields kept to match existing database safely.
+    # These are not part of the new core hierarchy design, but must remain
+    # until database cleanup is intentionally performed later.
+    email = models.EmailField(blank=True, default="")
+    phone = models.CharField(max_length=50, blank=True, default="")
+    address = models.TextField(blank=True, default="")
+    logo = models.ImageField(
+        upload_to=company_logo_upload_to,
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "webp"])],
+    )
+
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["name"]
+        indexes = [
+            models.Index(fields=["is_active", "name"]),
+        ]
+        verbose_name = "Company"
+        verbose_name_plural = "Companies"
+
+    def __str__(self):
+        return self.name
+
+
+class Branch(TimeStampedModel):
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.PROTECT,
+        related_name="branches",
+    )
+    name = models.CharField(max_length=255)
+    city = models.CharField(max_length=150, blank=True)
+    email = models.EmailField(blank=True)
+    attendance_latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(-90), MaxValueValidator(90)],
+    )
+    attendance_longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(-180), MaxValueValidator(180)],
+    )
+    attendance_radius_meters = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1)],
+        help_text="Allowed attendance radius in meters from the fixed branch point.",
+    )
+    image = models.ImageField(
+        upload_to=branch_image_upload_to,
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "webp"])],
+    )
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["company__name", "name"]
+        indexes = [
+            models.Index(fields=["company", "is_active", "name"]),
+            models.Index(fields=["city", "is_active"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "name"],
+                name="org_branch_company_name_uniq",
+            )
+        ]
+        verbose_name = "Branch"
+        verbose_name_plural = "Branches"
+
+    def __str__(self):
+        return f"{self.company.name} - {self.name}"
+
+    def clean(self):
+        errors = {}
+
+        has_latitude = self.attendance_latitude is not None
+        has_longitude = self.attendance_longitude is not None
+        has_radius = self.attendance_radius_meters is not None
+
+        if has_latitude or has_longitude or has_radius:
+            if not (has_latitude and has_longitude and has_radius):
+                message = "Latitude, longitude, and attendance radius must all be set together."
+                if not has_latitude:
+                    errors["attendance_latitude"] = message
+                if not has_longitude:
+                    errors["attendance_longitude"] = message
+                if not has_radius:
+                    errors["attendance_radius_meters"] = message
+
+        if has_latitude and not (-90 <= self.attendance_latitude <= 90):
+            errors["attendance_latitude"] = "Attendance latitude must stay between -90 and 90."
+
+        if has_longitude and not (-180 <= self.attendance_longitude <= 180):
+            errors["attendance_longitude"] = "Attendance longitude must stay between -180 and 180."
+
+        if has_radius and self.attendance_radius_meters <= 0:
+            errors["attendance_radius_meters"] = "Attendance radius must be greater than zero."
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    @property
+    def has_attendance_location_config(self):
+        return (
+            self.attendance_latitude is not None
+            and self.attendance_longitude is not None
+            and self.attendance_radius_meters is not None
+        )
+
+
+class Department(TimeStampedModel):
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.PROTECT,
+        related_name="departments",
+    )
+    # Compatibility-only field.
+    # Must remain for database safety, but it is NOT part of the active hierarchy.
+    branch = models.ForeignKey(
+        Branch,
+        on_delete=models.PROTECT,
+        related_name="legacy_departments",
+        null=True,
+        blank=True,
+    )
+    name = models.CharField(max_length=255)
+    code = models.CharField(max_length=50, blank=True)
+    manager_name = models.CharField(max_length=255, blank=True)
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["company__name", "name"]
+        indexes = [
+            models.Index(fields=["company", "is_active", "name"]),
+            models.Index(fields=["branch", "is_active"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "name"],
+                name="org_dept_company_name_uniq",
+            )
+        ]
+        verbose_name = "Department"
+        verbose_name_plural = "Departments"
+
+    def __str__(self):
+        return f"{self.company.name} - {self.name}"
+
+    def clean(self):
+        errors = {}
+
+        if self.branch and self.branch.company_id != self.company_id:
+            errors["branch"] = "Legacy branch must belong to the same company as the department."
+
+        if errors:
+            raise ValidationError(errors)
+
+
+class Section(TimeStampedModel):
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.PROTECT,
+        related_name="sections",
+    )
+    name = models.CharField(max_length=255)
+    code = models.CharField(max_length=50, blank=True)
+    supervisor_name = models.CharField(max_length=255, blank=True)
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["department__company__name", "department__name", "name"]
+        indexes = [
+            models.Index(fields=["department", "is_active", "name"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["department", "name"],
+                name="org_section_dept_name_uniq",
+            )
+        ]
+        verbose_name = "Section"
+        verbose_name_plural = "Sections"
+
+    def __str__(self):
+        return f"{self.department.name} - {self.name}"
+
+    @property
+    def company(self):
+        return self.department.company
+
+
+class JobTitle(TimeStampedModel):
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.PROTECT,
+        related_name="job_titles",
+    )
+    section = models.ForeignKey(
+        Section,
+        on_delete=models.PROTECT,
+        related_name="job_titles",
+        null=True,
+        blank=True,
+    )
+    name = models.CharField(max_length=255)
+    code = models.CharField(max_length=50, blank=True)
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = [
+            "section__department__company__name",
+            "section__department__name",
+            "section__name",
+            "name",
+        ]
+        indexes = [
+            models.Index(fields=["department", "is_active", "name"]),
+            models.Index(fields=["section", "is_active", "name"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["section", "name"],
+                name="org_jobtitle_section_name_uniq",
+            )
+        ]
+        verbose_name = "Job Title"
+        verbose_name_plural = "Job Titles"
+
+    def __str__(self):
+        if self.section:
+            return f"{self.section.name} - {self.name}"
+        return self.name
+
+    @property
+    def company(self):
+        if self.section:
+            return self.section.department.company
+        return self.department.company
+
+    def clean(self):
+        errors = {}
+
+        if not self.section:
+            errors["section"] = "Job title must be linked to a section."
+
+        if self.section:
+            self.department = self.section.department
+
+        if self.department and self.section and self.section.department_id != self.department_id:
+            errors["section"] = "Selected section must belong to the selected department."
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        if self.section_id:
+            self.department = self.section.department
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+
+def branch_document_upload_to(instance, filename):
+    extension = Path(filename).suffix.lower()
+    branch_slug = (instance.branch.name or f"branch-{instance.branch_id}").strip().replace(" ", "-").lower()
+    company_slug = (instance.branch.company.name or f"company-{instance.branch.company_id}").strip().replace(" ", "-").lower()
+    unique_name = uuid4().hex
+    return f"branches/documents/{company_slug}/{branch_slug}/{unique_name}{extension}"
+
+
+class BranchDocumentRequirement(TimeStampedModel):
+    DOCUMENT_TYPE_CHOICES = [
+        ("legal", "Legal Document"),
+        ("ad_license", "Ad License"),
+        ("store_license", "Store License"),
+        ("municipality", "Municipality / Permit"),
+        ("lease", "Lease / Contract"),
+        ("civil_defense", "Civil Defense / Safety"),
+        ("insurance", "Insurance"),
+        ("service", "Service Contract"),
+        ("other", "Other"),
+    ]
+
+    branch = models.ForeignKey(
+        Branch,
+        on_delete=models.CASCADE,
+        related_name="document_requirements",
+    )
+    document_type = models.CharField(
+        max_length=30,
+        choices=DOCUMENT_TYPE_CHOICES,
+        default="other",
+    )
+    title = models.CharField(max_length=255, blank=True)
+    notes = models.TextField(blank=True)
+    is_mandatory = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["branch__company__name", "branch__name", "document_type", "title", "id"]
+        indexes = [
+            models.Index(fields=["branch", "is_active", "document_type"]),
+            models.Index(fields=["is_mandatory", "is_active"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["branch", "document_type"],
+                name="org_branch_doc_req_type_uniq",
+            )
+        ]
+        verbose_name = "Branch Document Requirement"
+        verbose_name_plural = "Branch Document Requirements"
+
+    def __str__(self):
+        return f"{self.branch.name} - {self.display_title}"
+
+    @property
+    def display_title(self):
+        return (self.title or self.get_document_type_display()).strip()
+
+
+
+class BranchDocument(TimeStampedModel):
+    DOCUMENT_TYPE_LEGAL = "legal"
+    DOCUMENT_TYPE_AD_LICENSE = "ad_license"
+    DOCUMENT_TYPE_STORE_LICENSE = "store_license"
+    DOCUMENT_TYPE_MUNICIPALITY = "municipality"
+    DOCUMENT_TYPE_LEASE = "lease"
+    DOCUMENT_TYPE_CIVIL_DEFENSE = "civil_defense"
+    DOCUMENT_TYPE_INSURANCE = "insurance"
+    DOCUMENT_TYPE_SERVICE = "service"
+    DOCUMENT_TYPE_OTHER = "other"
+
+    DOCUMENT_TYPE_CHOICES = [
+        (DOCUMENT_TYPE_LEGAL, "Legal Document"),
+        (DOCUMENT_TYPE_AD_LICENSE, "Ad License"),
+        (DOCUMENT_TYPE_STORE_LICENSE, "Store License"),
+        (DOCUMENT_TYPE_MUNICIPALITY, "Municipality / Permit"),
+        (DOCUMENT_TYPE_LEASE, "Lease / Contract"),
+        (DOCUMENT_TYPE_CIVIL_DEFENSE, "Civil Defense / Safety"),
+        (DOCUMENT_TYPE_INSURANCE, "Insurance"),
+        (DOCUMENT_TYPE_SERVICE, "Service Contract"),
+        (DOCUMENT_TYPE_OTHER, "Other"),
+    ]
+
+    branch = models.ForeignKey(
+        Branch,
+        on_delete=models.CASCADE,
+        related_name="documents",
+    )
+    title = models.CharField(max_length=255)
+    document_type = models.CharField(
+        max_length=30,
+        choices=DOCUMENT_TYPE_CHOICES,
+        default=DOCUMENT_TYPE_OTHER,
+    )
+    reference_number = models.CharField(max_length=120, blank=True)
+    issue_date = models.DateField(null=True, blank=True)
+    expiry_date = models.DateField(null=True, blank=True)
+    is_required = models.BooleanField(default=False)
+    file = models.FileField(
+        upload_to=branch_document_upload_to,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=[
+                    "pdf",
+                    "doc",
+                    "docx",
+                    "xls",
+                    "xlsx",
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "webp",
+                    "txt",
+                ]
+            )
+        ],
+    )
+    description = models.TextField(blank=True)
+    uploaded_by = models.CharField(max_length=150, blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["branch", "document_type", "-created_at"]),
+            models.Index(fields=["expiry_date", "is_required"]),
+        ]
+        verbose_name = "Branch Document"
+        verbose_name_plural = "Branch Documents"
+
+    def __str__(self):
+        return self.title or self.filename
+
+    def clean(self):
+        errors = {}
+
+        if self.issue_date and self.expiry_date and self.expiry_date < self.issue_date:
+            errors["expiry_date"] = "Expiry date cannot be earlier than issue date."
+
+        if errors:
+            raise ValidationError(errors)
+
+    @property
+    def filename(self):
+        return Path(self.file.name).name if self.file else ""
+
+    @property
+    def days_until_expiry(self):
+        if not self.expiry_date:
+            return None
+        from django.utils import timezone
+        return (self.expiry_date - timezone.localdate()).days
+
+    @property
+    def is_expired(self):
+        days = self.days_until_expiry
+        return days is not None and days < 0
+
+    @property
+    def is_expiring_soon(self):
+        days = self.days_until_expiry
+        return days is not None and 0 <= days <= 30
+
+    @property
+    def compliance_status_label(self):
+        if not self.expiry_date:
+            return "No Expiry Date"
+        if self.is_expired:
+            return "Expired"
+        if self.is_expiring_soon:
+            return "Expiring Soon"
+        return "Valid"
+
+    @property
+    def compliance_badge_class(self):
+        if not self.expiry_date:
+            return "badge"
+        if self.is_expired:
+            return "badge-danger"
+        if self.is_expiring_soon:
+            return "badge-primary"
+        return "badge-success"
+
+    def save(self, *args, **kwargs):
+        self.title = (self.title or "").strip()
+        self.reference_number = (self.reference_number or "").strip()
+        self.description = (self.description or "").strip()
+        self.full_clean()
+        return super().save(*args, **kwargs)
+```
+
+## payroll/models.py
+
+```python
+from decimal import Decimal
+
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from django.db import models
+from django.utils import timezone
+
+from employees.models import Employee
+from organization.models import Company
+
+
+class PayrollProfile(models.Model):
+    STATUS_ACTIVE = "active"
+    STATUS_HOLD = "hold"
+    STATUS_INACTIVE = "inactive"
+
+    STATUS_CHOICES = [
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_HOLD, "On Hold"),
+        (STATUS_INACTIVE, "Inactive"),
+    ]
+
+    employee = models.OneToOneField(Employee, on_delete=models.CASCADE, related_name="payroll_profile")
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="payroll_profiles")
+    base_salary = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.00"))])
+    housing_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    transport_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    fixed_deduction = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    pifss_employee_rate = models.DecimalField(max_digits=5, decimal_places=4, default=Decimal("0.0800"), validators=[MinValueValidator(Decimal("0.0000")), MaxValueValidator(Decimal("1.0000"))])
+    pifss_employer_rate = models.DecimalField(max_digits=5, decimal_places=4, default=Decimal("0.1150"), validators=[MinValueValidator(Decimal("0.0000")), MaxValueValidator(Decimal("1.0000"))])
+    bank_name = models.CharField(max_length=120, blank=True)
+    iban = models.CharField(
+        max_length=64,
+        blank=True,
+        validators=[
+            RegexValidator(
+                regex=r"^[A-Z]{2}[0-9A-Z]{13,32}$",
+                message="IBAN must use uppercase letters and numbers without spaces.",
+            )
+        ],
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["employee__full_name"]
+        indexes = [
+            models.Index(fields=["company", "status"]),
+            models.Index(fields=["employee", "status"]),
+        ]
+        verbose_name = "Payroll Profile"
+        verbose_name_plural = "Payroll Profiles"
+
+    def __str__(self):
+        return f"{self.employee.full_name} payroll"
+
+    @property
+    def gross_salary(self):
+        return (self.base_salary or Decimal("0.00")) + (self.housing_allowance or Decimal("0.00")) + (self.transport_allowance or Decimal("0.00"))
+
+    @property
+    def estimated_net_salary(self):
+        pifss_employee_deduction = Decimal("0.00")
+        if getattr(self.employee, "is_kuwaiti_national", False):
+            pifss_employee_deduction = (
+                (self.base_salary or Decimal("0.00")) * (self.pifss_employee_rate or Decimal("0.0000"))
+            ).quantize(Decimal("0.01"))
+        return self.gross_salary - (self.fixed_deduction or Decimal("0.00")) - pifss_employee_deduction
+
+
+class PayrollObligation(models.Model):
+    TYPE_LOAN = "loan"
+    TYPE_ADVANCE = "advance"
+
+    STATUS_ACTIVE = "active"
+    STATUS_COMPLETED = "completed"
+    STATUS_HOLD = "hold"
+
+    TYPE_CHOICES = [
+        (TYPE_LOAN, "Loan"),
+        (TYPE_ADVANCE, "Advance"),
+    ]
+    STATUS_CHOICES = [
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_COMPLETED, "Completed"),
+        (STATUS_HOLD, "On Hold"),
+    ]
+
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="payroll_obligations")
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="payroll_obligations")
+    title = models.CharField(max_length=150)
+    obligation_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    principal_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.00"))])
+    installment_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.00"))])
+    total_installments = models.PositiveIntegerField(default=1)
+    paid_installments = models.PositiveIntegerField(default=0)
+    start_date = models.DateField(default=timezone.localdate)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
+    notes = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["employee__full_name", "-created_at"]
+        indexes = [
+            models.Index(fields=["employee", "status"]),
+            models.Index(fields=["company", "status", "start_date"]),
+        ]
+        verbose_name = "Payroll Obligation"
+        verbose_name_plural = "Payroll Obligations"
+
+    def __str__(self):
+        return f"{self.employee.full_name} - {self.title}"
+
+    @property
+    def remaining_installments(self):
+        return max(self.total_installments - self.paid_installments, 0)
+
+    @property
+    def remaining_balance(self):
+        return max(
+            (self.principal_amount or Decimal("0.00")) - (Decimal(self.paid_installments) * (self.installment_amount or Decimal("0.00"))),
+            Decimal("0.00"),
+        )
+
+    @property
+    def can_apply_installment(self):
+        return self.status == self.STATUS_ACTIVE and self.remaining_installments > 0
+
+
+class PayrollBonus(models.Model):
+    TYPE_PERFORMANCE = "performance"
+    TYPE_COMMISSION = "commission"
+    TYPE_SEASONAL = "seasonal"
+    TYPE_MANUAL = "manual"
+
+    STATUS_ACTIVE = "active"
+    STATUS_COMPLETED = "completed"
+    STATUS_HOLD = "hold"
+
+    TYPE_CHOICES = [
+        (TYPE_PERFORMANCE, "Performance"),
+        (TYPE_COMMISSION, "Commission"),
+        (TYPE_SEASONAL, "Seasonal"),
+        (TYPE_MANUAL, "Manual"),
+    ]
+    STATUS_CHOICES = [
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_COMPLETED, "Completed"),
+        (STATUS_HOLD, "On Hold"),
+    ]
+
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="payroll_bonuses")
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="payroll_bonuses")
+    title = models.CharField(max_length=150)
+    bonus_type = models.CharField(max_length=30, choices=TYPE_CHOICES, default=TYPE_MANUAL)
+    awarded_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.00"))])
+    paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    award_date = models.DateField(default=timezone.localdate)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
+    notes = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["employee__full_name", "-award_date", "-id"]
+        indexes = [
+            models.Index(fields=["employee", "status"]),
+            models.Index(fields=["company", "status", "-award_date"]),
+        ]
+        verbose_name = "Payroll Bonus"
+        verbose_name_plural = "Payroll Bonuses"
+
+    def __str__(self):
+        return f"{self.employee.full_name} - {self.title}"
+
+    @property
+    def remaining_balance(self):
+        return max(
+            (self.awarded_amount or Decimal("0.00")) - (self.paid_amount or Decimal("0.00")),
+            Decimal("0.00"),
+        )
+
+    @property
+    def can_apply_balance(self):
+        return self.status == self.STATUS_ACTIVE and self.remaining_balance > Decimal("0.00")
+
+
+class PayrollPeriod(models.Model):
+    STATUS_DRAFT = "draft"
+    STATUS_REVIEW = "review"
+    STATUS_APPROVED = "approved"
+    STATUS_PAID = "paid"
+
+    STATUS_CHOICES = [
+        (STATUS_DRAFT, "Draft"),
+        (STATUS_REVIEW, "In Review"),
+        (STATUS_APPROVED, "Approved"),
+        (STATUS_PAID, "Paid"),
+    ]
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="payroll_periods")
+    title = models.CharField(max_length=150)
+    period_start = models.DateField()
+    period_end = models.DateField()
+    pay_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
+    notes = models.TextField(blank=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-period_start", "-id"]
+        indexes = [
+            models.Index(fields=["company", "status", "-period_start"]),
+            models.Index(fields=["pay_date", "status"]),
+        ]
+        verbose_name = "Payroll Period"
+        verbose_name_plural = "Payroll Periods"
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def can_move_to_review(self):
+        return self.status == self.STATUS_DRAFT
+
+    @property
+    def can_approve(self):
+        return self.status == self.STATUS_REVIEW
+
+    @property
+    def can_mark_paid(self):
+        return self.status == self.STATUS_APPROVED
+
+    @property
+    def can_reopen(self):
+        return self.status in {self.STATUS_REVIEW, self.STATUS_APPROVED, self.STATUS_PAID}
+
+
+class PayrollLine(models.Model):
+    payroll_period = models.ForeignKey(PayrollPeriod, on_delete=models.CASCADE, related_name="lines")
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="payroll_lines")
+    base_salary = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    allowances = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    deductions = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    overtime_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    pifss_employee_deduction = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    pifss_employer_contribution = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    net_pay = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    notes = models.CharField(max_length=255, blank=True)
+    snapshot_payload = models.JSONField(null=True, blank=True)
+    snapshot_taken_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["employee__full_name"]
+        indexes = [
+            models.Index(fields=["payroll_period", "employee"]),
+            models.Index(fields=["employee", "-created_at"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["payroll_period", "employee"],
+                name="payroll_line_period_employee_uniq",
+            )
+        ]
+        verbose_name = "Payroll Line"
+        verbose_name_plural = "Payroll Lines"
+
+    def __str__(self):
+        return f"{self.employee.full_name} - {self.payroll_period.title}"
+
+    @property
+    def gross_total(self):
+        return (
+            (self.base_salary or Decimal("0.00"))
+            + (self.allowances or Decimal("0.00"))
+            + (self.overtime_amount or Decimal("0.00"))
+            + self.adjustment_allowances_total
+        )
+
+    @property
+    def adjustment_allowances_total(self):
+        adjustments_manager = getattr(self, "adjustments", None)
+        if adjustments_manager is None:
+            return Decimal("0.00")
+        total = Decimal("0.00")
+        for adjustment in adjustments_manager.all():
+            if adjustment.adjustment_type == PayrollAdjustment.TYPE_ALLOWANCE:
+                total += adjustment.amount or Decimal("0.00")
+        return total
+
+    @property
+    def adjustment_deductions_total(self):
+        adjustments_manager = getattr(self, "adjustments", None)
+        if adjustments_manager is None:
+            return Decimal("0.00")
+        total = Decimal("0.00")
+        for adjustment in adjustments_manager.all():
+            if adjustment.adjustment_type == PayrollAdjustment.TYPE_DEDUCTION:
+                total += adjustment.amount or Decimal("0.00")
+        return total
+
+    @property
+    def total_deductions_value(self):
+        return (
+            (self.deductions or Decimal("0.00"))
+            + (self.pifss_employee_deduction or Decimal("0.00"))
+            + self.adjustment_deductions_total
+        )
+
+    def calculate_net_pay(self):
+        return self.gross_total - self.total_deductions_value
+
+    @property
+    def has_snapshot(self):
+        return bool(self.snapshot_payload and self.snapshot_taken_at)
+
+
+class PayrollAdjustment(models.Model):
+    TYPE_ALLOWANCE = "allowance"
+    TYPE_DEDUCTION = "deduction"
+
+    TYPE_CHOICES = [
+        (TYPE_ALLOWANCE, "Allowance"),
+        (TYPE_DEDUCTION, "Deduction"),
+    ]
+
+    payroll_line = models.ForeignKey(PayrollLine, on_delete=models.CASCADE, related_name="adjustments")
+    payroll_obligation = models.ForeignKey("PayrollObligation", on_delete=models.SET_NULL, related_name="generated_adjustments", null=True, blank=True)
+    payroll_bonus = models.ForeignKey("PayrollBonus", on_delete=models.SET_NULL, related_name="generated_adjustments", null=True, blank=True)
+    title = models.CharField(max_length=120)
+    adjustment_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.00"))])
+    notes = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["adjustment_type", "title", "id"]
+        indexes = [
+            models.Index(fields=["payroll_line", "adjustment_type"]),
+            models.Index(fields=["payroll_obligation"]),
+            models.Index(fields=["payroll_bonus"]),
+        ]
+        verbose_name = "Payroll Adjustment"
+        verbose_name_plural = "Payroll Adjustments"
+
+    def __str__(self):
+        return f"{self.title} - {self.payroll_line.employee.full_name}"
+
+
+def current_payroll_month_label():
+    return timezone.localdate().strftime("%B %Y")
+```
+
+## performance/models.py
+
+```python
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.utils import timezone
+
+from employees.models import Employee
+from organization.models import Company
+
+
+class ReviewCycle(models.Model):
+    STATUS_DRAFT = "draft"
+    STATUS_ACTIVE = "active"
+    STATUS_CLOSED = "closed"
+
+    STATUS_CHOICES = [
+        (STATUS_DRAFT, "Draft"),
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_CLOSED, "Closed"),
+    ]
+
+    title = models.CharField(max_length=255)
+    period_start = models.DateField()
+    period_end = models.DateField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.PROTECT,
+        related_name="review_cycles",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-period_start", "-id"]
+        indexes = [
+            models.Index(fields=["company", "status", "-period_start"]),
+        ]
+        verbose_name = "Review Cycle"
+        verbose_name_plural = "Review Cycles"
+
+    def __str__(self):
+        return f"{self.title} - {self.company.name}"
+
+    def clean(self):
+        errors = {}
+        if self.period_end and self.period_start and self.period_end < self.period_start:
+            errors["period_end"] = "Review cycle end date cannot be earlier than the start date."
+        if errors:
+            raise ValidationError(errors)
+
+    @property
+    def is_locked(self):
+        return self.status == self.STATUS_CLOSED
+
+    def clone_as_draft(self):
+        return ReviewCycle.objects.create(
+            title=f"{self.title} (Copy)",
+            period_start=self.period_start,
+            period_end=self.period_end,
+            status=self.STATUS_DRAFT,
+            company=self.company,
+        )
+
+
+class PerformanceReview(models.Model):
+    RATING_UNSATISFACTORY = "1"
+    RATING_NEEDS_IMPROVEMENT = "2"
+    RATING_MEETS_EXPECTATIONS = "3"
+    RATING_EXCEEDS_EXPECTATIONS = "4"
+    RATING_OUTSTANDING = "5"
+
+    OVERALL_RATING_CHOICES = [
+        (RATING_UNSATISFACTORY, "1 - Unsatisfactory"),
+        (RATING_NEEDS_IMPROVEMENT, "2 - Needs Improvement"),
+        (RATING_MEETS_EXPECTATIONS, "3 - Meets Expectations"),
+        (RATING_EXCEEDS_EXPECTATIONS, "4 - Exceeds Expectations"),
+        (RATING_OUTSTANDING, "5 - Outstanding"),
+    ]
+
+    STATUS_DRAFT = "draft"
+    STATUS_SUBMITTED = "submitted"
+    STATUS_ACKNOWLEDGED = "acknowledged"
+
+    STATUS_CHOICES = [
+        (STATUS_DRAFT, "Draft"),
+        (STATUS_SUBMITTED, "Submitted"),
+        (STATUS_ACKNOWLEDGED, "Acknowledged"),
+    ]
+
+    cycle = models.ForeignKey(
+        ReviewCycle,
+        on_delete=models.CASCADE,
+        related_name="performance_reviews",
+    )
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="performance_reviews",
+    )
+    reviewer = models.ForeignKey(
+        Employee,
+        on_delete=models.PROTECT,
+        related_name="reviews_given",
+    )
+    overall_rating = models.CharField(
+        max_length=2,
+        choices=OVERALL_RATING_CHOICES,
+        default=RATING_MEETS_EXPECTATIONS,
+    )
+    strengths = models.TextField()
+    areas_for_improvement = models.TextField()
+    goals_next_period = models.TextField()
+    employee_comments = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    acknowledged_at = models.DateTimeField(null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="created_performance_reviews",
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-cycle__period_start", "-updated_at", "-id"]
+        indexes = [
+            models.Index(fields=["cycle", "status"]),
+            models.Index(fields=["employee", "status"]),
+            models.Index(fields=["reviewer", "status"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["cycle", "employee"],
+                name="perf_review_cycle_employee_uniq",
+            )
+        ]
+        verbose_name = "Performance Review"
+        verbose_name_plural = "Performance Reviews"
+
+    def __str__(self):
+        return f"{self.employee.full_name} - {self.cycle.title}"
+
+    def clean(self):
+        errors = {}
+        if self.cycle_id and self.employee_id and self.employee.company_id != self.cycle.company_id:
+            errors["cycle"] = "The selected review cycle must belong to the employee's company."
+        if self.employee_id and self.reviewer_id and self.employee_id == self.reviewer_id:
+            errors["reviewer"] = "Reviewer cannot be the same employee being reviewed."
+        if self.reviewer_id and self.employee_id and self.reviewer.company_id != self.employee.company_id:
+            errors["reviewer"] = "Reviewer must belong to the same company as the employee."
+        if errors:
+            raise ValidationError(errors)
+
+    def submit(self):
+        self.status = self.STATUS_SUBMITTED
+        self.submitted_at = timezone.now()
+        self.save(update_fields=["status", "submitted_at", "updated_at"])
+
+    def acknowledge(self, *, employee_comments=""):
+        self.status = self.STATUS_ACKNOWLEDGED
+        if employee_comments:
+            self.employee_comments = employee_comments
+        self.acknowledged_at = timezone.now()
+        self.save(update_fields=["status", "employee_comments", "acknowledged_at", "updated_at"])
+
+    @property
+    def is_locked(self):
+        return bool(self.cycle_id and self.cycle.status == ReviewCycle.STATUS_CLOSED)
+
+
+class PerformanceReviewComment(models.Model):
+    review = models.ForeignKey(
+        PerformanceReview,
+        on_delete=models.CASCADE,
+        related_name="comments",
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="performance_review_comments",
+    )
+    note = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+        indexes = [models.Index(fields=["review", "created_at"])]
+        verbose_name = "Performance Review Comment"
+        verbose_name_plural = "Performance Review Comments"
+
+    def __str__(self):
+        return f"{self.author_display_name} - {self.review}"
+
+    @property
+    def author_display_name(self):
+        return self.author.get_full_name() or getattr(self.author, "username", "System")
+```
+
+## recruitment/models.py
+
+```python
+from pathlib import Path
+from uuid import uuid4
+
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator, MaxValueValidator
+from django.db import models
+from django.utils import timezone
+
+from employees.models import Employee
+from organization.models import Branch, Department
+
+
+def candidate_cv_upload_to(instance, filename):
+    extension = Path(filename).suffix.lower()
+    posting_slug = (instance.job_posting.title or f"job-{instance.job_posting_id}").strip().replace(" ", "-").lower()
+    candidate_slug = (instance.full_name or f"candidate-{instance.pk or 'new'}").strip().replace(" ", "-").lower()
+    unique_name = uuid4().hex
+    return f"recruitment/cvs/{posting_slug}/{candidate_slug}/{unique_name}{extension}"
+
+
+def candidate_attachment_upload_to(instance, filename):
+    extension = Path(filename).suffix.lower()
+    posting_slug = (instance.candidate.job_posting.title or f"job-{instance.candidate.job_posting_id}").strip().replace(" ", "-").lower()
+    candidate_slug = (instance.candidate.full_name or f"candidate-{instance.candidate_id}").strip().replace(" ", "-").lower()
+    unique_name = uuid4().hex
+    return f"recruitment/attachments/{posting_slug}/{candidate_slug}/{unique_name}{extension}"
+
+
+def candidate_offer_letter_upload_to(instance, filename):
+    extension = Path(filename).suffix.lower()
+    posting_slug = (instance.job_posting.title or f"job-{instance.job_posting_id}").strip().replace(" ", "-").lower()
+    candidate_slug = (instance.full_name or f"candidate-{instance.pk or 'new'}").strip().replace(" ", "-").lower()
+    unique_name = uuid4().hex
+    return f"recruitment/offers/{posting_slug}/{candidate_slug}/{unique_name}{extension}"
+
+
+class JobPosting(models.Model):
+    STATUS_DRAFT = "draft"
+    STATUS_OPEN = "open"
+    STATUS_CLOSED = "closed"
+
+    STATUS_CHOICES = [
+        (STATUS_DRAFT, "Draft"),
+        (STATUS_OPEN, "Open"),
+        (STATUS_CLOSED, "Closed"),
+    ]
+
+    title = models.CharField(max_length=255)
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.PROTECT,
+        related_name="job_postings",
+    )
+    branch = models.ForeignKey(
+        Branch,
+        on_delete=models.PROTECT,
+        related_name="job_postings",
+    )
+    description = models.TextField()
+    requirements = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
+    posted_date = models.DateField(default=timezone.localdate)
+    closing_date = models.DateField(null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="created_job_postings",
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-posted_date", "-created_at", "title"]
+        indexes = [
+            models.Index(fields=["status", "-posted_date"]),
+            models.Index(fields=["department", "status"]),
+            models.Index(fields=["branch", "status"]),
+        ]
+        verbose_name = "Job Posting"
+        verbose_name_plural = "Job Postings"
+
+    def __str__(self):
+        return self.title
+
+    def clean(self):
+        errors = {}
+        if self.branch_id and self.department_id and self.branch.company_id != self.department.company_id:
+            errors["branch"] = "Selected branch must belong to the same company as the department."
+        if self.closing_date and self.posted_date and self.closing_date < self.posted_date:
+            errors["closing_date"] = "Closing date cannot be earlier than the posted date."
+        if errors:
+            raise ValidationError(errors)
+
+
+class Candidate(models.Model):
+    STATUS_APPLIED = "applied"
+    STATUS_SCREENING = "screening"
+    STATUS_INTERVIEW = "interview"
+    STATUS_OFFER = "offer"
+    STATUS_HIRED = "hired"
+    STATUS_REJECTED = "rejected"
+
+    STATUS_CHOICES = [
+        (STATUS_APPLIED, "Applied"),
+        (STATUS_SCREENING, "Screening"),
+        (STATUS_INTERVIEW, "Interview"),
+        (STATUS_OFFER, "Offer"),
+        (STATUS_HIRED, "Hired"),
+        (STATUS_REJECTED, "Rejected"),
+    ]
+
+    OFFER_STATUS_NOT_SENT = "not_sent"
+    OFFER_STATUS_PENDING = "pending"
+    OFFER_STATUS_ACCEPTED = "accepted"
+    OFFER_STATUS_DECLINED = "declined"
+
+    OFFER_STATUS_CHOICES = [
+        (OFFER_STATUS_NOT_SENT, "Not Sent"),
+        (OFFER_STATUS_PENDING, "Pending Response"),
+        (OFFER_STATUS_ACCEPTED, "Accepted"),
+        (OFFER_STATUS_DECLINED, "Declined"),
+    ]
+
+    job_posting = models.ForeignKey(
+        JobPosting,
+        on_delete=models.CASCADE,
+        related_name="candidates",
+    )
+    full_name = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone = models.CharField(max_length=50)
+    nationality = models.CharField(max_length=100)
+    cv_file = models.FileField(
+        upload_to=candidate_cv_upload_to,
+        validators=[
+            FileExtensionValidator(allowed_extensions=["pdf", "doc", "docx"])
+        ],
+    )
+    cover_letter = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_APPLIED)
+    applied_at = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True)
+    offer_letter_file = models.FileField(
+        upload_to=candidate_offer_letter_upload_to,
+        null=True,
+        blank=True,
+        validators=[
+            FileExtensionValidator(allowed_extensions=["pdf", "doc", "docx"])
+        ],
+    )
+    offer_sent_date = models.DateField(null=True, blank=True)
+    offer_expiry_date = models.DateField(null=True, blank=True)
+    offer_status = models.CharField(
+        max_length=20,
+        choices=OFFER_STATUS_CHOICES,
+        default=OFFER_STATUS_NOT_SENT,
+    )
+    offer_decision_at = models.DateTimeField(null=True, blank=True)
+    offer_decision_note = models.TextField(blank=True)
+    recruiter_owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="owned_recruitment_candidates",
+        null=True,
+        blank=True,
+    )
+    hired_employee = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        related_name="recruitment_candidates",
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["-applied_at", "full_name"]
+        indexes = [
+            models.Index(fields=["job_posting", "status", "-applied_at"]),
+            models.Index(fields=["recruiter_owner", "status"]),
+            models.Index(fields=["offer_status", "offer_expiry_date"]),
+        ]
+        verbose_name = "Candidate"
+        verbose_name_plural = "Candidates"
+
+    def __str__(self):
+        return f"{self.full_name} - {self.job_posting.title}"
+
+    @property
+    def latest_interview(self):
+        return self.interviews.order_by("-scheduled_at", "-id").first()
+
+    @property
+    def days_in_pipeline(self):
+        applied_date = timezone.localtime(self.applied_at).date() if self.applied_at else timezone.localdate()
+        return max((timezone.localdate() - applied_date).days, 0)
+
+    def clean(self):
+        errors = {}
+        if self.offer_sent_date and self.offer_expiry_date and self.offer_expiry_date < self.offer_sent_date:
+            errors["offer_expiry_date"] = "Offer expiry date cannot be earlier than the offer sent date."
+        if self.offer_status in {self.OFFER_STATUS_ACCEPTED, self.OFFER_STATUS_DECLINED} and not self.offer_decision_at:
+            self.offer_decision_at = timezone.now()
+        if errors:
+            raise ValidationError(errors)
+
+
+class CandidateStageAction(models.Model):
+    candidate = models.ForeignKey(
+        Candidate,
+        on_delete=models.CASCADE,
+        related_name="stage_actions",
+    )
+    stage = models.CharField(max_length=50)
+    action_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="candidate_stage_actions",
+    )
+    note = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["candidate", "-created_at"]),
+            models.Index(fields=["stage", "-created_at"]),
+        ]
+        verbose_name = "Candidate Stage Action"
+        verbose_name_plural = "Candidate Stage Actions"
+
+    def __str__(self):
+        return f"{self.candidate.full_name} - {self.stage}"
+
+
+class CandidateInterview(models.Model):
+    INTERVIEW_TYPE_PHONE = "phone"
+    INTERVIEW_TYPE_VIDEO = "video"
+    INTERVIEW_TYPE_IN_PERSON = "in_person"
+
+    INTERVIEW_TYPE_CHOICES = [
+        (INTERVIEW_TYPE_PHONE, "Phone"),
+        (INTERVIEW_TYPE_VIDEO, "Video"),
+        (INTERVIEW_TYPE_IN_PERSON, "In Person"),
+    ]
+
+    RECOMMENDATION_STRONG_YES = "strong_yes"
+    RECOMMENDATION_YES = "yes"
+    RECOMMENDATION_HOLD = "hold"
+    RECOMMENDATION_NO = "no"
+
+    RECOMMENDATION_CHOICES = [
+        (RECOMMENDATION_STRONG_YES, "Strong Yes"),
+        (RECOMMENDATION_YES, "Yes"),
+        (RECOMMENDATION_HOLD, "Hold"),
+        (RECOMMENDATION_NO, "No"),
+    ]
+
+    candidate = models.ForeignKey(
+        Candidate,
+        on_delete=models.CASCADE,
+        related_name="interviews",
+    )
+    scheduled_at = models.DateTimeField()
+    interview_type = models.CharField(max_length=20, choices=INTERVIEW_TYPE_CHOICES, default=INTERVIEW_TYPE_IN_PERSON)
+    interviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="candidate_interviews",
+        null=True,
+        blank=True,
+    )
+    location = models.CharField(max_length=255, blank=True)
+    note = models.TextField(blank=True)
+    outcome = models.TextField(blank=True)
+    score = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MaxValueValidator(100)],
+    )
+    recommendation = models.CharField(
+        max_length=20,
+        choices=RECOMMENDATION_CHOICES,
+        blank=True,
+        default="",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["scheduled_at", "id"]
+        indexes = [
+            models.Index(fields=["candidate", "scheduled_at"]),
+            models.Index(fields=["interviewer", "scheduled_at"]),
+        ]
+        verbose_name = "Candidate Interview"
+        verbose_name_plural = "Candidate Interviews"
+
+    def __str__(self):
+        return f"{self.candidate.full_name} interview on {self.scheduled_at:%Y-%m-%d %H:%M}"
+
+    def clean(self):
+        errors = {}
+        if self._state.adding and self.scheduled_at and self.scheduled_at < timezone.now():
+            errors["scheduled_at"] = "Interview time cannot be in the past."
+        if self.score is not None and self.score > 100:
+            errors["score"] = "Interview score cannot be greater than 100."
+        if errors:
+            raise ValidationError(errors)
+
+
+class CandidateInterviewFeedback(models.Model):
+    interview = models.ForeignKey(
+        CandidateInterview,
+        on_delete=models.CASCADE,
+        related_name="feedback_entries",
+    )
+    interviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="candidate_interview_feedback",
+    )
+    score = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MaxValueValidator(100)],
+    )
+    recommendation = models.CharField(
+        max_length=20,
+        choices=CandidateInterview.RECOMMENDATION_CHOICES,
+        blank=True,
+    )
+    strengths = models.TextField(blank=True)
+    concerns = models.TextField(blank=True)
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["interview", "interviewer"],
+                name="recruit_feedback_interviewer_uniq",
+            )
+        ]
+        verbose_name = "Candidate Interview Feedback"
+        verbose_name_plural = "Candidate Interview Feedback"
+
+    def __str__(self):
+        return f"{self.interview.candidate.full_name} feedback by {self.interviewer}"
+
+    def clean(self):
+        errors = {}
+        if self.score is not None and self.score > 100:
+            errors["score"] = "Feedback score cannot be greater than 100."
+        if errors:
+            raise ValidationError(errors)
+
+
+class CandidateAttachment(models.Model):
+    candidate = models.ForeignKey(
+        Candidate,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+    )
+    title = models.CharField(max_length=255)
+    file = models.FileField(
+        upload_to=candidate_attachment_upload_to,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=[
+                    "pdf",
+                    "doc",
+                    "docx",
+                    "xls",
+                    "xlsx",
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "webp",
+                    "txt",
+                ]
+            )
+        ],
+    )
+    notes = models.TextField(blank=True)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="candidate_attachments",
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [models.Index(fields=["candidate", "-created_at"])]
+        verbose_name = "Candidate Attachment"
+        verbose_name_plural = "Candidate Attachments"
+
+    def __str__(self):
+        return f"{self.candidate.full_name} - {self.title}"
+```
+
+## workcalendar/models.py
+
+```python
+from django.core.exceptions import ValidationError
+from django.db import models
+
+
+WEEKDAY_CHOICES = [
+    (0, "Monday"),
+    (1, "Tuesday"),
+    (2, "Wednesday"),
+    (3, "Thursday"),
+    (4, "Friday"),
+    (5, "Saturday"),
+    (6, "Sunday"),
+]
+
+
+class RegionalWorkCalendar(models.Model):
+    name = models.CharField(max_length=150, default="Kuwait Government Work Calendar")
+    region_code = models.CharField(max_length=10, default="KW")
+    weekend_days = models.CharField(max_length=20, default="4")
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Regional Work Calendar"
+        verbose_name_plural = "Regional Work Calendars"
+        ordering = ["-is_active", "name", "-id"]
+        indexes = [
+            models.Index(fields=["is_active", "region_code"]),
+        ]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def weekend_day_numbers(self):
+        values = set()
+        for raw_value in (self.weekend_days or "").split(","):
+            raw_value = raw_value.strip()
+            if not raw_value:
+                continue
+            try:
+                weekday_number = int(raw_value)
+            except (TypeError, ValueError):
+                continue
+            if 0 <= weekday_number <= 6:
+                values.add(weekday_number)
+        return values
+
+    @property
+    def weekend_day_labels(self):
+        label_map = dict(WEEKDAY_CHOICES)
+        return [label_map[number] for number in sorted(self.weekend_day_numbers) if number in label_map]
+
+    def clean(self):
+        errors = {}
+        parsed_days = self.weekend_day_numbers
+        if not parsed_days:
+            errors["weekend_days"] = "Select at least one weekly off day."
+
+        if self.is_active:
+            existing_active = RegionalWorkCalendar.objects.filter(is_active=True)
+            if self.pk:
+                existing_active = existing_active.exclude(pk=self.pk)
+            if existing_active.exists():
+                errors["is_active"] = "Only one active regional work calendar can be enabled at a time."
+
+        if errors:
+            raise ValidationError(errors)
+
+
+class RegionalHoliday(models.Model):
+    HOLIDAY_TYPE_PUBLIC = "public"
+    HOLIDAY_TYPE_OBSERVANCE = "observance"
+
+    HOLIDAY_TYPE_CHOICES = [
+        (HOLIDAY_TYPE_PUBLIC, "Public Holiday"),
+        (HOLIDAY_TYPE_OBSERVANCE, "Official Observance"),
+    ]
+
+    calendar = models.ForeignKey(
+        RegionalWorkCalendar,
+        on_delete=models.CASCADE,
+        related_name="holidays",
+    )
+    holiday_date = models.DateField(db_index=True)
+    title = models.CharField(max_length=160)
+    holiday_type = models.CharField(
+        max_length=20,
+        choices=HOLIDAY_TYPE_CHOICES,
+        default=HOLIDAY_TYPE_PUBLIC,
+    )
+    is_non_working_day = models.BooleanField(default=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["holiday_date", "title", "id"]
+        indexes = [
+            models.Index(fields=["calendar", "holiday_date"]),
+            models.Index(fields=["is_non_working_day", "holiday_date"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["calendar", "holiday_date", "title"],
+                name="workcal_holiday_calendar_date_title_uniq",
+            )
+        ]
+        verbose_name = "Regional Holiday"
+        verbose_name_plural = "Regional Holidays"
+
+    def __str__(self):
+        return f"{self.title} ({self.holiday_date})"
+```
+
+## employees/migrations/0043_alter_branchschedulegridcell_unique_together_and_more.py
+
+```python
+# Generated by Django 6.0.3 on 2026-04-24 12:20
+#
+# Phase 2 model-quality migration.
+#
+# This migration replaces legacy unique_together declarations with named
+# UniqueConstraint objects for branch schedule/grid models. It keeps the same
+# uniqueness rules already represented by previous migrations, but gives them
+# stable names so future constraint changes are easier to reason about.
+#
+# No data backfill is required because this migration does not add stricter
+# uniqueness than the existing schema already intended.
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('employees', '0042_alter_employee_options_and_more'),
+        ('organization', '0011_alter_branch_unique_together_and_more'),
+    ]
+
+    operations = [
+        migrations.AlterUniqueTogether(
+            name='branchschedulegridcell',
+            unique_together=set(),
+        ),
+        migrations.AlterUniqueTogether(
+            name='branchschedulegridheader',
+            unique_together=set(),
+        ),
+        migrations.AlterUniqueTogether(
+            name='branchschedulegridrow',
+            unique_together=set(),
+        ),
+        migrations.AlterUniqueTogether(
+            name='branchweeklydutyoption',
+            unique_together=set(),
+        ),
+        migrations.AlterUniqueTogether(
+            name='branchweeklypendingoff',
+            unique_together=set(),
+        ),
+        migrations.AlterUniqueTogether(
+            name='branchweeklyscheduleentry',
+            unique_together=set(),
+        ),
+        migrations.AddConstraint(
+            model_name='branchschedulegridcell',
+            constraint=models.UniqueConstraint(fields=('branch', 'row_index', 'column_index'), name='emp_grid_cell_branch_row_col_uniq'),
+        ),
+        migrations.AddConstraint(
+            model_name='branchschedulegridheader',
+            constraint=models.UniqueConstraint(fields=('branch', 'column_index'), name='emp_grid_header_branch_col_uniq'),
+        ),
+        migrations.AddConstraint(
+            model_name='branchschedulegridrow',
+            constraint=models.UniqueConstraint(fields=('branch', 'row_index'), name='emp_grid_row_branch_row_uniq'),
+        ),
+        migrations.AddConstraint(
+            model_name='branchweeklydutyoption',
+            constraint=models.UniqueConstraint(fields=('branch', 'label'), name='emp_duty_option_branch_label_uniq'),
+        ),
+        migrations.AddConstraint(
+            model_name='branchweeklypendingoff',
+            constraint=models.UniqueConstraint(fields=('branch', 'employee', 'week_start'), name='emp_pending_off_branch_emp_week_uniq'),
+        ),
+        migrations.AddConstraint(
+            model_name='branchweeklyscheduleentry',
+            constraint=models.UniqueConstraint(fields=('branch', 'employee', 'schedule_date'), name='emp_weekly_entry_branch_emp_date_uniq'),
+        ),
+    ]
+```
+
+## operations/migrations/0003_alter_branchpostacknowledgement_unique_together_and_more.py
+
+```python
+# Generated by Django 6.0.3 on 2026-04-24 12:20
+#
+# Phase 2 model-quality migration.
+#
+# This migration replaces the legacy unique_together declaration on branch post
+# acknowledgements with an equivalent named UniqueConstraint. The rule remains:
+# one acknowledgement row per post/employee pair.
+#
+# No data backfill is required because the same uniqueness rule was already
+# enforced by the legacy declaration.
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('employees', '0043_alter_branchschedulegridcell_unique_together_and_more'),
+        ('operations', '0002_alter_branchpost_options_and_more'),
+    ]
+
+    operations = [
+        migrations.AlterUniqueTogether(
+            name='branchpostacknowledgement',
+            unique_together=set(),
+        ),
+        migrations.AddConstraint(
+            model_name='branchpostacknowledgement',
+            constraint=models.UniqueConstraint(fields=('post', 'employee'), name='ops_post_ack_post_employee_uniq'),
+        ),
+    ]
+```
+
+## organization/migrations/0011_alter_branch_unique_together_and_more.py
+
+```python
+# Generated by Django 6.0.3 on 2026-04-24 12:20
+#
+# Phase 2 model-quality migration.
+#
+# This migration replaces legacy unique_together declarations with named
+# UniqueConstraint objects for organization hierarchy models. It preserves the
+# same uniqueness behavior that existing migrations already enforced, while
+# giving each database rule a stable, descriptive name for future maintenance.
+#
+# No data backfill is required because this does not introduce a new uniqueness
+# rule; it renames/re-expresses existing database semantics.
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('organization', '0010_alter_branch_options_alter_branchdocument_options_and_more'),
+    ]
+
+    operations = [
+        migrations.AlterUniqueTogether(
+            name='branch',
+            unique_together=set(),
+        ),
+        migrations.AlterUniqueTogether(
+            name='branchdocumentrequirement',
+            unique_together=set(),
+        ),
+        migrations.AlterUniqueTogether(
+            name='department',
+            unique_together=set(),
+        ),
+        migrations.AlterUniqueTogether(
+            name='jobtitle',
+            unique_together=set(),
+        ),
+        migrations.AlterUniqueTogether(
+            name='section',
+            unique_together=set(),
+        ),
+        migrations.AddConstraint(
+            model_name='branch',
+            constraint=models.UniqueConstraint(fields=('company', 'name'), name='org_branch_company_name_uniq'),
+        ),
+        migrations.AddConstraint(
+            model_name='branchdocumentrequirement',
+            constraint=models.UniqueConstraint(fields=('branch', 'document_type'), name='org_branch_doc_req_type_uniq'),
+        ),
+        migrations.AddConstraint(
+            model_name='department',
+            constraint=models.UniqueConstraint(fields=('company', 'name'), name='org_dept_company_name_uniq'),
+        ),
+        migrations.AddConstraint(
+            model_name='jobtitle',
+            constraint=models.UniqueConstraint(fields=('section', 'name'), name='org_jobtitle_section_name_uniq'),
+        ),
+        migrations.AddConstraint(
+            model_name='section',
+            constraint=models.UniqueConstraint(fields=('department', 'name'), name='org_section_dept_name_uniq'),
+        ),
+    ]
+```
+
+## payroll/migrations/0008_alter_payrollline_unique_together_and_more.py
+
+```python
+# Generated by Django 6.0.3 on 2026-04-24 12:20
+#
+# Phase 2 model-quality migration.
+#
+# This migration replaces the legacy unique_together declaration on PayrollLine
+# with an equivalent named UniqueConstraint. The business rule remains one
+# payroll line per payroll period and employee.
+#
+# No data backfill is required because the same uniqueness rule was already
+# represented by the previous schema.
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('employees', '0043_alter_branchschedulegridcell_unique_together_and_more'),
+        ('payroll', '0007_alter_payrollbonus_paid_amount_and_more'),
+    ]
+
+    operations = [
+        migrations.AlterUniqueTogether(
+            name='payrollline',
+            unique_together=set(),
+        ),
+        migrations.AddConstraint(
+            model_name='payrollline',
+            constraint=models.UniqueConstraint(fields=('payroll_period', 'employee'), name='payroll_line_period_employee_uniq'),
+        ),
+    ]
+```
+
+## performance/migrations/0004_alter_performancereview_unique_together_and_more.py
+
+```python
+# Generated by Django 6.0.3 on 2026-04-24 12:20
+#
+# Phase 2 model-quality migration.
+#
+# This migration replaces the legacy unique_together declaration on
+# PerformanceReview with an equivalent named UniqueConstraint. The rule remains
+# one review per cycle and employee.
+#
+# No data backfill is required because this preserves an existing uniqueness
+# rule instead of introducing a new one.
+
+from django.conf import settings
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('employees', '0043_alter_branchschedulegridcell_unique_together_and_more'),
+        ('performance', '0003_alter_performancereview_options_and_more'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
+
+    operations = [
+        migrations.AlterUniqueTogether(
+            name='performancereview',
+            unique_together=set(),
+        ),
+        migrations.AddConstraint(
+            model_name='performancereview',
+            constraint=models.UniqueConstraint(fields=('cycle', 'employee'), name='perf_review_cycle_employee_uniq'),
+        ),
+    ]
+```
+
+## recruitment/migrations/0008_alter_candidateinterviewfeedback_unique_together_and_more.py
+
+```python
+# Generated by Django 6.0.3 on 2026-04-24 12:20
+#
+# Phase 2 model-quality migration.
+#
+# This migration replaces the legacy unique_together declaration on candidate
+# interview feedback with an equivalent named UniqueConstraint. The rule remains
+# one feedback row per interview/interviewer pair.
+#
+# No data backfill is required because the same uniqueness rule was already
+# represented by the previous schema.
+
+from django.conf import settings
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('recruitment', '0007_alter_candidate_options_and_more'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
+
+    operations = [
+        migrations.AlterUniqueTogether(
+            name='candidateinterviewfeedback',
+            unique_together=set(),
+        ),
+        migrations.AddConstraint(
+            model_name='candidateinterviewfeedback',
+            constraint=models.UniqueConstraint(fields=('interview', 'interviewer'), name='recruit_feedback_interviewer_uniq'),
+        ),
+    ]
+```
+
+## workcalendar/migrations/0004_alter_regionalholiday_unique_together_and_more.py
+
+```python
+# Generated by Django 6.0.3 on 2026-04-24 12:20
+#
+# Phase 2 model-quality migration.
+#
+# This migration replaces the legacy unique_together declaration on regional
+# holidays with an equivalent named UniqueConstraint. The rule remains one
+# holiday title per calendar/date pair.
+#
+# No data backfill is required because this preserves an existing uniqueness
+# rule instead of adding a stricter one.
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('workcalendar', '0003_alter_regionalholiday_options_and_more'),
+    ]
+
+    operations = [
+        migrations.AlterUniqueTogether(
+            name='regionalholiday',
+            unique_together=set(),
+        ),
+        migrations.AddConstraint(
+            model_name='regionalholiday',
+            constraint=models.UniqueConstraint(fields=('calendar', 'holiday_date', 'title'), name='workcal_holiday_calendar_date_title_uniq'),
+        ),
+    ]
+```

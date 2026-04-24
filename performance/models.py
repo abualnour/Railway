@@ -32,6 +32,11 @@ class ReviewCycle(models.Model):
 
     class Meta:
         ordering = ["-period_start", "-id"]
+        indexes = [
+            models.Index(fields=["company", "status", "-period_start"]),
+        ]
+        verbose_name = "Review Cycle"
+        verbose_name_plural = "Review Cycles"
 
     def __str__(self):
         return f"{self.title} - {self.company.name}"
@@ -121,7 +126,19 @@ class PerformanceReview(models.Model):
 
     class Meta:
         ordering = ["-cycle__period_start", "-updated_at", "-id"]
-        unique_together = ("cycle", "employee")
+        indexes = [
+            models.Index(fields=["cycle", "status"]),
+            models.Index(fields=["employee", "status"]),
+            models.Index(fields=["reviewer", "status"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["cycle", "employee"],
+                name="perf_review_cycle_employee_uniq",
+            )
+        ]
+        verbose_name = "Performance Review"
+        verbose_name_plural = "Performance Reviews"
 
     def __str__(self):
         return f"{self.employee.full_name} - {self.cycle.title}"
@@ -170,6 +187,9 @@ class PerformanceReviewComment(models.Model):
 
     class Meta:
         ordering = ["created_at", "id"]
+        indexes = [models.Index(fields=["review", "created_at"])]
+        verbose_name = "Performance Review Comment"
+        verbose_name_plural = "Performance Review Comments"
 
     def __str__(self):
         return f"{self.author_display_name} - {self.review}"

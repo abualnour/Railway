@@ -126,6 +126,13 @@ class BranchPost(models.Model):
 
     class Meta:
         ordering = ["-is_pinned", "-updated_at", "-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["branch", "status", "-updated_at"]),
+            models.Index(fields=["assignee", "status", "due_date"]),
+            models.Index(fields=["post_type", "status"]),
+        ]
+        verbose_name = "Branch Post"
+        verbose_name_plural = "Branch Posts"
 
     def __str__(self):
         return f"{self.branch.name} | {self.title}"
@@ -175,9 +182,12 @@ class BranchPostReply(models.Model):
 
     class Meta:
         ordering = ["created_at", "id"]
+        indexes = [models.Index(fields=["post", "created_at"])]
+        verbose_name = "Branch Post Reply"
+        verbose_name_plural = "Branch Post Replies"
 
     def __str__(self):
-        return f"Reply #{self.pk} on {self.post_id}"
+        return f"Reply #{self.pk or 'new'} on {self.post_id}"
 
     @property
     def author_display(self):
@@ -236,6 +246,12 @@ class BranchTaskAction(models.Model):
 
     class Meta:
         ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["post", "-created_at"]),
+            models.Index(fields=["action_type", "-created_at"]),
+        ]
+        verbose_name = "Branch Task Action"
+        verbose_name_plural = "Branch Task Actions"
 
     def __str__(self):
         return f"{self.post_id} | {self.action_type}"
@@ -256,7 +272,14 @@ class BranchPostAcknowledgement(models.Model):
 
     class Meta:
         ordering = ["-acknowledged_at", "-id"]
-        unique_together = ("post", "employee")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["post", "employee"],
+                name="ops_post_ack_post_employee_uniq",
+            )
+        ]
+        verbose_name = "Branch Post Acknowledgement"
+        verbose_name_plural = "Branch Post Acknowledgements"
 
     def __str__(self):
         return f"{self.post_id} | {self.employee.full_name}"

@@ -56,7 +56,11 @@ class InAppNotification(models.Model):
 
     class Meta:
         ordering = ["is_read", "-created_at", "-id"]
-        indexes = [models.Index(fields=["recipient", "is_read", "is_deleted"])]
+        indexes = [
+            models.Index(fields=["recipient", "is_read", "is_deleted"]),
+            models.Index(fields=["recipient", "is_deleted", "-created_at"]),
+            models.Index(fields=["category", "level", "-created_at"]),
+        ]
         verbose_name = "In-App Notification"
         verbose_name_plural = "In-App Notifications"
 
@@ -94,6 +98,7 @@ class NotificationPreference(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        ordering = ["user__email"]
         verbose_name = "Notification Preference"
         verbose_name_plural = "Notification Preferences"
 

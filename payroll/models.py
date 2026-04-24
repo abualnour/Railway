@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.utils import timezone
 
@@ -22,19 +22,32 @@ class PayrollProfile(models.Model):
     employee = models.OneToOneField(Employee, on_delete=models.CASCADE, related_name="payroll_profile")
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="payroll_profiles")
     base_salary = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.00"))])
-    housing_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
-    transport_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
-    fixed_deduction = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
-    pifss_employee_rate = models.DecimalField(max_digits=5, decimal_places=4, default=Decimal("0.0800"))
-    pifss_employer_rate = models.DecimalField(max_digits=5, decimal_places=4, default=Decimal("0.1150"))
+    housing_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    transport_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    fixed_deduction = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    pifss_employee_rate = models.DecimalField(max_digits=5, decimal_places=4, default=Decimal("0.0800"), validators=[MinValueValidator(Decimal("0.0000")), MaxValueValidator(Decimal("1.0000"))])
+    pifss_employer_rate = models.DecimalField(max_digits=5, decimal_places=4, default=Decimal("0.1150"), validators=[MinValueValidator(Decimal("0.0000")), MaxValueValidator(Decimal("1.0000"))])
     bank_name = models.CharField(max_length=120, blank=True)
-    iban = models.CharField(max_length=64, blank=True)
+    iban = models.CharField(
+        max_length=64,
+        blank=True,
+        validators=[
+            RegexValidator(
+                regex=r"^[A-Z]{2}[0-9A-Z]{13,32}$",
+                message="IBAN must use uppercase letters and numbers without spaces.",
+            )
+        ],
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["employee__full_name"]
+        indexes = [
+            models.Index(fields=["company", "status"]),
+            models.Index(fields=["employee", "status"]),
+        ]
         verbose_name = "Payroll Profile"
         verbose_name_plural = "Payroll Profiles"
 
@@ -89,6 +102,10 @@ class PayrollObligation(models.Model):
 
     class Meta:
         ordering = ["employee__full_name", "-created_at"]
+        indexes = [
+            models.Index(fields=["employee", "status"]),
+            models.Index(fields=["company", "status", "start_date"]),
+        ]
         verbose_name = "Payroll Obligation"
         verbose_name_plural = "Payroll Obligations"
 
@@ -138,7 +155,7 @@ class PayrollBonus(models.Model):
     title = models.CharField(max_length=150)
     bonus_type = models.CharField(max_length=30, choices=TYPE_CHOICES, default=TYPE_MANUAL)
     awarded_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.00"))])
-    paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
     award_date = models.DateField(default=timezone.localdate)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
     notes = models.CharField(max_length=255, blank=True)
@@ -147,6 +164,10 @@ class PayrollBonus(models.Model):
 
     class Meta:
         ordering = ["employee__full_name", "-award_date", "-id"]
+        indexes = [
+            models.Index(fields=["employee", "status"]),
+            models.Index(fields=["company", "status", "-award_date"]),
+        ]
         verbose_name = "Payroll Bonus"
         verbose_name_plural = "Payroll Bonuses"
 
@@ -191,6 +212,10 @@ class PayrollPeriod(models.Model):
 
     class Meta:
         ordering = ["-period_start", "-id"]
+        indexes = [
+            models.Index(fields=["company", "status", "-period_start"]),
+            models.Index(fields=["pay_date", "status"]),
+        ]
         verbose_name = "Payroll Period"
         verbose_name_plural = "Payroll Periods"
 
@@ -217,12 +242,12 @@ class PayrollPeriod(models.Model):
 class PayrollLine(models.Model):
     payroll_period = models.ForeignKey(PayrollPeriod, on_delete=models.CASCADE, related_name="lines")
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="payroll_lines")
-    base_salary = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
-    allowances = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
-    deductions = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
-    overtime_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
-    pifss_employee_deduction = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
-    pifss_employer_contribution = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    base_salary = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    allowances = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    deductions = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    overtime_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    pifss_employee_deduction = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
+    pifss_employer_contribution = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))])
     net_pay = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     notes = models.CharField(max_length=255, blank=True)
     snapshot_payload = models.JSONField(null=True, blank=True)
@@ -232,7 +257,16 @@ class PayrollLine(models.Model):
 
     class Meta:
         ordering = ["employee__full_name"]
-        unique_together = [("payroll_period", "employee")]
+        indexes = [
+            models.Index(fields=["payroll_period", "employee"]),
+            models.Index(fields=["employee", "-created_at"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["payroll_period", "employee"],
+                name="payroll_line_period_employee_uniq",
+            )
+        ]
         verbose_name = "Payroll Line"
         verbose_name_plural = "Payroll Lines"
 
@@ -307,6 +341,11 @@ class PayrollAdjustment(models.Model):
 
     class Meta:
         ordering = ["adjustment_type", "title", "id"]
+        indexes = [
+            models.Index(fields=["payroll_line", "adjustment_type"]),
+            models.Index(fields=["payroll_obligation"]),
+            models.Index(fields=["payroll_bonus"]),
+        ]
         verbose_name = "Payroll Adjustment"
         verbose_name_plural = "Payroll Adjustments"
 

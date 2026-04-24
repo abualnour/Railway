@@ -26,6 +26,9 @@ class RegionalWorkCalendar(models.Model):
         verbose_name = "Regional Work Calendar"
         verbose_name_plural = "Regional Work Calendars"
         ordering = ["-is_active", "name", "-id"]
+        indexes = [
+            models.Index(fields=["is_active", "region_code"]),
+        ]
 
     def __str__(self):
         return self.name
@@ -95,7 +98,18 @@ class RegionalHoliday(models.Model):
 
     class Meta:
         ordering = ["holiday_date", "title", "id"]
-        unique_together = [("calendar", "holiday_date", "title")]
+        indexes = [
+            models.Index(fields=["calendar", "holiday_date"]),
+            models.Index(fields=["is_non_working_day", "holiday_date"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["calendar", "holiday_date", "title"],
+                name="workcal_holiday_calendar_date_title_uniq",
+            )
+        ]
+        verbose_name = "Regional Holiday"
+        verbose_name_plural = "Regional Holidays"
 
     def __str__(self):
         return f"{self.title} ({self.holiday_date})"

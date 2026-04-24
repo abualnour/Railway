@@ -2,7 +2,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from django.core.exceptions import ValidationError
-from django.core.validators import FileExtensionValidator
+from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -54,6 +54,10 @@ class Company(TimeStampedModel):
 
     class Meta:
         ordering = ["name"]
+        indexes = [
+            models.Index(fields=["is_active", "name"]),
+        ]
+        verbose_name = "Company"
         verbose_name_plural = "Companies"
 
     def __str__(self):
@@ -74,16 +78,19 @@ class Branch(TimeStampedModel):
         decimal_places=6,
         null=True,
         blank=True,
+        validators=[MinValueValidator(-90), MaxValueValidator(90)],
     )
     attendance_longitude = models.DecimalField(
         max_digits=9,
         decimal_places=6,
         null=True,
         blank=True,
+        validators=[MinValueValidator(-180), MaxValueValidator(180)],
     )
     attendance_radius_meters = models.PositiveIntegerField(
         null=True,
         blank=True,
+        validators=[MinValueValidator(1)],
         help_text="Allowed attendance radius in meters from the fixed branch point.",
     )
     image = models.ImageField(
@@ -97,7 +104,18 @@ class Branch(TimeStampedModel):
 
     class Meta:
         ordering = ["company__name", "name"]
-        unique_together = ("company", "name")
+        indexes = [
+            models.Index(fields=["company", "is_active", "name"]),
+            models.Index(fields=["city", "is_active"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "name"],
+                name="org_branch_company_name_uniq",
+            )
+        ]
+        verbose_name = "Branch"
+        verbose_name_plural = "Branches"
 
     def __str__(self):
         return f"{self.company.name} - {self.name}"
@@ -167,7 +185,18 @@ class Department(TimeStampedModel):
 
     class Meta:
         ordering = ["company__name", "name"]
-        unique_together = ("company", "name")
+        indexes = [
+            models.Index(fields=["company", "is_active", "name"]),
+            models.Index(fields=["branch", "is_active"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "name"],
+                name="org_dept_company_name_uniq",
+            )
+        ]
+        verbose_name = "Department"
+        verbose_name_plural = "Departments"
 
     def __str__(self):
         return f"{self.company.name} - {self.name}"
@@ -196,7 +225,17 @@ class Section(TimeStampedModel):
 
     class Meta:
         ordering = ["department__company__name", "department__name", "name"]
-        unique_together = ("department", "name")
+        indexes = [
+            models.Index(fields=["department", "is_active", "name"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["department", "name"],
+                name="org_section_dept_name_uniq",
+            )
+        ]
+        verbose_name = "Section"
+        verbose_name_plural = "Sections"
 
     def __str__(self):
         return f"{self.department.name} - {self.name}"
@@ -231,7 +270,18 @@ class JobTitle(TimeStampedModel):
             "section__name",
             "name",
         ]
-        unique_together = ("section", "name")
+        indexes = [
+            models.Index(fields=["department", "is_active", "name"]),
+            models.Index(fields=["section", "is_active", "name"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["section", "name"],
+                name="org_jobtitle_section_name_uniq",
+            )
+        ]
+        verbose_name = "Job Title"
+        verbose_name_plural = "Job Titles"
 
     def __str__(self):
         if self.section:
@@ -304,7 +354,18 @@ class BranchDocumentRequirement(TimeStampedModel):
 
     class Meta:
         ordering = ["branch__company__name", "branch__name", "document_type", "title", "id"]
-        unique_together = ("branch", "document_type")
+        indexes = [
+            models.Index(fields=["branch", "is_active", "document_type"]),
+            models.Index(fields=["is_mandatory", "is_active"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["branch", "document_type"],
+                name="org_branch_doc_req_type_uniq",
+            )
+        ]
+        verbose_name = "Branch Document Requirement"
+        verbose_name_plural = "Branch Document Requirements"
 
     def __str__(self):
         return f"{self.branch.name} - {self.display_title}"
@@ -377,6 +438,12 @@ class BranchDocument(TimeStampedModel):
 
     class Meta:
         ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["branch", "document_type", "-created_at"]),
+            models.Index(fields=["expiry_date", "is_required"]),
+        ]
+        verbose_name = "Branch Document"
+        verbose_name_plural = "Branch Documents"
 
     def __str__(self):
         return self.title or self.filename

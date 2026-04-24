@@ -34,6 +34,10 @@ class HRPolicy(models.Model):
 
     class Meta:
         ordering = ["title"]
+        indexes = [
+            models.Index(fields=["company", "category", "is_active"]),
+            models.Index(fields=["is_active", "effective_date"]),
+        ]
         verbose_name = "HR Policy"
         verbose_name_plural = "HR Policies"
 
@@ -65,6 +69,9 @@ class HRAnnouncement(models.Model):
 
     class Meta:
         ordering = ["-published_at", "-id"]
+        indexes = [
+            models.Index(fields=["audience", "is_active", "-published_at"]),
+        ]
         verbose_name = "HR Announcement"
         verbose_name_plural = "HR Announcements"
 

@@ -49,6 +49,13 @@ class CompanyAsset(models.Model):
 
     class Meta:
         ordering = ["asset_code", "name"]
+        indexes = [
+            models.Index(fields=["category", "is_available"]),
+            models.Index(fields=["condition", "is_available"]),
+            models.Index(fields=["serial_number"]),
+        ]
+        verbose_name = "Company Asset"
+        verbose_name_plural = "Company Assets"
 
     def __str__(self):
         return f"{self.asset_code} - {self.name}"
@@ -93,6 +100,13 @@ class AssetAssignment(models.Model):
 
     class Meta:
         ordering = ["-assigned_date", "-id"]
+        indexes = [
+            models.Index(fields=["asset", "returned_date"]),
+            models.Index(fields=["employee", "-assigned_date"]),
+            models.Index(fields=["assigned_by", "-created_at"]),
+        ]
+        verbose_name = "Asset Assignment"
+        verbose_name_plural = "Asset Assignments"
 
     def __str__(self):
         return f"{self.asset.asset_code} assigned to {self.employee.full_name}"
