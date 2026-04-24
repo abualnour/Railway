@@ -923,7 +923,7 @@ class PayrollOvertimeCalculationTests(TestCase):
         self.assertEqual(updated_count, 0)
         self.assertEqual(payroll_line.overtime_amount, Decimal("10.00"))
         self.assertEqual(payroll_line.net_pay, Decimal("2660.00"))
-        self.assertIn("Overtime logged: 1.00 hour(s).", payroll_line.notes)
+        self.assertIn("Attendance overtime logged: 1.00 hour(s).", payroll_line.notes)
         self.assertIn("Overtime amount calculated from base salary: 10.00.", payroll_line.notes)
 
 
