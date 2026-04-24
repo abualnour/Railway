@@ -35,14 +35,14 @@
         </div>
     </section>
 
-    <section class="platform-panel">
+    <section class="platform-panel notification-panel-compact">
         <div class="platform-panel-head">
             <div>
                 <h2>Delivery Filters</h2>
                 <p>Filter active notification records by date, category, and email delivery state.</p>
             </div>
         </div>
-        <form method="get" class="platform-form-grid">
+        <form method="get" class="platform-form-grid notification-delivery-filter-form">
             <div class="form-group">
                 <label for="delivery-start-date">Start date</label>
                 <input type="date" id="delivery-start-date" name="start_date" value="{{ filter_state.start_date_value }}" class="form-control">
@@ -75,7 +75,7 @@
         </form>
     </section>
 
-    <section class="platform-stats-grid">
+    <section class="platform-stats-grid notification-performance-stats">
         <article class="platform-stat-card">
             <span>Filtered Notifications</span>
             <strong>{{ summary.total }}</strong>
@@ -108,12 +108,12 @@
         </article>
     </section>
 
-    <section class="platform-panel">
+    <section class="platform-panel notification-panel-compact">
         <div class="platform-panel-head">
             <h2>Category Breakdown</h2>
             <p>Read volume and delivery results for each notification category.</p>
         </div>
-        <div class="table-responsive">
+        <div class="table-responsive notification-table-wrap">
             <table class="table">
                 <thead>
                     <tr>
@@ -139,13 +139,13 @@
         </div>
     </section>
 
-    <section class="platform-panel">
+    <section class="platform-panel notification-panel-compact">
         <div class="platform-panel-head">
             <h2>Recent Delivery Failures</h2>
             <p>The latest matching notifications where email delivery did not complete successfully. Limited to 20 records.</p>
         </div>
         {% if recent_failures %}
-        <div class="platform-list">
+        <div class="platform-list notification-compact-list">
             {% for item in recent_failures %}
             <div class="platform-list-item">
                 <div class="platform-list-item-stack">
@@ -158,20 +158,20 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="empty-state">
+        <div class="empty-state notification-empty-state">
             <h3>No delivery failures</h3>
             <p>Failed email attempts will appear here once the system records an exception.</p>
         </div>
         {% endif %}
     </section>
 
-    <section class="platform-panel">
+    <section class="platform-panel notification-panel-compact">
         <div class="platform-panel-head">
             <h2>Email Opt-Outs</h2>
             <p>Users who disabled email delivery for notification copies. Showing up to 50 users.</p>
         </div>
         {% if opt_outs %}
-        <div class="platform-list">
+        <div class="platform-list notification-compact-list">
             {% for preference in opt_outs %}
             <div class="platform-list-item">
                 <div class="platform-list-item-stack">
@@ -186,7 +186,7 @@
         <p class="notification-bulk-status">{{ opt_outs_remaining }} more opt-out{{ opt_outs_remaining|pluralize }} not shown.</p>
         {% endif %}
         {% else %}
-        <div class="empty-state">
+        <div class="empty-state notification-empty-state">
             <h3>No email opt-outs</h3>
             <p>Users with email delivery disabled will appear here for management review.</p>
         </div>
