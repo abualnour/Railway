@@ -49,7 +49,7 @@
             <span>Preferences</span>
             <strong>Settings</strong>
         </a>
-        {% if request.user.is_management_role or request.user.is_superuser %}
+        {% if can_view_delivery_performance %}
         <a href="{% url 'notifications:performance' %}" class="notification-page-tab notification-page-tab-link">
             <span>Delivery Performance</span>
             <strong>Report</strong>

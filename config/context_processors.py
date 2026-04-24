@@ -170,12 +170,14 @@ def navbar_context(request):
         nav_notification_unread_total = InAppNotification.objects.filter(
             recipient=user,
             is_read=False,
+            is_deleted=False,
         ).count()
         nav_notification_category_unread_counts = {
             category: InAppNotification.objects.filter(
                 recipient=user,
                 category=category,
                 is_read=False,
+                is_deleted=False,
             ).count()
             for category, _label in InAppNotification.CATEGORY_CHOICES
         }

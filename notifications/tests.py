@@ -1,7 +1,11 @@
 from django.contrib.auth import get_user_model
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.test import RequestFactory
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
+
+from config.context_processors import navbar_context
 
 from .models import InAppNotification, NotificationPreference
 
@@ -140,3 +144,68 @@ class NotificationCenterTests(TestCase):
         self.assertTrue(preferences.employee_in_app_enabled)
         self.assertFalse(preferences.hr_in_app_enabled)
         self.assertFalse(preferences.calendar_in_app_enabled)
+
+    def test_navbar_unread_counts_ignore_deleted_notifications(self):
+        InAppNotification.objects.create(
+            recipient=self.user,
+            title="Deleted unread request",
+            body="This notification should not count.",
+            category=InAppNotification.CATEGORY_REQUEST,
+            is_deleted=True,
+        )
+        request = RequestFactory().get("/")
+        middleware = SessionMiddleware(lambda request: None)
+        middleware.process_request(request)
+        request.session.save()
+        request.user = self.user
+
+        context = navbar_context(request)
+
+        self.assertEqual(context["nav_notification_unread_total"], 2)
+        self.assertEqual(
+            context["nav_notification_category_unread_counts"][InAppNotification.CATEGORY_REQUEST],
+            1,
+        )
+
+    def test_notification_center_shows_all_current_page_category_notifications(self):
+        for index in range(13):
+            InAppNotification.objects.create(
+                recipient=self.user,
+                title=f"Operations item {index}",
+                body="Current page item",
+                category=InAppNotification.CATEGORY_OPERATIONS,
+            )
+
+        response = self.client.get(
+            reverse("notifications:home"),
+            {"category": InAppNotification.CATEGORY_OPERATIONS},
+        )
+
+        self.assertContains(response, "Operations item 0")
+        self.assertContains(response, "Operations item 12")
+
+    def test_notification_mutations_ignore_external_next_redirects(self):
+        response = self.client.post(
+            reverse("notifications:mark_read", args=[self.notification.pk]),
+            {"next": "https://example.com/phishing"},
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("notifications:home"),
+            fetch_redirect_response=False,
+        )
+
+    def test_delivery_performance_link_matches_view_permissions(self):
+        response = self.client.get(reverse("notifications:home"))
+        self.assertContains(response, "Delivery Performance")
+
+        finance_user = get_user_model().objects.create_user(
+            email="finance-user@example.com",
+            password="test-pass-123",
+            role=get_user_model().ROLE_FINANCE_MANAGER,
+        )
+        self.client.force_login(finance_user)
+
+        response = self.client.get(reverse("notifications:home"))
+        self.assertNotContains(response, "Delivery Performance")

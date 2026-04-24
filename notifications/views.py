@@ -8,6 +8,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from config.access import is_hr, is_operations, is_superuser, role_required
@@ -33,6 +34,24 @@ NOTIFICATION_CATEGORY_ORDER = [
     InAppNotification.CATEGORY_CONTRACT,
     InAppNotification.CATEGORY_CALENDAR,
 ]
+
+
+def can_view_delivery_performance(user):
+    return any(
+        predicate(user)
+        for predicate in (is_admin_compatible, is_hr, is_operations, is_superuser)
+    )
+
+
+def get_safe_notification_next_url(request):
+    next_url = (request.POST.get("next") or "").strip()
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return next_url
+    return reverse("notifications:home")
 
 
 def trigger_document_expiry_notifications(reference_date=None):
@@ -230,7 +249,7 @@ def build_notification_category_cards(notifications):
                 "label": category_label_map.get(category, category.title()),
                 "total": len(category_notifications),
                 "unread_total": unread_total,
-                "notifications": category_notifications[:12],
+                "notifications": category_notifications,
             }
         )
     return cards
@@ -297,6 +316,7 @@ def notification_center(request):
         "selected_category": selected_category,
         "selected_category_label": selected_category_label,
         "notification_categories": InAppNotification.CATEGORY_CHOICES,
+        "can_view_delivery_performance": can_view_delivery_performance(request.user),
         "page_obj": page_obj,
         "paginator": paginator,
     }
@@ -314,10 +334,7 @@ def mark_notification_read(request, pk):
             is_deleted=False,
         )
         notification.mark_read()
-        next_url = (request.POST.get("next") or "").strip()
-        if next_url:
-            return redirect(next_url)
-    return redirect("notifications:home")
+    return redirect(get_safe_notification_next_url(request))
 
 
 @login_required
@@ -330,8 +347,7 @@ def mark_all_read(request):
             is_deleted=False,
         )
         unread_notifications.update(is_read=True, read_at=timezone.now())
-    next_url = (request.POST.get("next") or "").strip() if request.method == "POST" else ""
-    return redirect(next_url or "notifications:home")
+    return redirect(get_safe_notification_next_url(request))
 
 
 @login_required
@@ -345,8 +361,7 @@ def mark_category_read(request, category):
             is_read=False,
             is_deleted=False,
         ).update(is_read=True, read_at=timezone.now())
-    next_url = (request.POST.get("next") or "").strip() if request.method == "POST" else ""
-    return redirect(next_url or "notifications:home")
+    return redirect(get_safe_notification_next_url(request))
 
 
 @login_required
@@ -362,7 +377,7 @@ def delete_notification(request, pk):
         notification.is_deleted = True
         notification.deleted_at = timezone.now()
         notification.save(update_fields=["is_deleted", "deleted_at"])
-    return redirect(request.POST.get("next") or "notifications:home")
+    return redirect(get_safe_notification_next_url(request))
 
 
 @login_required
@@ -385,14 +400,11 @@ def bulk_delete_notifications(request):
                 pk__in=notification_ids,
                 is_deleted=False,
             ).update(is_deleted=True, deleted_at=timezone.now())
-    return redirect(request.POST.get("next") or "notifications:home")
+    return redirect(get_safe_notification_next_url(request))
 
 
 @role_required(
-    is_admin_compatible,
-    is_hr,
-    is_operations,
-    is_superuser,
+    can_view_delivery_performance,
     message="You do not have permission to view notification delivery performance.",
     redirect_to="notifications:home",
 )
@@ -447,7 +459,6 @@ def delivery_performance(request):
 @login_required
 @require_POST
 def update_notification_preferences(request):
-    next_url = (request.POST.get("next") or "").strip() if request.method == "POST" else ""
     if request.method == "POST":
         preferences = get_notification_preferences_for_user(request.user)
         form = NotificationPreferenceForm(request.POST, instance=preferences)
@@ -459,4 +470,4 @@ def update_notification_preferences(request):
             )
         else:
             messages.error(request, "Please review the notification preference settings.")
-    return redirect(next_url or "notifications:home")
+    return redirect(get_safe_notification_next_url(request))
