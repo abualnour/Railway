@@ -6,8 +6,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from employees.access import is_admin_compatible as is_admin_compatible_role, is_hr_user as is_hr_user_role
-from notifications.models import InAppNotification, build_in_app_notification
-from notifications.views import persist_in_app_notifications
+from notifications.models import InAppNotification
+from notifications.services import build_in_app_notification, persist_in_app_notifications
 
 from .forms import RegionalHolidayForm, RegionalWorkCalendarForm
 from .models import RegionalHoliday, RegionalWorkCalendar
