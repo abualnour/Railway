@@ -12,8 +12,8 @@ from django.views.decorators.http import require_POST
 from employees.models import get_schedule_week_start
 from employees.views import build_branch_weekly_schedule_summary
 from organization.models import Branch
-from notifications.models import InAppNotification, build_in_app_notification
-from notifications.views import persist_in_app_notifications
+from notifications.models import InAppNotification
+from notifications.services import build_in_app_notification, persist_in_app_notifications
 
 from .forms import BranchPostForm, BranchPostReplyForm
 from .models import BranchPost, BranchPostAcknowledgement, BranchTaskAction
