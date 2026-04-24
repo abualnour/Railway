@@ -14,8 +14,8 @@ from django.views.generic import CreateView, DeleteView, DetailView, ListView, U
 from config.access import RoleRequiredMixin, is_hr, is_superuser
 from employees.access import is_admin_compatible as is_admin_compatible_role, is_hr_user as is_hr_user_role
 from employees.models import Employee, EmployeeRequiredSubmission
-from notifications.models import InAppNotification, build_in_app_notification
-from notifications.views import persist_in_app_notifications
+from notifications.models import InAppNotification
+from notifications.services import build_in_app_notification, persist_in_app_notifications
 
 from .forms import (
     CandidateAttachmentForm,
