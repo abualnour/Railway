@@ -587,6 +587,17 @@
             </div>
         {% endfor %}
     </div>
+    {% if leave_page_obj and leave_page_obj.paginator.num_pages > 1 %}
+        <div class="page-actions" style="margin-top: 18px;">
+            {% if leave_page_obj.has_previous %}
+                <a class="btn btn-light" href="?{% if leave_pagination_querystring %}{{ leave_pagination_querystring }}&{% endif %}page={{ leave_page_obj.previous_page_number }}">Previous</a>
+            {% endif %}
+            <span class="badge badge-light">Page {{ leave_page_obj.number }} of {{ leave_page_obj.paginator.num_pages }}</span>
+            {% if leave_page_obj.has_next %}
+                <a class="btn btn-light" href="?{% if leave_pagination_querystring %}{{ leave_pagination_querystring }}&{% endif %}page={{ leave_page_obj.next_page_number }}">Next</a>
+            {% endif %}
+        </div>
+    {% endif %}
 
     <div class="card request-overview-card" style="margin-top: 24px;">
         <div class="card-header">

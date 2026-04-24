@@ -248,6 +248,7 @@ class JobPostingListView(RecruitmentAccessMixin, ListView):
     model = JobPosting
     template_name = "recruitment/job_posting_list.html"
     context_object_name = "job_postings"
+    paginate_by = 10
 
     def get_queryset(self):
         queryset = JobPosting.objects.select_related("department", "department__company", "branch", "created_by").annotate(
@@ -268,6 +269,8 @@ class JobPostingListView(RecruitmentAccessMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = timezone.localdate()
+        query_params = self.request.GET.copy()
+        query_params.pop("page", None)
         candidate_queryset = Candidate.objects.select_related("job_posting", "job_posting__branch", "job_posting__department")
         upcoming_interviews = CandidateInterview.objects.select_related("candidate", "interviewer").filter(
             scheduled_at__gte=timezone.now()
@@ -343,6 +346,7 @@ class JobPostingListView(RecruitmentAccessMixin, ListView):
                 "job_posting_status_choices": JobPosting.STATUS_CHOICES,
                 "selected_status": (self.request.GET.get("status") or "").strip(),
                 "search_query": (self.request.GET.get("search") or "").strip(),
+                "pagination_querystring": query_params.urlencode(),
                 "job_posting_total": JobPosting.objects.count(),
                 "open_job_posting_total": JobPosting.objects.filter(status=JobPosting.STATUS_OPEN).count(),
                 "active_candidate_total": candidate_queryset.exclude(status=Candidate.STATUS_REJECTED).count(),
@@ -657,6 +661,7 @@ class CandidateListView(RecruitmentAccessMixin, ListView):
     model = Candidate
     template_name = "recruitment/candidate_list.html"
     context_object_name = "candidates"
+    paginate_by = 20
 
     def get_queryset(self):
         queryset = Candidate.objects.select_related(
@@ -697,6 +702,9 @@ class CandidateListView(RecruitmentAccessMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["filter_form"] = getattr(self, "filter_form", CandidateFilterForm())
+        query_params = self.request.GET.copy()
+        query_params.pop("page", None)
+        context["pagination_querystring"] = query_params.urlencode()
         return context
 
 

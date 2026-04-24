@@ -289,38 +289,39 @@ def employee_requests_overview(request):
         leave_queryset = leave_queryset.filter(employee__branch_id=scoped_branch.id)
         selected_branch = str(scoped_branch.id)
 
-    leave_records = list(leave_queryset)
-    request_cards = [build_employee_request_overview(leave_record) for leave_record in leave_records]
-    grouped_request_weeks = build_request_overview_groups(request_cards)
-
-    pending_total = sum(1 for leave_record in leave_records if leave_record.status == EmployeeLeave.STATUS_PENDING)
-    approved_total = sum(1 for leave_record in leave_records if leave_record.status == EmployeeLeave.STATUS_APPROVED)
-    rejected_total = sum(1 for leave_record in leave_records if leave_record.status == EmployeeLeave.STATUS_REJECTED)
-    cancelled_total = sum(1 for leave_record in leave_records if leave_record.status == EmployeeLeave.STATUS_CANCELLED)
-    waiting_supervisor_total = sum(
-        1
-        for leave_record in leave_records
-        if leave_record.status == EmployeeLeave.STATUS_PENDING
-        and leave_record.current_stage == EmployeeLeave.STAGE_SUPERVISOR_REVIEW
-    )
-    waiting_operations_total = sum(
-        1
-        for leave_record in leave_records
-        if leave_record.status == EmployeeLeave.STATUS_PENDING
-        and leave_record.current_stage == EmployeeLeave.STAGE_OPERATIONS_REVIEW
-    )
-    waiting_hr_total = sum(
-        1
-        for leave_record in leave_records
-        if leave_record.status == EmployeeLeave.STATUS_PENDING
-        and leave_record.current_stage == EmployeeLeave.STAGE_HR_REVIEW
-    )
+    request_total = leave_queryset.count()
+    pending_total = leave_queryset.filter(status=EmployeeLeave.STATUS_PENDING).count()
+    approved_total = leave_queryset.filter(status=EmployeeLeave.STATUS_APPROVED).count()
+    rejected_total = leave_queryset.filter(status=EmployeeLeave.STATUS_REJECTED).count()
+    cancelled_total = leave_queryset.filter(status=EmployeeLeave.STATUS_CANCELLED).count()
+    waiting_supervisor_total = leave_queryset.filter(
+        status=EmployeeLeave.STATUS_PENDING,
+        current_stage=EmployeeLeave.STAGE_SUPERVISOR_REVIEW,
+    ).count()
+    waiting_operations_total = leave_queryset.filter(
+        status=EmployeeLeave.STATUS_PENDING,
+        current_stage=EmployeeLeave.STAGE_OPERATIONS_REVIEW,
+    ).count()
+    waiting_hr_total = leave_queryset.filter(
+        status=EmployeeLeave.STATUS_PENDING,
+        current_stage=EmployeeLeave.STAGE_HR_REVIEW,
+    ).count()
     my_stage_pending_total = sum(
         1
-        for leave_record in leave_records
-        if leave_record.status == EmployeeLeave.STATUS_PENDING and can_user_review_leave_stage(request.user, leave_record)
+        for leave_record in leave_queryset.filter(status=EmployeeLeave.STATUS_PENDING)
+        if can_user_review_leave_stage(request.user, leave_record)
     )
-    documents_total = sum(card["supporting_documents_count"] for card in request_cards)
+    documents_total = leave_queryset.aggregate(
+        total=Count("supporting_documents", distinct=True)
+    )["total"] or 0
+
+    leave_paginator = Paginator(leave_queryset, 25)
+    leave_page_obj = leave_paginator.get_page(request.GET.get("page"))
+    leave_records = list(leave_page_obj.object_list)
+    request_cards = [build_employee_request_overview(leave_record) for leave_record in leave_records]
+    grouped_request_weeks = build_request_overview_groups(request_cards)
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
 
     if branch_scoped_supervisor:
         current_leave_review_stage_label = "Supervisor Review Queue"
@@ -455,7 +456,7 @@ def employee_requests_overview(request):
     ).count()
 
     context = {
-        "request_total": len(leave_records),
+        "request_total": request_total,
         "pending_total": pending_total,
         "approved_total": approved_total,
         "rejected_total": rejected_total,
@@ -478,6 +479,9 @@ def employee_requests_overview(request):
         "departments": Department.objects.filter(is_active=True).select_related("company").order_by("company__name", "name"),
         "branches": Branch.objects.filter(is_active=True).select_related("company").order_by("company__name", "name"),
         "grouped_request_weeks": grouped_request_weeks,
+        "leave_page_obj": leave_page_obj,
+        "leave_paginator": leave_paginator,
+        "leave_pagination_querystring": query_params.urlencode(),
         "scoped_branch": scoped_branch,
         "is_branch_scoped_supervisor": branch_scoped_supervisor,
         "can_review_leave": can_review_leave(request.user),
