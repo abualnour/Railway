@@ -333,6 +333,7 @@ def employee_profile_identity_information_update(request, pk):
 
 
 
+@login_required
 def employee_admin_action_center(request):
     if not is_management_user(request.user):
         raise PermissionDenied("You do not have permission to access the employee action center.")

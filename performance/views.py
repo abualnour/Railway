@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from config.access import is_hr, is_operations, is_superuser, role_required
 from employees.access import (
@@ -445,6 +446,7 @@ def review_cycle_update(request, cycle_pk):
     message="You do not have permission to clone review cycles.",
     redirect_to="performance:dashboard",
 )
+@require_POST
 def review_cycle_clone(request, cycle_pk):
     cycle = get_object_or_404(ReviewCycle.objects.select_related("company"), pk=cycle_pk)
     if request.method != "POST":
@@ -462,6 +464,7 @@ def review_cycle_clone(request, cycle_pk):
     message="You do not have permission to close review cycles.",
     redirect_to="performance:dashboard",
 )
+@require_POST
 def review_cycle_close(request, cycle_pk):
     cycle = get_object_or_404(ReviewCycle, pk=cycle_pk)
     if request.method != "POST":
@@ -570,6 +573,7 @@ def performance_review_update(request, review_pk):
     has_linked_employee_profile,
     message="You do not have permission to acknowledge performance reviews.",
 )
+@require_POST
 def performance_review_acknowledge(request, review_pk):
     review = get_object_or_404(
         PerformanceReview.objects.select_related("employee", "employee__user", "cycle", "reviewer"),
@@ -600,6 +604,7 @@ def performance_review_acknowledge(request, review_pk):
     has_linked_employee_profile,
     message="You do not have permission to comment on performance reviews.",
 )
+@require_POST
 def performance_review_comment_create(request, review_pk):
     review = get_object_or_404(
         build_performance_review_queryset(),
@@ -632,6 +637,7 @@ def performance_review_comment_create(request, review_pk):
     has_linked_employee_profile,
     message="You do not have permission to force-complete performance reviews.",
 )
+@require_POST
 def performance_review_force_complete(request, review_pk):
     review = get_object_or_404(
         PerformanceReview.objects.select_related("employee", "cycle", "reviewer"),

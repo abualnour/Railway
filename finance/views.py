@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -35,9 +36,16 @@ def expense_claim_dashboard(request):
     if status_filter:
         claims = claims.filter(status=status_filter)
     claims = claims.order_by("-submitted_at", "-expense_date", "-id")
+    paginator = Paginator(claims, 25)
+    page_obj = paginator.get_page(request.GET.get("page"))
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
 
     context = {
-        "claims": list(claims[:100]),
+        "claims": list(page_obj.object_list),
+        "page_obj": page_obj,
+        "paginator": paginator,
+        "pagination_querystring": query_params.urlencode(),
         "status_choices": ExpenseClaim.STATUS_CHOICES,
         "selected_status": status_filter,
         "claim_total": ExpenseClaim.objects.count(),

@@ -8,6 +8,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from .email_sender import send_notification_email
 from .forms import NotificationPreferenceForm
@@ -300,6 +301,7 @@ def notification_center(request):
 
 
 @login_required
+@require_POST
 def mark_notification_read(request, pk):
     if request.method == "POST":
         notification = get_object_or_404(
@@ -316,6 +318,7 @@ def mark_notification_read(request, pk):
 
 
 @login_required
+@require_POST
 def mark_all_read(request):
     if request.method == "POST":
         unread_notifications = InAppNotification.objects.filter(
@@ -329,6 +332,7 @@ def mark_all_read(request):
 
 
 @login_required
+@require_POST
 def mark_category_read(request, category):
     valid_categories = {choice[0] for choice in InAppNotification.CATEGORY_CHOICES}
     if request.method == "POST" and category in valid_categories:
@@ -343,6 +347,7 @@ def mark_category_read(request, category):
 
 
 @login_required
+@require_POST
 def delete_notification(request, pk):
     if request.method == "POST":
         notification = get_object_or_404(
@@ -358,6 +363,7 @@ def delete_notification(request, pk):
 
 
 @login_required
+@require_POST
 def bulk_delete_notifications(request):
     if request.method == "POST":
         raw_ids = (request.POST.get("ids") or "").strip()
@@ -432,6 +438,7 @@ def delivery_performance(request):
 
 
 @login_required
+@require_POST
 def update_notification_preferences(request):
     next_url = (request.POST.get("next") or "").strip() if request.method == "POST" else ""
     if request.method == "POST":

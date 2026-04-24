@@ -2,6 +2,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
@@ -10,6 +11,7 @@ from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from config.mixins import ProtectedDeleteMixin
@@ -2136,6 +2138,8 @@ class JobTitleDeleteView(OrganizationBaseDeleteView):
 
 
 
+@login_required
+@require_POST
 def branch_document_requirement_create(request, pk):
     next_url = (request.POST.get("next") or request.GET.get("next") or "").strip()
     branch = get_object_or_404(Branch.objects.select_related("company"), pk=pk)
@@ -2170,6 +2174,8 @@ def branch_document_requirement_create(request, pk):
     return redirect("organization:branch_document_list")
 
 
+@login_required
+@require_POST
 def branch_document_requirement_delete(request, branch_pk, requirement_pk):
     next_url = (request.POST.get("next") or request.GET.get("next") or "").strip()
     branch = get_object_or_404(Branch.objects.select_related("company"), pk=branch_pk)
@@ -2190,6 +2196,8 @@ def branch_document_requirement_delete(request, branch_pk, requirement_pk):
     return redirect("organization:branch_document_list")
 
 
+@login_required
+@require_POST
 def branch_document_create(request, pk):
     next_url = (request.POST.get("next") or request.GET.get("next") or "").strip()
     branch = get_object_or_404(Branch.objects.select_related("company"), pk=pk)
@@ -2232,6 +2240,8 @@ def branch_document_create(request, pk):
     return redirect("organization:branch_detail", pk=branch.pk)
 
 
+@login_required
+@require_POST
 def branch_document_delete(request, branch_pk, document_pk):
     next_url = (request.POST.get("next") or request.GET.get("next") or "").strip()
     branch = get_object_or_404(Branch.objects.select_related("company"), pk=branch_pk)
@@ -2252,6 +2262,7 @@ def branch_document_delete(request, branch_pk, document_pk):
     return redirect("organization:branch_detail", pk=branch.pk)
 
 
+@login_required
 def branch_document_view(request, branch_pk, document_pk):
     branch = get_object_or_404(Branch.objects.select_related("company"), pk=branch_pk)
     branch_document = get_object_or_404(BranchDocument, pk=document_pk, branch=branch)
@@ -2262,6 +2273,7 @@ def branch_document_view(request, branch_pk, document_pk):
     return build_browser_file_response(branch_document.file, force_download=False)
 
 
+@login_required
 def branch_document_download(request, branch_pk, document_pk):
     branch = get_object_or_404(Branch.objects.select_related("company"), pk=branch_pk)
     branch_document = get_object_or_404(BranchDocument, pk=document_pk, branch=branch)
