@@ -125,6 +125,26 @@ def build_performance_review_queryset():
     ).order_by("-cycle__period_start", "-updated_at", "-id")
 
 
+def get_accessible_performance_review_queryset(user, queryset=None):
+    queryset = queryset or build_performance_review_queryset()
+    if not user or not user.is_authenticated:
+        return queryset.none()
+
+    if is_admin_compatible(user) or is_hr_user(user) or is_operations_manager_user(user):
+        return queryset
+
+    linked_employee = get_linked_employee(user)
+    if not linked_employee:
+        return queryset.none()
+
+    if is_branch_scoped_supervisor(user):
+        scoped_branch = get_user_scope_branch(user, linked_employee)
+        if scoped_branch:
+            return queryset.filter(Q(employee__branch=scoped_branch) | Q(reviewer=linked_employee))
+
+    return queryset.filter(Q(employee=linked_employee) | Q(reviewer=linked_employee))
+
+
 def get_performance_notification_recipients(exclude_users=None):
     excluded_user_ids = {
         user.pk
@@ -701,7 +721,7 @@ def performance_reviewer_queue(request):
     message="You do not have permission to export performance reviews.",
 )
 def performance_reviews_export(request):
-    review_queryset = build_performance_review_queryset()
+    review_queryset = get_accessible_performance_review_queryset(request.user)
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="performance-reviews.csv"'
     response.write(
@@ -736,7 +756,7 @@ def performance_reviews_export(request):
 )
 def performance_review_print(request, review_pk):
     review = get_object_or_404(
-        build_performance_review_queryset(),
+        get_accessible_performance_review_queryset(request.user),
         pk=review_pk,
     )
     return render(

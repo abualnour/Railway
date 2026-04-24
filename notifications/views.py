@@ -10,6 +10,9 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from config.access import is_hr, is_operations, is_superuser, role_required
+from employees.access import is_admin_compatible
+
 from .email_sender import send_notification_email
 from .forms import NotificationPreferenceForm
 from .models import (
@@ -385,11 +388,15 @@ def bulk_delete_notifications(request):
     return redirect(request.POST.get("next") or "notifications:home")
 
 
-@login_required
+@role_required(
+    is_admin_compatible,
+    is_hr,
+    is_operations,
+    is_superuser,
+    message="You do not have permission to view notification delivery performance.",
+    redirect_to="notifications:home",
+)
 def delivery_performance(request):
-    if not (request.user.is_management_role or request.user.is_superuser):
-        return redirect("notifications:home")
-
     base_qs = InAppNotification.objects.all()
     summary_counts = base_qs.aggregate(
         total=Count("id"),

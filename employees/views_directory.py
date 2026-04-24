@@ -80,7 +80,10 @@ class EmployeeListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
 
         filtered_queryset = self.get_queryset()
-        overall_queryset = Employee.objects.all()
+        overall_queryset = get_employee_directory_queryset_for_user(
+            self.request.user,
+            Employee.objects.all(),
+        )
 
         context["search_value"] = self.request.GET.get("search", "").strip()
         context["selected_company"] = self.request.GET.get("company", "").strip()
