@@ -499,6 +499,22 @@ def notify_leave_request_status_change(leave_record, *, title, body, notify_next
 def notify_document_request_submitted(document_request):
     employee = document_request.employee
     notifications = []
+    submitter = document_request.created_by or get_employee_notification_user(employee)
+    if submitter:
+        queue_request_notification(
+            notifications,
+            recipient=submitter,
+            employee=employee,
+            title=f"Document request submitted: {document_request.title}",
+            body=(
+                f"Your {document_request.get_request_type_display().lower()} request "
+                f"has been submitted for review: {document_request.title}."
+            ),
+            self_service_url=reverse("employees:self_service_documents"),
+            management_url=get_employee_management_detail_url(employee),
+            level=InAppNotification.LEVEL_INFO,
+        )
+
     for user in get_distinct_active_notification_users(*get_document_request_reviewer_users(document_request)):
         queue_request_notification(
             notifications,
@@ -580,7 +596,7 @@ def notify_required_submission_submitted(submission_request):
             notifications,
             recipient=user,
             employee=employee,
-            title=f"Required submission awaiting review: {employee.full_name}",
+            title=f"Required document submitted: {employee.full_name}",
             body=(
                 f"{employee.full_name} submitted the requested "
                 f"{submission_request.get_request_type_display().lower()} file "
@@ -589,7 +605,6 @@ def notify_required_submission_submitted(submission_request):
             self_service_url=reverse("employees:self_service_documents"),
             management_url=get_employee_management_detail_url(employee),
             level=InAppNotification.LEVEL_WARNING,
-            exclude_users=[submission_request.created_by],
         )
     dispatch_request_notifications(notifications)
 
@@ -651,11 +666,9 @@ def notify_attendance_correction_reviewed(correction):
         f"is now {status_label.lower()}."
         + (f" Review note: {correction.review_notes}" if correction.review_notes else "")
     )
-    for user in get_distinct_active_notification_users_excluding(
+    for user in get_distinct_active_notification_users(
         get_employee_notification_user(employee),
         correction.requested_by,
-        correction.reviewed_by,
-        exclude=[correction.reviewed_by],
     ):
         queue_request_notification(
             notifications,
