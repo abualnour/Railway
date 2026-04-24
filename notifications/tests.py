@@ -209,3 +209,106 @@ class NotificationCenterTests(TestCase):
 
         response = self.client.get(reverse("notifications:home"))
         self.assertNotContains(response, "Delivery Performance")
+
+    def test_notification_center_status_all_shows_read_and_unread(self):
+        InAppNotification.objects.create(
+            recipient=self.user,
+            title="Read payroll update",
+            body="Already reviewed.",
+            is_read=True,
+        )
+
+        response = self.client.get(reverse("notifications:home"), {"status": "all"})
+
+        self.assertContains(response, "Payroll period moved to Approved")
+        self.assertContains(response, "Read payroll update")
+
+    def test_notification_center_status_unread_shows_only_unread(self):
+        InAppNotification.objects.create(
+            recipient=self.user,
+            title="Read payroll update",
+            body="Already reviewed.",
+            is_read=True,
+        )
+
+        response = self.client.get(reverse("notifications:home"), {"status": "unread"})
+
+        self.assertContains(response, "Payroll period moved to Approved")
+        self.assertNotContains(response, "Read payroll update")
+
+    def test_notification_center_status_read_shows_only_read(self):
+        InAppNotification.objects.create(
+            recipient=self.user,
+            title="Read payroll update",
+            body="Already reviewed.",
+            is_read=True,
+        )
+
+        response = self.client.get(reverse("notifications:home"), {"status": "read"})
+
+        self.assertNotContains(response, "Payroll period moved to Approved")
+        self.assertContains(response, "Read payroll update")
+
+    def test_notification_center_invalid_status_falls_back_to_all(self):
+        InAppNotification.objects.create(
+            recipient=self.user,
+            title="Read payroll update",
+            body="Already reviewed.",
+            is_read=True,
+        )
+
+        response = self.client.get(reverse("notifications:home"), {"status": "archived"})
+
+        self.assertEqual(response.context["selected_status"], "all")
+        self.assertContains(response, "Payroll period moved to Approved")
+        self.assertContains(response, "Read payroll update")
+
+    def test_notification_center_category_and_status_filters_work_together(self):
+        InAppNotification.objects.create(
+            recipient=self.user,
+            title="Read request update",
+            body="Already reviewed request.",
+            category=InAppNotification.CATEGORY_REQUEST,
+            is_read=True,
+        )
+
+        response = self.client.get(
+            reverse("notifications:home"),
+            {"category": InAppNotification.CATEGORY_REQUEST, "status": "read"},
+        )
+
+        self.assertContains(response, "Read request update")
+        self.assertNotContains(response, "Leave request submitted")
+        self.assertNotContains(response, "Payroll period moved to Approved")
+
+    def test_notification_center_pagination_preserves_category_and_status(self):
+        for index in range(26):
+            InAppNotification.objects.create(
+                recipient=self.user,
+                title=f"Paged operations item {index}",
+                body="Paged unread item",
+                category=InAppNotification.CATEGORY_OPERATIONS,
+            )
+
+        response = self.client.get(
+            reverse("notifications:home"),
+            {"category": InAppNotification.CATEGORY_OPERATIONS, "status": "unread"},
+        )
+
+        self.assertContains(
+            response,
+            "?category=operations&amp;status=unread&amp;page=2#feed",
+        )
+
+    def test_notification_mutations_preserve_safe_filtered_next_url(self):
+        next_url = (
+            f"{reverse('notifications:home')}?"
+            f"category={InAppNotification.CATEGORY_REQUEST}&status=unread#feed"
+        )
+
+        response = self.client.post(
+            reverse("notifications:delete", args=[self.request_notification.pk]),
+            {"next": next_url},
+        )
+
+        self.assertRedirects(response, next_url, fetch_redirect_response=False)

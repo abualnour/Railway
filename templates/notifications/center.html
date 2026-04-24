@@ -32,7 +32,7 @@
                 {% if unread_total %}
                 <form method="post" action="{% url 'notifications:mark_all_read' %}">
                     {% csrf_token %}
-                    <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#feed{% else %}{% url 'notifications:home' %}#feed{% endif %}">
+                    <input type="hidden" name="next" value="{{ active_filter_next_url }}">
                     <button type="submit" class="btn btn-primary btn-sm">Mark All Read</button>
                 </form>
                 {% endif %}
@@ -69,7 +69,7 @@
         </div>
 
         <div class="notification-filter-bar">
-            <a href="{% url 'notifications:home' %}#feed" class="notification-filter-chip{% if not selected_category %} is-active{% endif %}">
+            <a href="{% url 'notifications:home' %}{% if selected_status != 'all' %}?status={{ selected_status }}{% endif %}#feed" class="notification-filter-chip{% if not selected_category %} is-active{% endif %}">
                 <span>All Notifications</span>
                 <strong>{{ all_notifications_total }}</strong>
                 {% if unread_total %}
@@ -77,7 +77,7 @@
                 {% endif %}
             </a>
             {% for category in category_cards %}
-            <a href="{% url 'notifications:home' %}?category={{ category.key }}#feed" class="notification-filter-chip{% if selected_category == category.key %} is-active{% endif %}">
+            <a href="{% url 'notifications:home' %}?category={{ category.key }}{% if selected_status != 'all' %}&status={{ selected_status }}{% endif %}#feed" class="notification-filter-chip{% if selected_category == category.key %} is-active{% endif %}">
                 <span>{{ category.label }}</span>
                 <strong>{{ category.total }}</strong>
                 {% if category.unread_total %}
@@ -86,10 +86,18 @@
             </a>
             {% endfor %}
         </div>
+        <div class="notification-filter-bar">
+            {% for option in status_filter_options %}
+            <a href="{{ option.url }}" class="notification-filter-chip{% if selected_status == option.key %} is-active{% endif %}">
+                <span>{{ option.label }}</span>
+                <strong>{{ option.total }}</strong>
+            </a>
+            {% endfor %}
+        </div>
 
         <form method="post" action="{% url 'notifications:bulk_delete' %}" class="platform-panel notification-bulk-panel" id="bulk-delete-form">
             {% csrf_token %}
-            <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#feed{% else %}{% url 'notifications:home' %}#feed{% endif %}">
+            <input type="hidden" name="next" value="{{ active_filter_next_url }}">
             <input type="hidden" name="ids" value="" id="bulk-delete-ids">
             <div class="platform-panel-head">
                 <div>
@@ -116,7 +124,7 @@
                     {% if category.unread_total %}
                     <form method="post" action="{% url 'notifications:mark_category_read' category.key %}" class="notification-category-action">
                         {% csrf_token %}
-                        <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#feed{% else %}{% url 'notifications:home' %}#feed{% endif %}">
+                        <input type="hidden" name="next" value="{{ active_filter_next_url }}">
                         <button type="submit" class="btn btn-light btn-sm">Mark {{ category.label }} Read</button>
                     </form>
                     {% endif %}
@@ -151,13 +159,13 @@
                             {% if not notification.is_read %}
                             <form method="post" action="{% url 'notifications:mark_read' notification.pk %}">
                                 {% csrf_token %}
-                                <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#feed{% else %}{% url 'notifications:home' %}#feed{% endif %}">
+                                <input type="hidden" name="next" value="{{ active_filter_next_url }}">
                                 <button type="submit" class="btn btn-secondary btn-sm">Mark Read</button>
                             </form>
                             {% endif %}
                             <form method="post" action="{% url 'notifications:delete' notification.pk %}">
                                 {% csrf_token %}
-                                <input type="hidden" name="next" value="{% if selected_category %}{% url 'notifications:home' %}?category={{ selected_category }}#feed{% else %}{% url 'notifications:home' %}#feed{% endif %}">
+                                <input type="hidden" name="next" value="{{ active_filter_next_url }}">
                                 <button type="submit" class="btn btn-light btn-sm">Delete</button>
                             </form>
                         </div>
@@ -177,18 +185,18 @@
         {% if page_obj.paginator.num_pages > 1 %}
         <div class="page-actions" style="margin-top: 18px;">
             {% if page_obj.has_previous %}
-            <a class="btn btn-light btn-sm" href="{% url 'notifications:home' %}?{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ page_obj.previous_page_number }}#feed">Previous</a>
+            <a class="btn btn-light btn-sm" href="{% url 'notifications:home' %}?{{ active_filter_query_suffix }}page={{ page_obj.previous_page_number }}#feed">Previous</a>
             {% endif %}
             <span class="badge badge-light">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
             {% if page_obj.has_next %}
-            <a class="btn btn-light btn-sm" href="{% url 'notifications:home' %}?{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ page_obj.next_page_number }}#feed">Next</a>
+            <a class="btn btn-light btn-sm" href="{% url 'notifications:home' %}?{{ active_filter_query_suffix }}page={{ page_obj.next_page_number }}#feed">Next</a>
             {% endif %}
         </div>
         {% endif %}
 
         {% if selected_category and not notifications %}
         <div class="notification-empty-actions">
-            <a href="{% url 'notifications:home' %}#feed" class="btn btn-light btn-sm">Show All Categories</a>
+            <a href="{% url 'notifications:home' %}{% if selected_status != 'all' %}?status={{ selected_status }}{% endif %}#feed" class="btn btn-light btn-sm">Show All Categories</a>
         </div>
         {% endif %}
     </section>
@@ -205,7 +213,7 @@
         </div>
         <form method="post" action="{% url 'notifications:preferences' %}" class="platform-form-grid notification-preferences-form">
             {% csrf_token %}
-            <input type="hidden" name="next" value="{% url 'notifications:home' %}#preferences">
+            <input type="hidden" name="next" value="{% url 'notifications:home' %}{% if active_filter_query %}?{{ active_filter_query }}{% endif %}#preferences">
             <div class="notification-preference-group platform-form-span">
                 <div class="notification-preference-group-head">
                     <h3>Management Workflow Alerts</h3>

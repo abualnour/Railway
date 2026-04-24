@@ -1,4 +1,5 @@
 from datetime import timedelta
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -35,6 +36,15 @@ NOTIFICATION_CATEGORY_ORDER = [
     InAppNotification.CATEGORY_CALENDAR,
 ]
 
+NOTIFICATION_STATUS_ALL = "all"
+NOTIFICATION_STATUS_UNREAD = "unread"
+NOTIFICATION_STATUS_READ = "read"
+NOTIFICATION_STATUS_FILTERS = {
+    NOTIFICATION_STATUS_ALL,
+    NOTIFICATION_STATUS_UNREAD,
+    NOTIFICATION_STATUS_READ,
+}
+
 
 def can_view_delivery_performance(user):
     return any(
@@ -52,6 +62,27 @@ def get_safe_notification_next_url(request):
     ):
         return next_url
     return reverse("notifications:home")
+
+
+def build_notification_filter_query(*, category="", status=NOTIFICATION_STATUS_ALL, page=None):
+    params = []
+    if category:
+        params.append(("category", category))
+    if status != NOTIFICATION_STATUS_ALL:
+        params.append(("status", status))
+    if page is not None:
+        params.append(("page", page))
+    return urlencode(params)
+
+
+def build_notification_filter_url(*, category="", status=NOTIFICATION_STATUS_ALL, page=None, anchor="feed"):
+    query = build_notification_filter_query(category=category, status=status, page=page)
+    url = reverse("notifications:home")
+    if query:
+        url = f"{url}?{query}"
+    if anchor:
+        url = f"{url}#{anchor}"
+    return url
 
 
 def trigger_document_expiry_notifications(reference_date=None):
@@ -291,10 +322,19 @@ def notification_center(request):
     valid_categories = {choice[0] for choice in InAppNotification.CATEGORY_CHOICES}
     if selected_category and selected_category not in valid_categories:
         selected_category = ""
+    selected_status = (request.GET.get("status") or NOTIFICATION_STATUS_ALL).strip().lower()
+    if selected_status not in NOTIFICATION_STATUS_FILTERS:
+        selected_status = NOTIFICATION_STATUS_ALL
 
-    filtered_queryset = base_queryset
+    category_filtered_queryset = base_queryset
     if selected_category:
-        filtered_queryset = filtered_queryset.filter(category=selected_category)
+        category_filtered_queryset = category_filtered_queryset.filter(category=selected_category)
+
+    filtered_queryset = category_filtered_queryset
+    if selected_status == NOTIFICATION_STATUS_UNREAD:
+        filtered_queryset = filtered_queryset.filter(is_read=False)
+    elif selected_status == NOTIFICATION_STATUS_READ:
+        filtered_queryset = filtered_queryset.filter(is_read=True)
 
     paginator = Paginator(filtered_queryset, 25)
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -305,6 +345,41 @@ def notification_center(request):
         selected_category,
     )
     selected_category_label = dict(InAppNotification.CATEGORY_CHOICES).get(selected_category, "All Notifications")
+    active_filter_query = build_notification_filter_query(
+        category=selected_category,
+        status=selected_status,
+    )
+    status_unread_total = category_filtered_queryset.filter(is_read=False).count()
+    status_read_total = category_filtered_queryset.filter(is_read=True).count()
+    status_filter_options = [
+        {
+            "key": NOTIFICATION_STATUS_ALL,
+            "label": "All",
+            "total": category_filtered_queryset.count(),
+            "url": build_notification_filter_url(
+                category=selected_category,
+                status=NOTIFICATION_STATUS_ALL,
+            ),
+        },
+        {
+            "key": NOTIFICATION_STATUS_UNREAD,
+            "label": "Unread",
+            "total": status_unread_total,
+            "url": build_notification_filter_url(
+                category=selected_category,
+                status=NOTIFICATION_STATUS_UNREAD,
+            ),
+        },
+        {
+            "key": NOTIFICATION_STATUS_READ,
+            "label": "Read",
+            "total": status_read_total,
+            "url": build_notification_filter_url(
+                category=selected_category,
+                status=NOTIFICATION_STATUS_READ,
+            ),
+        },
+    ]
 
     context = {
         "notifications": notifications,
@@ -315,6 +390,14 @@ def notification_center(request):
         "visible_category_cards": visible_category_cards,
         "selected_category": selected_category,
         "selected_category_label": selected_category_label,
+        "selected_status": selected_status,
+        "status_filter_options": status_filter_options,
+        "active_filter_query": active_filter_query,
+        "active_filter_query_suffix": f"{active_filter_query}&" if active_filter_query else "",
+        "active_filter_next_url": build_notification_filter_url(
+            category=selected_category,
+            status=selected_status,
+        ),
         "notification_categories": InAppNotification.CATEGORY_CHOICES,
         "can_view_delivery_performance": can_view_delivery_performance(request.user),
         "page_obj": page_obj,
