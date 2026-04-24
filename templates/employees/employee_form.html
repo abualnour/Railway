@@ -337,7 +337,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return Promise.resolve();
         }
 
-        return fetchJson(`{% url 'employees:departments_by_company' %}?company_id=${companyId}`)
+        return fetchJson(`{% url 'employees:get_departments_by_company' %}?company_id=${companyId}`)
             .then(function (data) {
                 populateSelect(departmentField, data.results || [], "---------", selectedValue);
             });
@@ -349,7 +349,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return Promise.resolve();
         }
 
-        return fetchJson(`{% url 'employees:branches_by_company' %}?company_id=${companyId}`)
+        return fetchJson(`{% url 'employees:get_branches_by_company' %}?company_id=${companyId}`)
             .then(function (data) {
                 populateSelect(branchField, data.results || [], "---------", selectedValue);
             });
@@ -361,7 +361,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return Promise.resolve();
         }
 
-        return fetchJson(`{% url 'employees:sections_by_department' %}?department_id=${departmentId}`)
+        return fetchJson(`{% url 'employees:get_sections_by_department' %}?department_id=${departmentId}`)
             .then(function (data) {
                 populateSelect(sectionField, data.results || [], "---------", selectedValue);
             });
@@ -373,7 +373,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return Promise.resolve();
         }
 
-        let url = `{% url 'employees:job_titles_by_department' %}?department_id=${departmentId}`;
+        let url = `{% url 'employees:get_job_titles_by_context' %}?department_id=${departmentId}`;
         if (sectionId) {
             url += `&section_id=${sectionId}`;
         }

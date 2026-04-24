@@ -89,22 +89,11 @@ urlpatterns = [
     path("self-service/my-schedule/", self_service_my_schedule_page, name="self_service_my_schedule"),
     path("self-service/branch/weekly-schedule/", self_service_weekly_schedule_page, name="self_service_weekly_schedule"),
 
-    # Current AJAX endpoints
+    # AJAX endpoints for employee form dependent dropdowns.
     path("ajax/departments-by-company/", get_departments_by_company, name="get_departments_by_company"),
     path("ajax/branches-by-company/", get_branches_by_company, name="get_branches_by_company"),
     path("ajax/sections-by-department/", get_sections_by_department, name="get_sections_by_department"),
     path("ajax/job-titles-by-context/", get_job_titles_by_context, name="get_job_titles_by_context"),
-
-    # Backward-compatible aliases used by existing live templates
-    path("ajax/departments-by-company/", get_departments_by_company, name="ajax_departments_by_company"),
-    path("ajax/branches-by-company/", get_branches_by_company, name="ajax_branches_by_company"),
-    path("ajax/sections-by-department/", get_sections_by_department, name="ajax_sections_by_department"),
-    path("ajax/job-titles-by-context/", get_job_titles_by_context, name="job_titles_by_context"),
-
-    path("ajax/departments-by-company/", get_departments_by_company, name="departments_by_company"),
-    path("ajax/branches-by-company/", get_branches_by_company, name="branches_by_company"),
-    path("ajax/sections-by-department/", get_sections_by_department, name="sections_by_department"),
-    path("ajax/job-titles-by-context/", get_job_titles_by_context, name="job_titles_by_department"),
 
     path("<int:pk>/", EmployeeDetailView.as_view(), name="employee_detail"),
     path("<int:pk>/update/", EmployeeUpdateView.as_view(), name="employee_update"),
