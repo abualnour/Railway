@@ -94,6 +94,14 @@
                         {% if nav_self_service_documents_url %}
                         <a href="{{ nav_self_service_documents_url }}" class="topbar-sub-link">My Documents</a>
                         {% endif %}
+                    </div>
+                </div>
+
+                <div class="topbar-group" data-dropdown>
+                    <button type="button" class="topbar-group-trigger" data-dropdown-trigger aria-expanded="false">
+                        Work
+                    </button>
+                    <div class="topbar-group-menu" data-dropdown-menu>
                         {% if nav_self_service_attendance_url %}
                         <a href="{{ nav_self_service_attendance_url }}" class="topbar-sub-link">My Attendance</a>
                         {% endif %}
@@ -103,6 +111,14 @@
                         {% if nav_self_service_working_time_url %}
                         <a href="{{ nav_self_service_working_time_url }}" class="topbar-sub-link">Working Time</a>
                         {% endif %}
+                    </div>
+                </div>
+
+                <div class="topbar-group" data-dropdown>
+                    <button type="button" class="topbar-group-trigger" data-dropdown-trigger aria-expanded="false">
+                        Schedule
+                    </button>
+                    <div class="topbar-group-menu" data-dropdown-menu>
                         {% if nav_self_service_my_schedule_url %}
                         <a href="{{ nav_self_service_my_schedule_url }}" class="topbar-sub-link">My Schedule</a>
                         {% endif %}
@@ -153,7 +169,7 @@
                 {% elif nav_show_operations_workspace and nav_employee_profile %}
                 <div class="topbar-group" data-dropdown>
                     <button type="button" class="topbar-group-trigger" data-dropdown-trigger aria-expanded="false">
-                        Operations
+                        My Workspace
                     </button>
                     <div class="topbar-group-menu" data-dropdown-menu>
                         <a href="{{ nav_self_service_profile_url|default:'#' }}" class="topbar-sub-link">My Operations
@@ -164,6 +180,14 @@
                         {% if nav_self_service_documents_url %}
                         <a href="{{ nav_self_service_documents_url }}" class="topbar-sub-link">My Documents</a>
                         {% endif %}
+                    </div>
+                </div>
+
+                <div class="topbar-group" data-dropdown>
+                    <button type="button" class="topbar-group-trigger" data-dropdown-trigger aria-expanded="false">
+                        Work
+                    </button>
+                    <div class="topbar-group-menu" data-dropdown-menu>
                         {% if nav_self_service_attendance_url %}
                         <a href="{{ nav_self_service_attendance_url }}" class="topbar-sub-link">My Attendance</a>
                         {% endif %}
@@ -173,6 +197,14 @@
                         {% if nav_self_service_working_time_url %}
                         <a href="{{ nav_self_service_working_time_url }}" class="topbar-sub-link">Working Time</a>
                         {% endif %}
+                    </div>
+                </div>
+
+                <div class="topbar-group" data-dropdown>
+                    <button type="button" class="topbar-group-trigger" data-dropdown-trigger aria-expanded="false">
+                        Team
+                    </button>
+                    <div class="topbar-group-menu" data-dropdown-menu>
                         {% if nav_self_service_my_schedule_url %}
                         <a href="{{ nav_self_service_my_schedule_url }}" class="topbar-sub-link">My Schedule</a>
                         {% endif %}
@@ -227,6 +259,15 @@
                         {% if nav_self_service_documents_url %}
                         <a href="{{ nav_self_service_documents_url }}" class="topbar-sub-link">My Documents</a>
                         {% endif %}
+                    </div>
+                </div>
+
+                {% if nav_self_service_attendance_url or nav_self_service_expenses_url or nav_self_service_working_time_url %}
+                <div class="topbar-group" data-dropdown>
+                    <button type="button" class="topbar-group-trigger" data-dropdown-trigger aria-expanded="false">
+                        Work
+                    </button>
+                    <div class="topbar-group-menu" data-dropdown-menu>
                         {% if nav_self_service_attendance_url %}
                         <a href="{{ nav_self_service_attendance_url }}" class="topbar-sub-link">My Attendance</a>
                         {% endif %}
@@ -236,6 +277,16 @@
                         {% if nav_self_service_working_time_url %}
                         <a href="{{ nav_self_service_working_time_url }}" class="topbar-sub-link">Working Time</a>
                         {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if nav_self_service_my_schedule_url or nav_self_service_branch_url or nav_self_service_weekly_schedule_url %}
+                <div class="topbar-group" data-dropdown>
+                    <button type="button" class="topbar-group-trigger" data-dropdown-trigger aria-expanded="false">
+                        Schedule
+                    </button>
+                    <div class="topbar-group-menu" data-dropdown-menu>
                         {% if nav_self_service_my_schedule_url %}
                         <a href="{{ nav_self_service_my_schedule_url }}" class="topbar-sub-link">My Schedule</a>
                         {% endif %}
@@ -247,6 +298,7 @@
                         {% endif %}
                     </div>
                 </div>
+                {% endif %}
                 {% endif %}
 
                 {% if nav_can_view_employee_directory %}

@@ -2387,14 +2387,15 @@
 
 .branch-overview-record-actions .table-action-buttons {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    align-items: stretch;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
 }
 
 .branch-overview-record-actions .table-action-buttons .btn,
 .branch-overview-record-actions .table-action-buttons a {
-    width: 100%;
+    width: auto;
     min-width: 0;
     justify-content: center;
 }

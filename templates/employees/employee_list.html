@@ -204,6 +204,20 @@
                                 </div>
                             </div>
 
+                            <div class="employee-record-block employee-record-status employee-record-status-top">
+                                <div class="status-heading">
+                                    <span class="employee-record-label">Status</span>
+                                    <span class="badge {{ employee.employment_status_badge_class }}">
+                                        {{ employee.get_employment_status_display }}
+                                    </span>
+                                </div>
+                                {% if employee.is_active %}
+                                    <small class="muted-text">Operationally Active</small>
+                                {% else %}
+                                    <small class="muted-text">Operationally Inactive</small>
+                                {% endif %}
+                            </div>
+
                             <div class="employee-record-block employee-record-contact">
                                 <span class="employee-record-label">Contact</span>
                                 <div class="table-stack">
@@ -241,32 +255,20 @@
                                 <span class="muted-text">Hired {{ employee.hire_date|date:"M. j, Y"|default:"—" }}</span>
                             </div>
 
-                            <div class="employee-record-block employee-record-status">
-                                <span class="employee-record-label">Status</span>
-                                <div class="status-cell-stack">
-                                    <span class="badge {{ employee.employment_status_badge_class }}">
-                                        {{ employee.get_employment_status_display }}
-                                    </span>
-
-                                    {% if employee.is_active %}
-                                        <small class="muted-text">Operationally Active</small>
-                                    {% else %}
-                                        <small class="muted-text">Operationally Inactive</small>
-                                    {% endif %}
-                                </div>
-                            </div>
                         </div>
 
-                        <div class="employee-record-actions">
-                            <span class="employee-record-label">Actions</span>
-                            <div class="table-action-buttons">
-                                <a href="{% url 'employees:employee_detail' employee.pk %}?tab=overview" class="btn btn-sm btn-light btn-action-dot btn-action-view">View</a>
-                                {% if can_edit_employee_records %}
-                                    <a href="{% url 'employees:employee_update' employee.pk %}" class="btn btn-sm btn-secondary btn-action-dot btn-action-edit">Edit</a>
-                                {% endif %}
-                                {% if can_delete_employee_records %}
-                                    <a href="{% url 'employees:employee_delete' employee.pk %}" class="btn btn-sm btn-danger btn-action-dot btn-action-delete">Delete</a>
-                                {% endif %}
+                        <div class="employee-record-row-footer">
+                            <div class="employee-record-actions footer-actions">
+                                <span class="employee-record-label">Actions</span>
+                                <div class="table-action-buttons">
+                                    <a href="{% url 'employees:employee_detail' employee.pk %}?tab=overview" class="btn btn-sm btn-light btn-action-dot btn-action-view">View</a>
+                                    {% if can_edit_employee_records %}
+                                        <a href="{% url 'employees:employee_update' employee.pk %}" class="btn btn-sm btn-secondary btn-action-dot btn-action-edit">Edit</a>
+                                    {% endif %}
+                                    {% if can_delete_employee_records %}
+                                        <a href="{% url 'employees:employee_delete' employee.pk %}" class="btn btn-sm btn-danger btn-action-dot btn-action-delete">Delete</a>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </article>

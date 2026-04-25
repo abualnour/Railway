@@ -13,18 +13,27 @@
         <div class="employee-page-header-main">
             <h1 class="page-title">{{ self_service_home_label }}</h1>
             <p class="page-subtitle">A compact profile page with your personal, professional, compliance, and request information organized for mobile and daily use.</p>
-        </div>
-        <div class="employee-page-header-tools">
             <div class="employee-header-meta">
                 <span class="employee-header-chip">ID: {{ employee.employee_id|default:"Not Assigned" }}</span>
                 <span class="employee-header-chip">Branch: {{ employee_display_branch|default:"Not Assigned" }}</span>
                 <span class="employee-header-chip">Status: {{ employee.get_employment_status_display|default:"Active" }}</span>
             </div>
+        </div>
+        <div class="employee-page-header-tools">
             <div class="page-actions employee-header-actions">
                 {% if self_service_branch_url %}
                     <a class="btn btn-light" href="{{ self_service_branch_url }}">My Branch</a>
                 {% endif %}
                 <a class="btn btn-light" href="{{ self_service_my_schedule_url }}">My Schedule</a>
+                {% if self_service_documents_url %}
+                    <a class="btn btn-light" href="{{ self_service_documents_url }}">Open Documents</a>
+                {% endif %}
+                {% if self_service_working_time_url %}
+                    <a class="btn btn-light" href="{{ self_service_working_time_url }}">Working Time Summary</a>
+                {% endif %}
+                {% if self_service_weekly_schedule_url %}
+                    <a class="btn btn-light" href="{{ self_service_weekly_schedule_url }}">Weekly Schedule</a>
+                {% endif %}
                 <a class="btn btn-secondary" href="{{ self_service_attendance_url }}">Attendance</a>
                 <a class="btn btn-primary" href="{{ self_service_leave_url }}">Leave</a>
             </div>
@@ -132,14 +141,6 @@
                         <div class="detail-item"><span class="detail-label">Approved Leave</span><span class="detail-value">{{ self_service_approved_leave_count }}</span></div>
                         <div class="detail-item"><span class="detail-label">Document Requests</span><span class="detail-value">{{ employee_document_request_total }}</span></div>
                         <div class="detail-item"><span class="detail-label">Management Requests</span><span class="detail-value">{{ required_submission_total }}</span></div>
-                    </div>
-                    <div class="page-actions self-service-balance-actions">
-                        <a class="btn btn-light" href="{{ self_service_documents_url }}">Open Documents</a>
-                        <a class="btn btn-light" href="{{ self_service_my_schedule_url }}">Open My Schedule</a>
-                        <a class="btn btn-light" href="{{ self_service_working_time_url }}">Working Time Summary</a>
-                        {% if self_service_weekly_schedule_url %}
-                            <a class="btn btn-light" href="{{ self_service_weekly_schedule_url }}">Weekly Schedule</a>
-                        {% endif %}
                     </div>
                 </div>
             </div>

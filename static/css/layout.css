@@ -184,6 +184,17 @@
     display: grid;
 }
 
+.topbar-group-menu.columns-3 {
+    grid-template-columns: repeat(3, minmax(160px, 1fr));
+    min-width: 520px;
+}
+
+.topbar-group-menu.columns-3 .topbar-group-column {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .topbar-sub-link {
     display: block;
     padding: 10px 12px;

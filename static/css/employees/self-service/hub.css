@@ -48,6 +48,72 @@
     margin: 0;
 }
 
+.employee-profile-page.self-service-hub-page .employee-page-header-tools {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: 12px;
+    flex: 0 0 auto;
+    min-width: min(100%, 320px);
+    max-width: 420px;
+}
+
+.employee-profile-page.self-service-hub-page .employee-page-header-main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1 1 min(100%, 420px);
+    min-width: 0;
+}
+
+.employee-profile-page.self-service-hub-page .employee-profile-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.employee-profile-page.self-service-hub-page .employee-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+}
+
+@media (max-width: 900px) {
+    .employee-profile-page.self-service-hub-page .page-header.employee-profile-header {
+        align-items: stretch;
+    }
+
+    .employee-profile-page.self-service-hub-page .employee-page-header-tools,
+    .employee-profile-page.self-service-hub-page .employee-header-meta,
+    .employee-profile-page.self-service-hub-page .employee-header-actions {
+        width: 100%;
+        justify-content: flex-end;
+        justify-items: end;
+        align-items: center;
+    }
+
+    .employee-profile-page.self-service-hub-page .employee-page-header-main {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .employee-profile-page.self-service-hub-page .employee-header-actions .btn {
+        width: auto !important;
+    }
+}
+
+.employee-profile-page.self-service-hub-page .employee-header-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
 .employee-profile-page.self-service-hub-page .employee-sidebar-form .detail-grid {
     gap: 14px;
 }

@@ -451,9 +451,26 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
+.employee-directory-page .employee-record-status-top {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 8px;
+    align-content: start;
+}
+
+.employee-directory-page .employee-record-status-top .status-heading {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.employee-directory-page .employee-record-status-top .status-heading .badge {
+    margin: 0;
+}
+
 .employee-directory-page .employee-record-main {
     display: grid;
-    grid-template-columns: minmax(220px, 1.2fr) minmax(180px, 0.85fr) minmax(260px, 1.15fr) minmax(190px, 0.9fr) minmax(170px, 0.75fr);
+    grid-template-columns: 1fr;
     gap: 16px;
     align-items: start;
     min-width: 0;
@@ -561,7 +578,7 @@
 
 @media (max-width: 1500px) {
     .employee-directory-page .employee-record-main {
-        grid-template-columns: minmax(220px, 1.15fr) minmax(180px, 0.9fr) minmax(220px, 1fr) minmax(190px, 0.9fr);
+        grid-template-columns: 1fr;
     }
 
     .employee-directory-page .employee-record-status {
@@ -689,6 +706,304 @@
     .employee-directory-page .employee-record-actions .table-action-buttons .btn {
         padding: 7px 10px;
     }
+}
+
+/* Compact employee directory card layout overrides */
+.employee-directory-page .employee-records-card .card-body {
+    padding: 14px 16px 16px;
+}
+
+.employee-directory-page .employee-records-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+}
+
+.employee-directory-page .employee-record-row {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--surface-gradient-3);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.employee-directory-page .employee-record-main {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    min-width: 0;
+}
+
+.employee-directory-page .employee-record-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-right: 0;
+}
+
+.employee-directory-page .employee-record-contact,
+.employee-directory-page .employee-record-placement,
+.employee-directory-page .employee-record-role,
+.employee-directory-page .employee-record-status,
+.employee-directory-page .employee-record-actions {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+.employee-directory-page .employee-record-actions {
+    padding-left: 0;
+    border-left: 0;
+    justify-items: start;
+}
+
+.employee-directory-page .employee-record-actions .table-action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.employee-directory-page .employee-record-actions .table-action-buttons .btn {
+    width: auto;
+    min-width: 60px;
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+.employee-directory-page .employee-record-label {
+    display: block;
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.employee-directory-page .employee-record-value {
+    display: block;
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.35;
+    font-weight: 700;
+}
+
+.employee-directory-page .employee-record-contact .table-stack {
+    gap: 4px;
+}
+
+.employee-directory-page .employee-record-role {
+    gap: 6px;
+}
+
+.employee-directory-page .employee-record-status .status-cell-stack {
+    gap: 6px;
+}
+
+.employee-directory-page .employee-record-status .badge {
+    font-size: 11px;
+    padding: 4px 8px;
+    min-width: auto;
+}
+
+.employee-directory-page .employee-record-placement .placement-token-wrap {
+    gap: 6px;
+}
+
+@media (max-width: 1360px) {
+    .employee-directory-page .employee-record-main,
+    .employee-directory-page .employee-record-block,
+    .employee-directory-page .employee-record-actions {
+        gap: 12px;
+    }
+
+    .employee-directory-page .employee-record-actions .table-action-buttons {
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 900px) {
+    .employee-directory-page .employee-record-row {
+        padding: 14px;
+        gap: 14px;
+        border-radius: 18px;
+    }
+
+    .employee-directory-page .employee-record-main {
+        gap: 12px;
+    }
+
+    .employee-directory-page .employee-record-actions .table-action-buttons {
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 640px) {
+    .employee-directory-page .employee-records-card .card-body {
+        padding: 14px;
+    }
+
+    .employee-directory-page .employee-records-list {
+        gap: 12px;
+    }
+
+    .employee-directory-page .employee-record-row {
+        padding: 12px;
+        gap: 12px;
+        border-radius: 16px;
+    }
+
+    .employee-directory-page .employee-record-main,
+    .employee-directory-page .employee-record-block,
+    .employee-directory-page .employee-record-actions {
+        gap: 8px;
+    }
+
+    .employee-directory-page .employee-record-label {
+        font-size: 10px;
+        letter-spacing: 0.08em;
+    }
+
+    .employee-directory-page .employee-record-value {
+        font-size: 13px;
+        line-height: 1.35;
+    }
+
+    .employee-directory-page .employee-record-identity {
+        gap: 10px;
+    }
+
+    .employee-directory-page .employee-cell-avatar {
+        flex-basis: 52px;
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+        border-radius: 16px;
+    }
+
+    .employee-directory-page .employee-avatar {
+        border-radius: 16px;
+        font-size: 20px;
+    }
+
+    .employee-directory-page .employee-cell-name a {
+        font-size: 14px;
+        line-height: 1.3;
+    }
+
+    .employee-directory-page .employee-cell-meta,
+    .employee-directory-page .employee-record-contact .table-stack,
+    .employee-directory-page .employee-record-role .muted-text,
+    .employee-directory-page .employee-record-status .muted-text {
+        font-size: 11.5px;
+        line-height: 1.4;
+    }
+
+    .employee-directory-page .employee-record-placement .placement-token-wrap {
+        gap: 6px;
+    }
+
+    .employee-directory-page .employee-record-actions {
+        padding-top: 10px;
+    }
+
+    .employee-directory-page .employee-record-actions .table-action-buttons {
+        gap: 6px;
+    }
+
+    .employee-directory-page .employee-record-actions .table-action-buttons .btn {
+        padding: 7px 10px;
+    }
+}
+
+/* Small card footer line and compact status/action row */
+.employee-directory-page .employee-record-row-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+}
+
+.employee-directory-page .employee-record-row-footer .employee-record-status,
+.employee-directory-page .employee-record-row-footer .employee-record-actions {
+    min-width: 0;
+}
+
+.employee-directory-page .employee-record-row-footer .employee-record-actions {
+    padding-left: 0;
+    border-left: 0;
+    justify-items: start;
+}
+
+.employee-directory-page .employee-record-row-footer .status-cell-stack {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.employee-directory-page .employee-record-row-footer .employee-record-actions .table-action-buttons,
+.employee-directory-page .employee-record-row-footer .footer-actions .table-action-buttons {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+}
+
+.employee-directory-page .employee-record-row-footer .employee-record-actions .table-action-buttons .btn,
+.employee-directory-page .employee-record-row-footer .footer-actions .table-action-buttons .btn {
+    padding: 8px 14px !important;
+    font-size: 12px !important;
+    min-width: 60px !important;
+    width: auto !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    border-radius: 9999px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.employee-directory-page .employee-record-row-footer .employee-record-actions .table-action-buttons .btn.btn-danger,
+.employee-directory-page .employee-record-row-footer .footer-actions .table-action-buttons .btn.btn-danger {
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
+    border-color: transparent;
+}
+
+.employee-directory-page .employee-record-row-footer .employee-record-actions .table-action-buttons .btn.btn-action-dot,
+.employee-directory-page .employee-record-row-footer .footer-actions .table-action-buttons .btn.btn-action-dot {
+    justify-content: flex-start !important;
+}
+
+.employee-directory-page .employee-record-row-footer .employee-record-status .muted-text {
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.employee-directory-page .employee-records-header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.employee-directory-page .employee-record-count {
+    font-size: 0.95rem;
+    color: var(--muted);
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    padding: 0.35rem 0.75rem;
 }
 
 

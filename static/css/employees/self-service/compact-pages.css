@@ -529,7 +529,7 @@
 }
 
 .employee-profile-page .self-service-balance-actions {
-    margin-top: auto;
+    margin-top: 16px;
 }
 
 @media (max-width: 1180px) {
