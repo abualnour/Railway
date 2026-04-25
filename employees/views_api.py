@@ -269,7 +269,6 @@ def employee_requests_overview(request):
             | Q(supporting_documents__title__icontains=search_query)
             | Q(supporting_documents__description__icontains=search_query)
             | Q(supporting_documents__reference_number__icontains=search_query)
-            | Q(supporting_documents__original_filename__icontains=search_query)
         ).distinct()
 
     if selected_status:
@@ -359,7 +358,6 @@ def employee_requests_overview(request):
             | Q(title__icontains=search_query)
             | Q(description__icontains=search_query)
             | Q(reference_number__icontains=search_query)
-            | Q(original_filename__icontains=search_query)
         )
     if selected_company:
         employee_document_queryset = employee_document_queryset.filter(employee__company_id=selected_company)
@@ -392,7 +390,9 @@ def employee_requests_overview(request):
             | Q(employee__employee_id__icontains=search_query)
             | Q(title__icontains=search_query)
             | Q(instructions__icontains=search_query)
-            | Q(created_by__icontains=search_query)
+            | Q(created_by__email__icontains=search_query)
+            | Q(created_by__first_name__icontains=search_query)
+            | Q(created_by__last_name__icontains=search_query)
         )
     if selected_company:
         submission_queryset = submission_queryset.filter(employee__company_id=selected_company)
