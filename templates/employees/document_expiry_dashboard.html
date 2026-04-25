@@ -5,22 +5,6 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/employees.css' %}">
-<style>
-    .document-expiry-table-danger thead th {
-        background: rgba(185, 28, 28, 0.18);
-        color: #fecaca;
-    }
-
-    .document-expiry-table-warning thead th {
-        background: rgba(180, 83, 9, 0.18);
-        color: #fde68a;
-    }
-
-    .document-expiry-table-primary thead th {
-        background: rgba(30, 64, 175, 0.18);
-        color: #bfdbfe;
-    }
-</style>
 {% endblock %}
 
 {% block content %}
@@ -42,7 +26,7 @@
     </div>
 
     {% for group in document_expiry_groups %}
-        <div class="card table-card" style="margin-bottom: 22px;">
+        <div class="card table-card document-expiry-card">
             <div class="card-header attendance-table-header">
                 <div>
                     <h2>{{ group.title }}</h2>

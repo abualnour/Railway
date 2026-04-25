@@ -552,11 +552,20 @@
 }
 
 .org-page-actions-top {
+    display: flex;
     flex: 0 0 auto;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: flex-end;
+    align-items: center;
     align-self: end;
     gap: 10px;
+}
+
+.org-page-actions-top .btn {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 0;
+    white-space: nowrap;
 }
 
 .org-stats-grid-tight {
@@ -606,7 +615,10 @@
 .org-directory-card-premium,
 .org-related-card-premium,
 .org-detail-hero-card-premium {
-    background: linear-gradient(180deg, rgba(11, 11, 11, 0.99) 0%, rgba(6, 6, 6, 1) 100%);
+    background:
+        radial-gradient(circle at top right, rgba(14, 165, 233, 0.16), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.12), transparent 30%),
+        linear-gradient(180deg, rgba(11, 11, 11, 0.99) 0%, rgba(6, 6, 6, 1) 100%) !important;
     border: 1px solid rgba(255, 255, 255, 0.07);
     box-shadow: 0 12px 34px rgba(0, 0, 0, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
@@ -691,6 +703,25 @@
 
 .table-actions-cell {
     vertical-align: middle;
+}
+
+.table-actions-cell .table-action-buttons,
+.table-actions-cell .table-action-buttons.table-action-buttons-row,
+.table-actions-cell .table-action-buttons.table-action-buttons-premium {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.table-actions-cell .table-action-buttons .btn,
+.table-actions-cell .table-action-buttons a {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 0;
+    white-space: nowrap;
 }
 
 .table-action-buttons,
@@ -1476,7 +1507,7 @@
     .org-related-header .page-actions .btn,
     .branch-documents-header-actions .btn,
     .branch-documents-header-actions-centered .btn {
-        flex: 1 1 180px;
+        flex: 0 0 auto;
     }
 }
 
@@ -1909,12 +1940,19 @@
 
     .branch-overview-record-actions .table-action-buttons {
         width: 100%;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 8px;
     }
 
     .branch-overview-record-actions .table-action-buttons .btn,
     .branch-overview-record-actions .table-action-buttons a {
-        flex: 1 1 calc(50% - 4px);
+        flex: 0 0 auto;
         width: auto;
+        min-width: 0;
+        white-space: nowrap;
     }
 
     .org-name-cell-with-media {
@@ -2220,7 +2258,7 @@
 
 .branch-overview-record-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 128px;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
     gap: 14px;
     align-items: stretch;
     padding: 14px 14px 14px 12px;
@@ -2427,13 +2465,15 @@
 
     .branch-overview-record-actions .table-action-buttons {
         flex-direction: row;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
 
     .branch-overview-record-actions .table-action-buttons .btn,
     .branch-overview-record-actions .table-action-buttons a {
         width: auto;
         min-width: 120px;
+        flex: 0 0 auto;
+        white-space: nowrap;
     }
 
     .branch-overview-record-main {
@@ -2475,7 +2515,7 @@
     .branch-overview-record-actions .table-action-buttons a {
         width: auto;
         min-width: 0;
-        flex: 1 1 calc(50% - 4px);
+        flex: 0 1 auto;
     }
 }
 
@@ -2653,9 +2693,6 @@
 /* -------------------------------------------------------------
    Theme normalization layer for organization + branch pages
 -------------------------------------------------------------- */
-.org-directory-card-premium,
-.org-related-card-premium,
-.org-detail-hero-card-premium,
 .branch-compliance-status-stack,
 .branch-overview-record-row,
 .branch-documents-page-shell .empty-state,

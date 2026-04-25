@@ -93,6 +93,38 @@
     padding: 18px 20px 20px;
 }
 
+.attendance-management-page .document-expiry-card {
+    margin-bottom: 22px;
+}
+
+.attendance-management-page .document-expiry-table-danger thead th {
+    background: rgba(185, 28, 28, 0.18);
+    color: #fecaca;
+}
+
+.attendance-management-page .document-expiry-table-warning thead th {
+    background: rgba(180, 83, 9, 0.18);
+    color: #fde68a;
+}
+
+.attendance-management-page .document-expiry-table-primary thead th {
+    background: rgba(30, 64, 175, 0.18);
+    color: #bfdbfe;
+}
+
+.attendance-management-page .document-expiry-card .data-table th:nth-child(6),
+.attendance-management-page .document-expiry-card .data-table td:nth-child(6) {
+    text-align: right;
+}
+
+.attendance-management-page .document-expiry-card .data-table th {
+    font-weight: 700;
+}
+
+.attendance-management-page .document-expiry-card .data-table td {
+    font-size: 0.95rem;
+}
+
 .attendance-management-page .directory-filter-form {
     display: grid;
     gap: 16px;
