@@ -5,23 +5,27 @@
 
 {% block extra_css %}
     {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/platform.css' %}">
+    <link rel="stylesheet" href="{% static 'css/system_landing.css' %}">
     <link rel="stylesheet" href="{% static 'css/branches.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="org-page-shell">
-    <div class="page-header org-page-header org-page-header-spacious">
-        <div>
-            <h1 class="page-title">{{ page_title }}</h1>
-            <p class="page-subtitle org-page-subtitle-wide">{{ page_subtitle }}</p>
-        </div>
-
-        {% if create_url %}
-            <div class="page-actions org-page-actions-top">
-                <a href="{{ create_url }}" class="btn btn-primary">Add New</a>
-            </div>
-        {% endif %}
+<section class="platform-hero system-home-compact-hero">
+    <div class="platform-hero-copy">
+        <h1>{{ page_title }}</h1>
+        <p>{{ page_subtitle }}</p>
     </div>
+
+    {% if create_url %}
+    <div class="platform-hero-side">
+        <div class="platform-hero-actions">
+            <a href="{{ create_url }}" class="btn btn-primary">Add New</a>
+        </div>
+    </div>
+    {% endif %}
+</section>
 
     {% if stat_cards %}
     <div class="stats-grid employee-stats-grid org-stats-grid-tight{% if organization_list_variant == 'branch_compliance_overview' %} org-stats-grid-branch-overview{% endif %}">

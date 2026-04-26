@@ -6,27 +6,33 @@
 
 {% block organization_content %}
 <div class="organization-shell org-page-shell branch-documents-page-shell">
-    <div class="branch-documents-header-centered branch-documents-hero-clean">
+<section class="platform-hero system-home-compact-hero">
+    <div class="platform-hero-copy">
         {% if is_branch_scoped_supervisor and scoped_branch %}
-            <h1 class="page-title">My Branch Documents</h1>
-            <p class="page-subtitle">
+            <h1>My Branch Documents</h1>
+            <p>
                 Upload, review, and keep official branch files updated for <strong>{{ scoped_branch.name }}</strong>.
                 Track expiry dates, missing checklist items, and renewal status from one place.
             </p>
-            <div class="branch-documents-header-actions branch-documents-header-actions-centered">
-                <a href="{% url 'organization:branch_detail' scoped_branch.pk %}" class="btn btn-light">Open My Branch</a>
-            </div>
         {% else %}
-            <h1 class="page-title">Branch Documents Center</h1>
-            <p class="page-subtitle">
+            <h1>Branch Documents Center</h1>
+            <p>
                 Upload and monitor store licenses, legal documents, permits, lease files, and other important branch records across all branches.
                 Define each branch checklist and instantly see what is missing, expired, or close to renewal.
             </p>
-            <div class="branch-documents-header-actions branch-documents-header-actions-centered">
-                <a href="{% url 'organization:branch_list' %}" class="btn btn-light">Open Branches</a>
-            </div>
         {% endif %}
     </div>
+
+    <div class="platform-hero-side">
+        <div class="platform-hero-actions">
+            {% if is_branch_scoped_supervisor and scoped_branch %}
+                <a href="{% url 'organization:branch_detail' scoped_branch.pk %}" class="btn btn-light">Open My Branch</a>
+            {% else %}
+                <a href="{% url 'organization:branch_list' %}" class="btn btn-light">Open Branches</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
 
     <div class="branches-summary-grid branch-documents-summary-grid-centered">
         <div class="summary-card branches-summary-card branch-documents-summary-card">

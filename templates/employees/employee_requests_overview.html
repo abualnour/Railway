@@ -4,33 +4,33 @@
 {% block title %}Employee Requests{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/system_landing.css' %}">
 <link rel="stylesheet" href="{% static 'css/employees.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="employee-requests-page">
-    <div class="page-header">
-        <div class="employee-requests-header-main">
-            <h1 class="page-title">Employee Requests</h1>
-            <p class="page-subtitle">
-                Review all employee submitted requests and related supporting files in one management-only page without changing the employee profile detail flow.
-            </p>
+<section class="platform-hero system-home-compact-hero">
+    <div class="platform-hero-copy">
+        <h1>Employee Requests</h1>
+        <p>
+            Review all employee submitted requests and related supporting files in one management-only page without changing the employee profile detail flow.
+        </p>
+        {% if is_branch_scoped_supervisor and scoped_branch %}
+            <p class="page-subtitle employee-requests-scope-note">Supervisor scope is limited to <strong>{{ scoped_branch.name }}</strong> branch requests. You can review your team requests and supporting files from this page.</p>
+        {% endif %}
+        <div class="platform-hero-meta">
+            <span class="platform-hero-chip">Total: {{ request_total }}</span>
+            <span class="platform-hero-chip">Pending: {{ pending_total }}</span>
             {% if is_branch_scoped_supervisor and scoped_branch %}
-                <p class="page-subtitle employee-requests-scope-note">Supervisor scope is limited to <strong>{{ scoped_branch.name }}</strong> branch requests. You can review your team requests and supporting files from this page.</p>
+                <span class="platform-hero-chip">Scope: {{ scoped_branch.name }}</span>
+            {% else %}
+                <span class="platform-hero-chip">Scope: Management View</span>
             {% endif %}
         </div>
-        <div class="employee-requests-header-tools">
-            <div class="employee-requests-header-meta">
-                <span class="employee-requests-header-chip">Total: {{ request_total }}</span>
-                <span class="employee-requests-header-chip">Pending: {{ pending_total }}</span>
-                {% if is_branch_scoped_supervisor and scoped_branch %}
-                    <span class="employee-requests-header-chip">Scope: {{ scoped_branch.name }}</span>
-                {% else %}
-                    <span class="employee-requests-header-chip">Scope: Management View</span>
-                {% endif %}
-            </div>
-        </div>
     </div>
+</section>
 
     <details class="card request-overview-card summary-disclosure-card">
         <summary class="summary-disclosure-toggle">

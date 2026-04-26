@@ -2,13 +2,19 @@
 
 {% block title %}Companies | NourAxis Systems{% endblock %}
 
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/platform.css' %}">
+    <link rel="stylesheet" href="{% static 'css/system_landing.css' %}">
+{% endblock %}
+
 {% block page_header %}
-<div class="page-header">
-    <div>
+<section class="platform-hero system-home-compact-hero">
+    <div class="platform-hero-copy">
         <h1>Companies</h1>
-        <p class="page-subtitle">Top-level company records in the organization structure.</p>
+        <p>Top-level company records in the organization structure.</p>
     </div>
-</div>
+</section>
 {% endblock %}
 
 {% block content %}

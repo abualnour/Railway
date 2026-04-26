@@ -4,32 +4,35 @@
 {% block title %}Employee Action Center{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/system_landing.css' %}">
 <link rel="stylesheet" href="{% static 'css/action_center.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="action-center-page">
-    <div class="page-header">
-        <div class="action-center-header-main">
-            <h1 class="page-title">Employee Action Center</h1>
-            <p class="page-subtitle">
-                Search for one employee first, then manage the selected employee from one focused action workspace instead of jumping between profile pages.
-            </p>
-        </div>
-        <div class="action-center-header-tools">
-            <div class="action-center-header-meta">
-                <span class="action-center-header-chip">Workspace: Admin Actions</span>
-                {% if selected_employee %}
-                    <span class="action-center-header-chip">Selected: {{ selected_employee.full_name }}</span>
-                {% else %}
-                    <span class="action-center-header-chip">Selected: None</span>
-                {% endif %}
-            </div>
-            <div class="page-actions action-center-header-actions">
-                <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">Back to Directory</a>
-            </div>
+<section class="platform-hero system-home-compact-hero">
+    <div class="platform-hero-copy">
+        <h1>Employee Action Center</h1>
+        <p>
+            Search for one employee first, then manage the selected employee from one focused action workspace instead of jumping between profile pages.
+        </p>
+        <div class="platform-hero-meta">
+            <span class="platform-hero-chip">Workspace: Admin Actions</span>
+            {% if selected_employee %}
+                <span class="platform-hero-chip">Selected: {{ selected_employee.full_name }}</span>
+            {% else %}
+                <span class="platform-hero-chip">Selected: None</span>
+            {% endif %}
         </div>
     </div>
+
+    <div class="platform-hero-side">
+        <div class="platform-hero-actions">
+            <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">Back to Directory</a>
+        </div>
+    </div>
+</section>
 
     <div class="action-center-shell">
         <div class="action-center-layout">

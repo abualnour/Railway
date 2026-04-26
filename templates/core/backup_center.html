@@ -5,29 +5,32 @@
 
 {% block extra_css %}
     {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/platform.css' %}">
+    <link rel="stylesheet" href="{% static 'css/system_landing.css' %}">
     <link rel="stylesheet" href="{% static 'css/backup_center.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="backup-center-shell">
-    <div class="page-header backup-center-header">
-        <div class="backup-center-header-main">
-            <h1 class="page-title">Backup &amp; Export Center</h1>
-            <p class="page-subtitle backup-center-subtitle">
-                Top-admin-only workspace for project backup creation, operational export files, and backup audit visibility.
-            </p>
-        </div>
-        <div class="backup-center-header-tools">
-            <div class="backup-center-header-meta">
-                <span class="backup-center-header-chip">Backups: {{ backup_count }}</span>
-                <span class="backup-center-header-chip">Employees: {{ employee_export_count }}</span>
-                <span class="backup-center-header-chip">Scope: Top Admin</span>
-            </div>
-            <div class="page-actions backup-center-header-actions">
-                <a href="{% url 'dashboard_home' %}" class="btn btn-light">Back to Dashboard</a>
-            </div>
+<section class="platform-hero system-home-compact-hero">
+    <div class="platform-hero-copy">
+        <h1>Backup &amp; Export Center</h1>
+        <p>
+            Top-admin-only workspace for project backup creation, operational export files, and backup audit visibility.
+        </p>
+        <div class="platform-hero-meta">
+            <span class="platform-hero-chip">Backups: {{ backup_count }}</span>
+            <span class="platform-hero-chip">Employees: {{ employee_export_count }}</span>
+            <span class="platform-hero-chip">Scope: Top Admin</span>
         </div>
     </div>
+
+    <div class="platform-hero-side">
+        <div class="platform-hero-actions">
+            <a href="{% url 'dashboard_home' %}" class="btn btn-light">Back to Dashboard</a>
+        </div>
+    </div>
+</section>
 
     <div class="backup-center-summary-grid">
         <div class="backup-summary-card">

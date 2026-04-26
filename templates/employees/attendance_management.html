@@ -4,30 +4,33 @@
 {% block title %}{{ attendance_history_page_title|default:"Attendance Management" }}{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/system_landing.css' %}">
 <link rel="stylesheet" href="{% static 'css/employees.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="attendance-management-page">
-<div class="page-header">
-    <div class="attendance-management-header-main">
-        <h1 class="page-title">{{ attendance_history_page_title|default:"Attendance Management" }}</h1>
-        <p class="page-subtitle">{{ attendance_history_page_subtitle }}</p>
-    </div>
-    <div class="attendance-management-header-tools">
-        <div class="attendance-management-header-meta">
-            <span class="attendance-management-header-chip">Snapshot: {{ attendance_snapshot_date|date:"M j, Y" }}</span>
+<section class="platform-hero system-home-compact-hero">
+    <div class="platform-hero-copy">
+        <h1>{{ attendance_history_page_title|default:"Attendance Management" }}</h1>
+        <p>{{ attendance_history_page_subtitle }}</p>
+        <div class="platform-hero-meta">
+            <span class="platform-hero-chip">Snapshot: {{ attendance_snapshot_date|date:"M j, Y" }}</span>
             {% if attendance_snapshot_is_single_day %}
-                <span class="attendance-management-header-chip">Mode: Single Day</span>
+                <span class="platform-hero-chip">Mode: Single Day</span>
             {% else %}
-                <span class="attendance-management-header-chip">Mode: Range View</span>
+                <span class="platform-hero-chip">Mode: Range View</span>
             {% endif %}
         </div>
-        <div class="page-actions attendance-management-header-actions">
+    </div>
+
+    <div class="platform-hero-side">
+        <div class="platform-hero-actions">
             <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">{{ attendance_history_back_button_label|default:"Back to Directory" }}</a>
         </div>
     </div>
-</div>
+</section>
 
 <div class="card filter-card">
     <div class="card-header">

@@ -74,6 +74,10 @@
     max-width: 760px;
 }
 
+.employee-directory-page .platform-hero {
+    margin-bottom: 18px;
+}
+
 .employee-directory-page .filter-card {
     margin-bottom: 18px;
 }

@@ -4,16 +4,19 @@
 {% block title %}Branches | NourAxis Systems{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/branches.css' %}">
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/platform.css' %}">
+    <link rel="stylesheet" href="{% static 'css/system_landing.css' %}">
+    <link rel="stylesheet" href="{% static 'css/branches.css' %}">
 {% endblock %}
 
 {% block page_header %}
-<div class="page-header">
-    <div>
+<section class="platform-hero system-home-compact-hero">
+    <div class="platform-hero-copy">
         <h1>Branches / Showrooms</h1>
-        <p class="page-subtitle">Branches linked to each company.</p>
+        <p>Branches linked to each company.</p>
     </div>
-</div>
+</section>
 {% endblock %}
 
 {% block content %}

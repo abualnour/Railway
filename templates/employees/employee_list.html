@@ -4,37 +4,39 @@
 {% block title %}Employees Directory{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/system_landing.css' %}">
 <link rel="stylesheet" href="{% static 'css/employees.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="employee-directory-page">
-<div class="page-header">
-    <div class="employee-directory-header-main">
-        <h1 class="page-title">Employees Directory</h1>
-        <p class="page-subtitle">
+<section class="platform-hero system-home-compact-hero">
+    <div class="platform-hero-copy">
+        <h1>Employees Directory</h1>
+        <p>
             Search, filter, and review employee records across your current organization structure and lifecycle status layer.
         </p>
         {% if is_branch_scoped_supervisor and scoped_branch %}
             <p class="page-subtitle employee-directory-scope-note">You are viewing a branch management scope for <strong>{{ scoped_branch.name }}</strong>. You can open employee profiles and review branch requests from here.</p>
         {% endif %}
-    </div>
-
-    <div class="employee-directory-header-tools">
-        <div class="employee-directory-header-meta">
-            <span class="employee-directory-header-chip">Filtered: {{ filtered_total }}</span>
-            <span class="employee-directory-header-chip">Active: {{ filtered_active }}</span>
+        <div class="platform-hero-meta">
+            <span class="platform-hero-chip">Filtered: {{ filtered_total }}</span>
+            <span class="platform-hero-chip">Active: {{ filtered_active }}</span>
             {% if is_branch_scoped_supervisor and scoped_branch %}
-                <span class="employee-directory-header-chip">Scope: {{ scoped_branch.name }}</span>
+                <span class="platform-hero-chip">Scope: {{ scoped_branch.name }}</span>
             {% else %}
-                <span class="employee-directory-header-chip">Scope: Directory View</span>
+                <span class="platform-hero-chip">Scope: Directory View</span>
             {% endif %}
         </div>
-        <div class="page-actions employee-directory-header-actions">
+    </div>
+
+    <div class="platform-hero-side">
+        <div class="platform-hero-actions">
             {% if can_manage_employees %}<a href="{% url 'employees:employee_create' %}" class="btn btn-primary">Add Employee</a>{% endif %}
         </div>
     </div>
-</div>
+</section>
 
 <div class="card dashboard-card filter-card">
     <div class="card-header employee-directory-filter-header">

@@ -4,26 +4,29 @@
 {% block title %}Document Expiry Dashboard{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+<link rel="stylesheet" href="{% static 'css/system_landing.css' %}">
 <link rel="stylesheet" href="{% static 'css/employees.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="attendance-management-page">
-    <div class="page-header">
-        <div class="attendance-management-header-main">
-            <h1 class="page-title">Document Expiry Dashboard</h1>
-            <p class="page-subtitle">Monitor active employee Civil ID and passport expiry windows across the organization.</p>
-        </div>
-        <div class="attendance-management-header-tools">
-            <div class="attendance-management-header-meta">
-                <span class="attendance-management-header-chip">Snapshot: {{ document_expiry_today|date:"M j, Y" }}</span>
-                <span class="attendance-management-header-chip">Tracked Records: {{ document_expiry_total }}</span>
-            </div>
-            <div class="page-actions attendance-management-header-actions">
-                <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">Back to Directory</a>
-            </div>
+<section class="platform-hero system-home-compact-hero">
+    <div class="platform-hero-copy">
+        <h1>Document Expiry Dashboard</h1>
+        <p>Monitor active employee Civil ID and passport expiry windows across the organization.</p>
+        <div class="platform-hero-meta">
+            <span class="platform-hero-chip">Snapshot: {{ document_expiry_today|date:"M j, Y" }}</span>
+            <span class="platform-hero-chip">Tracked Records: {{ document_expiry_total }}</span>
         </div>
     </div>
+
+    <div class="platform-hero-side">
+        <div class="platform-hero-actions">
+            <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">Back to Directory</a>
+        </div>
+    </div>
+</section>
 
     {% for group in document_expiry_groups %}
         <div class="card table-card document-expiry-card">
